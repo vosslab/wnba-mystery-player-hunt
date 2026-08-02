@@ -16,8 +16,8 @@ All player data is pulled offline and committed to the repo as JSON, bundled int
 `dist/` at build time. The published page makes zero network calls, which is what makes
 a static GitHub Pages deployment viable.
 
-An earlier draft (`plan_draft.md`, untracked at repo root) locked most of the product
-surface. This plan supersedes it and changes three things the draft got wrong or left
+An earlier draft (`plan_draft.md`) locked most of the product surface. This plan supersedes
+it and changes four things the draft got wrong or left
 unresolved:
 
 1. **Data comes from JSON embedded in public stats.wnba.com HTML pages wherever
@@ -50,6 +50,11 @@ unresolved:
 3. **Pickle behavior is observed, not guessed.** Where this plan is silent, the answer is
    whatever mlbpickle.com does. WP-1.4 records the real behavior before any gameplay code
    is written.
+4. **The clue list and answer pool are designed for WNBA fans.** Age remains, and overall
+   Draft pick joins Draft year as a separate clue, giving the baseline game nine clues.
+   The grid is driven by configured clue definitions rather than an eight-column limit.
+   Separately, a current-roster player is only a candidate; WP-1.3 selects a recognizable
+   answer and autocomplete pool so daily play is not dominated by unfamiliar names.
 
 This revision incorporates an external plan review. The material changes are recorded in
 `## Resolved decisions` and in the work packages: the guess count no longer reverts to
@@ -59,33 +64,37 @@ rather than a 320-pixel minimum. The roster data model was also simplified to a 
 committed file, with no versioning, manifest, activation dates, or structure
 fingerprinting: puzzles reset daily, so none of that machinery earns its keep.
 
-The largest change is how eligibility is decided. Earlier versions required a human to
+The first pool stage is eligibility. Earlier versions required a human to
 verify each player's contract class (standard versus hardship, seven-day, replacement, or
 camp). Nothing in the available data states contract class, so that review would have been
 manual, unbounded, and stale within a week of any transaction. Eligibility is now a
 reproducible rule computed from the committed data: a player is eligible when she is listed
-on a current team roster and has recorded at least a threshold number of WNBA minutes in
-the current or immediately preceding season. Minutes are used only as a build-time filter
-and never ship as a clue or appear in the snapshot -- the user's rule that no performance
-statistic reaches the game still holds.
+on a current team roster and has recorded recent WNBA minutes. Minutes are used only as a
+build-time filter and never ship as a clue or appear in the snapshot -- the user's rule
+that no performance statistic reaches the game still holds.
 
-State what this rule actually does, and not more. It measures meaningful recent
-participation. It is a good proxy for the pool a player would recognize, and it correlates
-with contract class, but it does not read contract class and does not guarantee that every
-hardship or replacement signing is excluded: a replacement player who logs real minutes
-passes it, and a rostered player who has not yet played fails it. That trade is acceptable
-because the rule is reproducible, cheap to re-derive on every refresh, and judged on the
-pool it produces rather than on a claim about contracts.
+Eligibility does not imply recognizability. A roughly 180-player roster pool risks turning
+the game into repeated encounters with names a typical fan does not know. The user reports
+that the Panini Donruss base set carries roughly 100 players, including rookies; that is a
+useful observation about the likely scale of a recognizable pool, not a data source or a
+gate. Card checklist data may be difficult to obtain and blocks nothing. WP-1.3 instead
+inspects the top 75, 100, 125, and 150 current-roster players by recent two-season minutes,
+shows the boundary names, and brings a recommended answer pool to the user. A readily
+verifiable card checklist may appear as optional context only. The answer pool and
+autocomplete use the same selected players, so obscure candidates cannot become optimal
+information-gain guesses.
 
 ## Objectives
 
 - Ship a playable daily WNBA guessing game served from `dist/` on GitHub Pages, with no
   runtime backend and no runtime network calls.
 - Match observed MLB Pickle behavior on every interaction the two games share.
-- Make roster eligibility reproducible: one computed rule, applied to committed data, that
-  any refresh re-derives identically and that survives roster churn without manual review.
+- Make roster eligibility reproducible, then select a recognizable answer and guess pool
+  from those candidates using a measured, reviewable rule.
 - Calibrate the guess count against a measured solve distribution from a specified solver,
   rather than an assumed number.
+- Make the clue set recognizable to WNBA fans and interesting to learn from, then measure
+  each clue's deduction value and redundancy instead of preserving MLB's column count.
 - Preserve in-progress games, statistics, and streaks across refreshes, with an
   in-progress puzzle that resets cleanly when the day rolls over.
 - Deliver an accessible portrait-first light and dark theme built only from the four
@@ -101,17 +110,25 @@ handedness is meaningless in basketball). A parity question that WP-1.4 did not 
 escalated, not invented. The parity rule governs interface and interaction; it does not
 reopen a decision the user has already made.
 
-The governing trade-off: **a small, verified answer pool beats a large, unverifiable
-one.** Roughly 180 active players is a narrow pool, and the draft's instinct was to keep
-Pickle's nine guesses anyway. Instead this plan holds the pool small and correct (the
-user's explicit eligibility rule) and pays for difficulty with fewer guesses. Rejected
-alternative: widening the pool to recent seasons, which restores nine-guess difficulty but
-reintroduces exactly the verification burden the user asked to eliminate.
+**The WNBA identity rule.** College is a defining WNBA clue, not a generic biography
+substitute: programs such as Connecticut, South Carolina, Stanford, Notre Dame, Tennessee,
+Baylor, and Iowa immediately locate a player in the league's culture. Draft year and
+overall Draft pick remain separate because they answer different questions: era and entry
+expectation. Age remains as a useful Pickle-parity clue, but it is not assumed to be fan
+knowledge. The game may teach a compact fact as long as the clue produces meaningful
+deduction. No arbitrary column count overrides that test.
+
+The governing trade-off: **a recognizable answer pool beats a complete roster.** A full
+current roster is correct but may not be fun: a deduction game fails when the answer and
+the useful guesses are mostly unknown names. This plan keeps current-roster membership as
+a hard eligibility gate, then intentionally selects the familiar part of that pool. The
+rejected alternative is treating every eligible player as equally suitable for daily play.
 
 Two repo core philosophies from `docs/REPO_STYLE.md` carry weight here:
 
-- **Use the scientific method.** Guess count and arrow presence are hypotheses. WP-5.1
-  measures them with a specified solver and the plan updates from the measurement.
+- **Use the scientific method.** Pool size, guess count, arrow presence, Draft-pick
+  tolerance, and each clue's marginal value are hypotheses. WP-1.3 and WP-5.1 measure them
+  and the plan updates from the evidence.
 - **Fix the design, not the symptom.** Roster data is a reviewed build-time artifact,
   never a runtime fetch with a fallback. Eligibility is a rule recomputed from that data,
   not a human judgment cached in a spreadsheet; a player who fails the rule is excluded,
@@ -120,11 +137,14 @@ Two repo core philosophies from `docs/REPO_STYLE.md` carry weight here:
 Evidence strategy for uncertain methods:
 
 - Pickle behavior is proved by direct observation (WP-1.4).
+- WNBA clue identity is evaluated in WP-1.4 with a fan-salience and data-quality matrix;
+  WP-5.1 then measures each selected clue's information gain and redundancy.
 - Data source viability is proved by a bounded multi-team, multi-player probe (WP-1.2) that
   also characterizes request pacing and access behavior. The probe's first job is finding a
   page-based enumeration route, because the REST family is already known to throttle.
-- The eligibility threshold is proved by inspecting the real league-wide minutes
-  distribution (WP-1.3) before the cutoff is locked.
+- Recognizability is tested in WP-1.3 by comparing recent-minutes pools at 75, 100, 125,
+  and 150 players and showing named boundary players. The Donruss observation motivates
+  the experiment but supplies no required data and no pass/fail criterion.
 - Difficulty is proved by a specified, reproducible solver over the real snapshot (WP-5.1).
 - Palette contrast is proved by measured ratios against actually-rendered backgrounds
   (WP-5.5).
@@ -132,19 +152,20 @@ Evidence strategy for uncertain methods:
 ## Scope
 
 - Build a one-page TypeScript browser game with search, autocomplete, a "Pick for me"
-  helper, an eight-column comparison grid, statistics, a result dialog, and share output.
+  helper, a configurable comparison grid, statistics, a result dialog, and share output.
 - Present one deterministic mystery player per UTC day, selected from a committed roster
   snapshot, with six guesses (subject to the WP-5.1 calibration gate, bounded to 5 to 7).
-- Evaluate eight clue columns: Team, Conference, Height, Draft year, Country, College,
-  Age, Position, with exact and partial states, and directional arrows on the ordinal
-  columns per the WP-1.4 adaptation rule.
+- Evaluate nine baseline clues: Team, Conference, Height, Draft year, Draft pick, Country,
+  College, Age, and Position, with exact and partial states and directional arrows on the
+  ordinal clues per the WP-1.4 adaptation rule. Keep clue count configurable; WP-1.4 may
+  recommend additional compact WNBA-natural clues before the type contracts freeze.
 - Build a two-stage Python 3.12 data pipeline that stands entirely apart from the game:
   fetch candidates from the stats.wnba.com pages into an ignored working file, then apply
   the computed eligibility rule and emit a versioned, validated snapshot JSON committed to
   the repo. The game consumes only that file; no build or test step ever runs the fetcher.
-- Compute eligibility from the fetched data: listed on a current team roster, and at least
-  the threshold minutes in the current or preceding season. Minutes stay in the working
-  file and never enter the shipped snapshot.
+- Compute a current-roster candidate pool, rank it by recent two-season minutes, and apply
+  the WP-1.3 recognizability rule to both the answer pool and autocomplete. Minutes stay in
+  the working file and never enter the shipped snapshot.
 - Persist puzzle progress, statistics, guess distribution, streaks, and theme under one
   versioned localStorage key, with an in-progress puzzle bound to its originating
   snapshot.
@@ -160,16 +181,18 @@ Evidence strategy for uncertain methods:
 
 - Build a yes/no question mode. The grid carries the elimination mechanic in v1; the clue
   engine keeps a documented seam so a question bank can layer on later.
-- Include players who are not on a current roster, or who have not reached the minutes
-  threshold, in either the answer pool or the guess list. This is what replaces the
-  contract-class rule: brief hardship, seven-day, and camp appearances fall below the
-  threshold, and waived or rights-only players are absent from current rosters.
+- Include players who are not on a current roster or outside the WP-1.3 recognizable-pool
+  rule in either the answer pool or autocomplete.
 - Ship any performance statistic as a clue or a snapshot field: points, rebounds, assists,
   rankings, fantasy values, efficiency metrics, or minutes. Minutes exist only in the
   gitignored working file, as the eligibility filter.
 - Research contract class by hand. No manual per-player contract review is performed.
 - Fetch data at runtime, run a server, add authentication, or synchronize across devices.
 - Ship team logos, player headshots, handedness, audio, or animation-heavy presentation.
+- Cap the clue list at eight or preserve MLB's table width when another compact clue makes
+  the WNBA game better.
+- Show Draft round as its own clue. Overall Draft pick supplies the useful entry signal.
+- Require trading-card checklist data for a refresh or use card inclusion as a player gate.
 - Add colors outside the four brand tokens: no purple, green, gold, team colors, or
   decorative gradients.
 - Produce a `dist-single/` single-file export. GitHub Pages serves `dist/`.
@@ -188,17 +211,23 @@ Locked by the user or by this revision. Not reopened during execution.
 | North star | MLB Pickle for the WNBA; observed parity is the default answer | User requirement |
 | Game mode | Pickle-style comparison grid only | User selection |
 | Guesses per day | 6. Calibration may move it within 5 to 7. Nine is reference information only and does not re-enter automatically | User selection, narrowed by review |
-| Answer pool | Players listed on a current WNBA roster who have recorded at least the threshold minutes in the current or immediately preceding season | User requirement, made measurable |
-| Minutes threshold | Provisionally 100; WP-1.3 inspects the real distribution and sets the value | Provisional hypothesis |
-| Rookie rule | A current rookie becomes eligible on reaching the same threshold; no exception | Cleanest rule, avoids a special case |
+| Candidate pool | Players listed on a current WNBA roster with recent participation data | User requirement, made measurable |
+| Answer and guess pool | One recognizable subset selected by WP-1.3 from the same ranked candidates | User concern about unknown players |
+| Recognizability experiment | Compare top 75, 100, 125, and 150 by recent two-season minutes, with named boundary players and user review | User decision |
+| Trading cards | Motivation or optional context only; never a gate or required data source | User decision |
+| Rookie treatment | Evaluated in the same ranked pool; WP-1.3 must call out recognizable rookies near or outside each boundary | User concern |
 | Minutes visibility | Build-time filter only; never a clue, never a snapshot field | User rule on performance statistics |
 | Data source | JSON embedded in stats.wnba.com HTML pages (`window.nbaStats*`), no account required | User selection, proven by the prototype |
 | Retrieval route | Prefer HTML pages; `/stats/` REST is throttled and is a last resort requiring proven pacing | Observed behavior |
 | Authenticated feeds | Ruled out; Sportradar and similar require an account | User decision |
 | Data delivery | Pulled offline, committed as JSON, bundled into `dist/`; zero runtime fetches | User requirement |
 | Handedness | Omitted; basketball has no equivalent of Pickle's bats/throws column | User guidance |
-| Clue fields | Team, Conference, Height, Draft year, Country, College, Age, Position | Draft, plus College at user request |
+| Baseline clue fields | Team, Conference, Height, Draft year, Draft pick, Country, College, Age, Position | User decisions; Draft pick added without removing Age |
+| Clue count | No hard maximum; one configured clue-definition list drives every consumer | User decision |
+| Draft pick clue | Overall selection number, separate from Draft year; drafted and undrafted players supported | User decision |
+| Draft round | Not displayed as its own clue | User decision |
 | College clue | Exact match only, from `SCHOOL`; players with no US college share one normalized bucket | User request; sample confirms the field exists |
+| Age clue | Retained alongside Draft pick; derived for the UTC puzzle date | User decision |
 | Position match | Exact when primary equals primary; partial when the two players' full position sets overlap in either direction | Review point 7 |
 | Country authority | ISO 3166 English short names, plus one committed override table for upstream spellings and territories | Review point 8 |
 | Completion ownership | One pure transition in `src/game_state.ts` updates puzzle state and statistics together; dialog and share read it | Review point 25 |
@@ -208,8 +237,8 @@ Locked by the user or by this revision. Not reopened during execution.
 
 ## Current state summary
 
-- Repo is the bare TypeScript starter: no `src/`, no `tests/test_*.mjs`, no
-  `tests/playwright/*.spec.ts` (only `repo_root.mjs`), empty `docs/CHANGELOG.md`.
+- Repo is the bare TypeScript starter: no `src/`, no `tests/test_*.mjs`, and no
+  `tests/playwright/*.spec.ts` (only `repo_root.mjs`).
 - Front-door scripts exist and are executable: `check_codebase.sh`,
   `build_github_pages.sh`, `run_web_server.sh`, `run_playwright_tests.sh`,
   `devel/clean_build.sh`.
@@ -224,7 +253,8 @@ Locked by the user or by this revision. Not reopened during execution.
     exits 2 with `TS18003`.
   - `pip_requirements.txt` does not exist (only `pip_requirements-dev.txt`).
     `tests/test_import_requirements.py` fails as soon as the pipeline imports `requests`.
-- `plan_draft.md` is untracked and superseded; retire it in M2.
+- The current plan is filed at `docs/active_plans/wnba_game-plan.md`; the superseded
+  `plan_draft.md` has already been retired.
 - A working data prototype already exists at the repo root: `fetch_wnba_player_data.py`
   plus its output `wnba_player_samples.json`. It proves the retrieval path end to end for
   three known players. Two limits to carry into M3:
@@ -247,9 +277,10 @@ self-contained.
 A real three-player sample of `commonplayerinfo` output is already in the repo at
 `wnba_player_samples.json` (A'ja Wilson, Caitlin Clark, Breanna Stewart). It confirms the
 field names and formats in the table below, so the plan no longer guesses at them. It also
-confirms two things worth stating plainly: `SCHOOL` is present, which is what makes the
-College clue possible; and `headline_stats` carries `PTS`, `AST`, `REB`, and `PIE`, which
-is exactly the payload the field allowlist exists to drop.
+confirms three things worth stating plainly: `SCHOOL` is present, which is what makes the
+College clue possible; `DRAFT_NUMBER` is present, which makes overall Draft pick available;
+and `headline_stats` carries `PTS`, `AST`, `REB`, and `PIE`, which is exactly the payload
+the field allowlist exists to drop.
 
 | Field | Type | Upstream key | Notes |
 | --- | --- | --- | --- |
@@ -260,15 +291,15 @@ is exactly the payload the field allowlist exists to drop.
 | `conference` | `"East" \| "West"` | derived | Static team-to-conference table in `src/constants.ts` |
 | `heightInches` | number | `HEIGHT` | Upstream is feet-dash-inches. Sample: `6-4`, `6-0` |
 | `birthDateUtc` | ISO date string | `BIRTHDATE` | Sample: `1996-08-08T00:00:00`. Age is derived from this for the puzzle date by the clue engine; the upstream `AGE` field is deliberately unused, because it is current-day and not puzzle-day |
-| `draft` | discriminated union | `DRAFT_YEAR` | Upstream is a string. Sample: `"2018"`. The undrafted spelling is unconfirmed and is a named WP-1.2 question |
+| `draft` | discriminated union | `DRAFT_YEAR`, `DRAFT_NUMBER` | Drafted players carry year and overall pick. Both are strings upstream; the sample confirms `"2018"` and `"1"`. The undrafted spellings remain a WP-1.2 question |
 | `country` | string | `COUNTRY` | Sample: `USA`. Normalized per the country authority above |
 | `college` | string | `SCHOOL` | Sample: `South Carolina`, `Iowa`, `Connecticut`. `LAST_AFFILIATION` (`Iowa/USA`) is the cross-check for players with no US college |
 | `positionPrimary` | `"G" \| "F" \| "C"` | `POSITION_INITIALS` | Sample: `C`, `G`, `F` |
 | `positionAlternates` | ordered array | `POSITION` | Upstream is a full word in all three samples (`Center`, `Guard`, `Forward`), so alternates are empty for them. Compound spellings may exist for other players; WP-1.2 reports the league-wide value set |
 
-Roster file envelope: `schemaVersion`, `asOfDateUtc`, `sourceNote`, `eligibilityRule`,
-`players[]`. The `eligibilityRule` field records the threshold and the seasons used, so the
-shipped file states the rule that produced it.
+Roster file envelope: `schemaVersion`, `asOfDateUtc`, `sourceNote`, `selectionRule`,
+`players[]`. The `selectionRule` field records the current-roster gate, ranking quantity,
+seasons used, and selected pool size, so the shipped file states the rule that produced it.
 
 ### Stable game-facing interface
 
@@ -306,15 +337,29 @@ statistic cannot leak in silently.
 
 Working-file-only fields, present in the gitignored candidate file and deliberately absent
 from the shipped snapshot: `minutesCurrentSeason`, `minutesPreviousSeason`, `ROSTERSTATUS`,
-`GAMES_PLAYED_CURRENT_SEASON_FLAG`, `TO_YEAR`, `SEASON_EXP`, the whole `headline_stats`
-block, and the raw upstream country and school strings. These drive the eligibility filter
-and stop there.
+`GAMES_PLAYED_CURRENT_SEASON_FLAG`, `TO_YEAR`, `SEASON_EXP`, `DRAFT_ROUND`, the whole
+`headline_stats` block, and the raw upstream country and school strings. These support pool
+selection and normalization and stop there.
 
-Eligibility is computed, not reviewed. A candidate is eligible when both hold:
+Candidate eligibility is computed, not reviewed. A player enters the ranked candidate set
+when both hold:
 
 - She appears on a current team roster, per whichever enumeration route WP-1.2 proves.
   Roster membership is the source of truth for "is she on a team right now".
-- `max(minutesCurrentSeason, minutesPreviousSeason)` is at least the configured threshold.
+- The pipeline has complete current- and previous-season participation data for her. A zero
+  is valid data; a missing record is not.
+
+The recognition ranking is the sum of current- and previous-season minutes. WP-1.3 inspects
+the top 75, 100, 125, and 150 rather than assuming a cutoff. For each boundary it lists the
+players just inside and outside, calls out recognizable veterans and rookies that the metric
+may underrank, and reports months before a guaranteed repeat. The user then approves the
+pool size or asks for a different reproducible ranking rule. The selected set becomes both
+the answer pool and the autocomplete pool.
+
+The Donruss observation motivates this experiment but never enters the algorithm. If a
+current checklist is easy to verify, the report may state overlap as context. If it is not,
+the report proceeds unchanged and card data is absent from the pipeline, snapshot, and
+release gates.
 
 `ROSTERSTATUS` (`Active` in all three samples) is supporting evidence, not a mandatory
 second gate. If roster enumeration is authoritative, the field adds nothing, and it could
@@ -327,18 +372,20 @@ The minutes fields are the one part of this rule the sample does not confirm:
 minutes must come from another endpoint. Confirming that endpoint is a named WP-1.2
 deliverable. If no per-season minutes endpoint is reachable without an account, the
 fallback is games played, using `GAMES_PLAYED_CURRENT_SEASON_FLAG` plus a per-season games
-count, with WP-1.3 selecting a games threshold instead of a minutes threshold by the same
-distribution method. The rule's shape does not change; only the quantity does.
+count, with WP-1.3 ranking the same candidate pool by two-season games instead. The
+experiment's shape does not change; only the ranking quantity does.
 
-Two seasons are used because a single-season rule would drop established players, injured
-players, and offseason acquisitions early in a season before they accumulate minutes. A
-current rookie is simply a player with no previous-season minutes; she becomes eligible on
-crossing the threshold, with no special case.
+Two seasons are used because a single-season ranking would bury established players,
+injured players, and offseason acquisitions early in a season before they accumulate
+minutes. A rookie has zero previous-season minutes and is ranked by current minutes; the
+WP-1.3 boundary review makes any recognizability failure visible rather than hiding it in a
+special-case rule.
 
 `data_review/eligibility_overrides.csv` (committed, expected to stay empty or near-empty):
 `playerId`, `displayName`, `forceEligible`, `reason`, `reviewDateUtc`. This is an escape
-hatch for a genuine data error, not a review workflow. The generator reports every override
-it applied so an accumulating override list is visible rather than silent.
+hatch for a genuine roster-data error, not a fame ranking or review workflow. The generator
+reports every override it applied so an accumulating override list is visible rather than
+silent.
 
 ## Architecture boundaries and ownership
 
@@ -386,6 +433,9 @@ inside another lane's files requests it through the orchestrator.
 - The clue engine and daily selection are pure: records in, feedback out. No DOM, no
   storage, no clock; the UTC date is a parameter. This is what makes the solver simulation
   and the unit tests possible.
+- One ordered clue-definition list owns clue identity, labels, comparison behavior, and
+  display format. The grid, solver, share output, and tests iterate that list; none encodes
+  a column count.
 - `src/game_state.ts` owns the authoritative game transitions: accept-or-reject a guess
   (including the duplicate rule) and the single active-to-won-or-lost completion step that
   updates puzzle state and statistics together. The dialog, share, and interaction modules
@@ -398,7 +448,7 @@ inside another lane's files requests it through the orchestrator.
 | Milestone / Workstream | Component | Review boundary |
 | --- | --- | --- |
 | M1 / WS-A0 | `src/types/*.ts`, `src/brands.ts` | Orchestrator-owned for the whole build |
-| M1 / WS-Q | Probe, parity, and eligibility-source reports under `docs/active_plans/reports/` | Observation and reporting; writes no product code |
+| M1 / WS-Q | Probe, recognizability, parity, and clue-identity reports under `docs/active_plans/reports/` | Observation and reporting; writes no product code |
 | M2 / WS-F | `src/main.ts`, `src/index.html`, `src/style.css`, `src/constants.ts`, a development `src/data/roster.json`, `tsconfig.lint.json`, `pip_requirements.txt`, `tests/playwright/smoke.spec.ts` | Sequential; unblocks every parallel lane without waiting on real data |
 | M3 / WS-D | `tools/*.py`, `data_review/`, `src/data/`, `tests/test_roster_snapshot.py` | Python lane; publishes the snapshot |
 | M3 / WS-U | `src/ui_grid.ts`, `src/ui_controls.ts`, `src/style.css`, `src/index.html` | Presentation; publishes render functions |
@@ -414,7 +464,7 @@ inside another lane's files requests it through the orchestrator.
 
 | M | Title | Summary | Goal |
 | --- | --- | --- | --- |
-| M1 | External assumptions and contracts | Prove the endpoints, set the eligibility threshold, record Pickle's real behavior, write shared types | No lane starts on an unproven assumption |
+| M1 | External assumptions and contracts | Prove the endpoints, select a recognizable pool, record Pickle and WNBA clue evidence, write shared types | No lane starts on an unproven assumption |
 | M2 | Foundation and build shell | Booting page, constants, development snapshot, scaffold hazards cleared, first smoke spec | The game builds and renders against schema-valid data while the data lane still investigates |
 | M3 | Infrastructure batch | Data pipeline, interface shell, persistence in parallel | A real committed snapshot, a rendered grid, working storage |
 | M4 | Core gameplay batch | Selection, clue engine, game state, interaction, tests | A complete win path and a complete loss path |
@@ -424,17 +474,19 @@ inside another lane's files requests it through the orchestrator.
 
 - Depends on: none.
 - Deliverables: `src/types/*.ts` and `src/brands.ts`; an API field-inventory, access, and
-  minutes-pull report; a minutes-threshold decision report; an observed-Pickle-behavior
-  parity report; a data-use decision record.
+  minutes-pull report; a recognizable-pool decision report; an observed-Pickle-behavior and
+  WNBA-clue report; a data-use decision record.
 - Entry criteria: none.
 - Exit criteria: `npx tsc --noEmit -p tsconfig.json` succeeds on the types alone; the API
   report confirms every inventory field across a multi-team sample, characterizes request
-  pacing, and supplies a league-wide minutes pull; the threshold report names the chosen
-  minutes cutoff and the resulting pool size; the parity report answers every question
-  WP-1.4 lists; the data-use record states whether public deployment proceeds.
+  pacing, and supplies a league-wide minutes pull; the pool report compares 75, 100, 125,
+  and 150 players, names boundary players, and records the user's approved rule; the parity
+  and clue report answers every question WP-1.4 lists; the data-use record states whether
+  public deployment proceeds.
 - Done checks: three reports and one decision record committed; types compile.
-- Parallel-plan ready: partly. WP-1.1, WP-1.2, and WP-1.4 are mutually independent; WP-1.3
-  depends on WP-1.2's minutes pull and WP-1.5 depends on WP-1.2's access findings.
+- Parallel-plan ready: partly. WP-1.2 and WP-1.4 begin independently; WP-1.3 depends on
+  WP-1.2's minutes pull, WP-1.1 depends on WP-1.4's clue decision, and WP-1.5 depends on
+  WP-1.2's access findings.
 
 ### Milestone: M2 foundation and build shell
 
@@ -445,8 +497,8 @@ inside another lane's files requests it through the orchestrator.
   properties, `src/constants.ts` with the team-to-conference table,
   a development `src/data/roster.json`,
   `tests/playwright/smoke.spec.ts`, `pip_requirements.txt`, a working
-  `tsconfig.lint.json`, `plan_draft.md` retired, this plan filed under
-  `docs/active_plans/active/`.
+  `tsconfig.lint.json`, and the active plan kept current at
+  `docs/active_plans/wnba_game-plan.md`.
 - Entry criteria: WP-1.1 and WP-1.4 complete.
 - Exit criteria: `./check_codebase.sh` reports every step PASS or an explained SKIP;
   `./build_github_pages.sh` emits `dist/main.js`, `dist/index.html`, `dist/.nojekyll`;
@@ -522,18 +574,18 @@ inside another lane's files requests it through the orchestrator.
 - Work packages: WP-1.1.
 - Needs: nothing.
 - Provides: `PlayerId` and `PuzzleNumber` brands; `Conference`; `PositionCode`;
-  `DraftInfo`; `PlayerRecord`; `RosterSnapshotV1`; `CellFeedback`; `GuessEvaluation`;
-  `DailyPuzzleState`; `SaveDataV1`; `KeyValueStore`.
+  `DraftInfo`; `ClueId`; `ClueDefinition`; `PlayerRecord`; `RosterSnapshotV1`;
+  `CellFeedback`; `GuessEvaluation`; `DailyPuzzleState`; `SaveDataV1`; `KeyValueStore`.
 - Review boundary: a mid-batch contract change requires re-running the typecheck for every
   lane before the batch is green.
 
 ### Workstream: WS-D roster data pipeline
 
-- Goal: a versioned, validated snapshot produced by a reproducible eligibility rule and
+- Goal: a versioned, validated snapshot produced by the approved recognizable-pool rule and
   carrying no performance fields.
 - Owner: `coder` (Python 3.12).
 - Work packages: WP-3.1, WP-3.2, WP-3.3.
-- Needs: the WP-1.2 field inventory, the WP-1.3 minutes threshold, and the roster JSON
+- Needs: the WP-1.2 field inventory, the WP-1.3 pool-selection rule, and the roster JSON
   schema published in prose by WP-1.1.
 - Provides: `src/data/roster.json`, plus the validator and the refresh commands. That one
   fixed path and its documented schema are the lane's entire public surface; a refresh
@@ -606,7 +658,7 @@ inside another lane's files requests it through the orchestrator.
   `image_evaluator` for the visual pass.
 - Work packages: WP-1.2, WP-1.3, WP-1.4 (in M1), WP-5.1, WP-5.4, WP-5.5.
 - Needs: browser and network access in M1; a complete playable build in M5.
-- Provides: the M1 reports, the minutes threshold, the calibration report, the Playwright
+- Provides: the M1 reports, the approved pool rule, the calibration report, the Playwright
   suite, and the contrast audit.
 - Review boundary: owns `tests/playwright/` after M2 hands over the smoke spec, plus the
   simulation tool and the audit doc.
@@ -627,9 +679,11 @@ inside another lane's files requests it through the orchestrator.
 - Owner: orchestrator with `typescript-engineer`.
 - Touch points: `src/types/player.ts`, `src/types/puzzle.ts`, `src/types/save.ts`,
   `src/brands.ts`.
-- Depends on: none.
+- Depends on: WP-1.4 (the selected clue definitions determine the cross-module contract).
 - Acceptance criteria: every shape in the WS-A0 "Provides" list exists; snapshot JSON
   enters as `unknown` and passes through an explicit validator rather than a cast;
+  the ordered clue-definition collection has no fixed length and is the only source of
+  clue labels and identity; `DraftInfo` carries overall pick separately from year;
   `DailyPuzzleState` carries the puzzle's UTC date, the target `playerId`, and each guess's
   evaluated `CellFeedback` row, so a stale puzzle is detectable and already-played rows
   redisplay without a lookup; the typecheck succeeds.
@@ -645,10 +699,10 @@ inside another lane's files requests it through the orchestrator.
 - Depends on: none.
 - Already answered by `wnba_player_samples.json`, and not to be re-derived: the
   `commonplayerinfo` field names, the height format (`6-4`), the birthdate format
-  (`1996-08-08T00:00:00`), the drafted representation (`DRAFT_YEAR` as a string), the team
-  tricode field, the presence of `SCHOOL`, `COUNTRY`, `POSITION_INITIALS`, and
-  `ROSTERSTATUS`, and the fact that `headline_stats` carries scoring lines that the
-  allowlist must drop.
+  (`1996-08-08T00:00:00`), the drafted representations (`DRAFT_YEAR` and `DRAFT_NUMBER` as
+  strings), the team tricode field, the presence of `SCHOOL`, `COUNTRY`,
+  `POSITION_INITIALS`, and `ROSTERSTATUS`, and the fact that `headline_stats` carries
+  scoring lines that the allowlist must drop.
 - Acceptance criteria: the report resolves the questions the sample leaves open, using a
   league-wide pull rather than three players:
   - How to enumerate every current player. The prototype fetches by hard-coded id, so this
@@ -665,8 +719,8 @@ inside another lane's files requests it through the orchestrator.
     way) before reaching for a `/stats/` path such as `leaguedashplayerstats`, which is in
     the throttled family. If no route yields minutes at acceptable cost, say so and pull
     per-season games played instead.
-  - How an undrafted player is represented in `DRAFT_YEAR` (all three samples are number
-    one picks, so this is unconfirmed).
+  - How an undrafted player is represented in both `DRAFT_YEAR` and `DRAFT_NUMBER` (all
+    three samples are number one picks, so this is unconfirmed).
   - The full set of distinct `POSITION` values league-wide, which settles whether compound
     positions such as `Guard-Forward` exist at all, and therefore whether the Position
     partial state can ever trigger.
@@ -683,42 +737,39 @@ inside another lane's files requests it through the orchestrator.
 - Obvious follow-ons: if a field is missing upstream or the request volume looks
   impractical, escalate to the user before M3 rather than substituting a source.
 
-### Work package: WP-1.3 select the minutes threshold
+### Work package: WP-1.3 select the recognizable player pool
 
 - Owner: `tester`.
-- Touch points: one report under `docs/active_plans/reports/`, the threshold constant
-  consumed by WP-3.2.
+- Touch points: one report under `docs/active_plans/reports/`, the ranking and pool-size
+  constants consumed by WP-3.2.
 - Depends on: WP-1.2 (needs a league-wide minutes pull).
-- Acceptance criteria: the report gives the league-wide distribution of
-  `max(currentSeasonMinutes, previousSeasonMinutes)` across every player on a current
-  roster, as a histogram plus the counts of eligible players at candidate thresholds of 0,
-  50, 100, 200, and 400 minutes; it names, at each candidate threshold, several players
-  included and several excluded, so the effect is legible rather than statistical; it
-  reports the resulting pool size at each threshold.
-- Decision rule, stated in observable terms only: choose the lowest threshold that keeps
-  ordinary rotation and bench players, removes extremely low-participation roster entries,
-  and leaves a workable pool. The data does not label contract class, so the report states
-  what the threshold does to participation and to the pool, and does not claim it excludes
-  hardship, seven-day, or replacement signings specifically. Named player inspection
-  supports the judgment; it does not license a classification claim. 100 minutes is the
-  starting hypothesis, not a conclusion. If the distribution shows no natural break, say so
-  and recommend a value rather than manufacturing a rationale for one.
-- Pool size is a planning target, not a gate. Roughly 120 or more players keeps a daily
-  cycle running several months before repeating, and roughly 180 is what a full active
-  league would supply before any threshold is applied; the threshold necessarily lands
-  below that. The report's job is to state the actual pool size at each candidate and hand
-  it to WP-5.1, which measures what that size does to solve difficulty and to repeat
-  frequency. A pool below the planning target is a conversation with the user, not an
-  automatic failure.
-- Evidence: the histogram, the per-threshold pool sizes, and the named example players.
-- Obvious follow-ons: hand the chosen pool size to WP-5.1, whose calibration depends on it;
-  a materially different pool size than roughly 180 may shift the guess count.
+- Acceptance criteria: rank every current-roster candidate by
+  `minutesCurrentSeason + minutesPreviousSeason`, descending, with ascending `playerId` as
+  the deterministic tie-break. For candidate pool sizes 75, 100, 125, and 150, report:
+  - The complete selected name list and at least ten names on each side of the boundary.
+  - Current rookies and established high-recognition players near or outside the boundary,
+    so a failure of the minutes proxy is visible.
+  - Team, conference, position, country, and college coverage, so recognizability does not
+    accidentally collapse the game's clue diversity.
+  - Guaranteed days before a repeat within one unchanged snapshot.
+  - Optional Donruss overlap only if a current checklist is easy to obtain and verify. No
+    missing checklist may delay or weaken the report.
+- Decision rule: recommend the smallest pool whose named list still feels representative
+  of the WNBA, whose boundary is mostly players a typical fan could plausibly recognize,
+  and whose repeat cycle remains acceptable. Present all four lists and the recommendation
+  to the user; user approval locks the pool size and ranking rule before WP-3.2. If the
+  minutes ordering clearly buries recognizable rookies or stars, compare one deterministic
+  alternative ranking and ask the user rather than adding silent manual exceptions.
+- Evidence: the four ordered lists, boundary tables, coverage comparison, repeat-cycle
+  lengths, and the user's recorded selection. Card data is never required evidence.
+- Obvious follow-ons: hand the approved rule to WP-3.2 and all four pool variants to WP-5.1
+  so difficulty can be reported against the chosen pool and its neighboring sizes.
 
-### Work package: WP-1.4 record observed Pickle behavior
+### Work package: WP-1.4 record Pickle behavior and evaluate WNBA clues
 
 - Owner: `playwright_operator`.
-- Touch points: one parity report under `docs/active_plans/reports/`, screenshots under
-  `test-results/`.
+- Touch points: one parity and clue-identity report under `docs/active_plans/reports/`,
+  screenshots under `test-results/`.
 - Depends on: none.
 - Acceptance criteria: the agent plays a real round at mlbpickle.com and records, each
   with a screenshot reference and as a factual statement rather than an inference: the
@@ -727,18 +778,34 @@ inside another lane's files requests it through the orchestrator.
   autocomplete activates and what each row shows; duplicate-guess handling; the
   end-of-game dialog contents; the exact share-text format and whether it reveals the
   answer; and the statistics panel contents.
+- The same report evaluates the baseline WNBA clue set -- Team, Conference, Height, Draft
+  year, Draft pick, Country, College, Age, and Position -- plus plausible additions such as
+  jersey number, years of experience, Draft team, and birthplace. For each it separates:
+  fan-salience evidence, learning value, upstream availability and stability, maintenance
+  cost, display width, and likely deduction value. Visibility on official league and team
+  player surfaces is evidence; an agent's intuition about what fans know is not.
+- The nine baseline clues are locked by the user. WP-1.4 may recommend an additional compact
+  clue, because the engine has no column limit, but it does not remove Age or Draft pick or
+  add a new clue without presenting the evidence to the user before WP-1.1 freezes types.
+- College is treated as a defining WNBA clue. The report explicitly considers the league's
+  culturally prominent college programs rather than describing College as a generic
+  substitute for a removed baseball field.
+- Draft pick means overall selection number and stays separate from Draft year. Its
+  provisional comparison is exact for the same pick or two undrafted players, partial when
+  two drafted players are within three overall picks, and directional as "earlier pick" or
+  "later pick". Draft round is not displayed and does not define partial state. WP-5.1
+  compares numeric tolerances of two, three, and five before release.
 - Adaptation rule for the arrow question: if Pickle shows arrows on its ordinal columns,
-  this game shows arrows on all three of its ordinal columns (Height, Draft year, Age),
-  since Pickle has no Height or Draft-year column to observe directly. If Pickle shows no
-  arrows, this game ships none. WP-5.1 measures both variants either way, so the choice is
-  revisited with data.
-- Evidence: the report plus numbered screenshots.
+  this game shows arrows on all four baseline ordinal clues (Height, Draft year, Draft pick,
+  Age). If Pickle shows no arrows, this game ships none. WP-5.1 measures both variants
+  either way, so the choice is revisited with data.
+- Evidence: the report, clue matrix, recommendation, and numbered screenshots.
 - Fallback: if the site is unreachable, work from archived captures and published rule
   write-ups, mark each observation's confidence, and escalate any low-confidence item that
   gameplay depends on.
-- Obvious follow-ons: a parity question raised later that this report does not answer
-  returns here for a targeted observation rather than being decided by the implementing
-  agent.
+- Obvious follow-ons: lock the clue-definition list for WP-1.1. A later parity or clue
+  question that this report does not answer returns here for targeted evidence rather than
+  being decided by the implementing agent.
 
 ### Work package: WP-1.5 record the data-use posture
 
@@ -768,16 +835,14 @@ inside another lane's files requests it through the orchestrator.
 ### Work package: WP-2.2 clear the scaffold hazards
 
 - Owner: orchestrator.
-- Touch points: `pip_requirements.txt`, `tsconfig.lint.json`, `plan_draft.md`,
-  `docs/active_plans/active/`.
+- Touch points: `pip_requirements.txt`, `tsconfig.lint.json`,
+  `docs/active_plans/wnba_game-plan.md`.
 - Depends on: none; bundled into M2 for sequencing.
 - Acceptance criteria: `pip_requirements.txt` exists, declaring whatever third-party
   package the pipeline actually imports and staying empty of a fetch dependency if the
   prototype's standard-library path holds; `check_codebase.sh` step 2 completes instead of
-  exiting `TS18003`;
-  `plan_draft.md` is retired with `git rm` or `git mv`; this plan is moved (not copied)
-  into `docs/active_plans/active/wnba_pickle_game.md` so exactly one plan is live; the
-  hygiene pytest modules pass.
+  exiting `TS18003`; this plan remains current at its existing path; the hygiene pytest
+  modules pass.
 - Evidence: the `./check_codebase.sh` summary block and the pytest summary line.
 
 ### Work package: WP-2.3 seed the development snapshot
