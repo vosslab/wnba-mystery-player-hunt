@@ -50,7 +50,9 @@ def fetch_player_page(player_id: int) -> str:
 	time.sleep(random.random())
 	url = PAGE_URL.format(player_id=player_id)
 	request = urllib.request.Request(url, headers=REQUEST_HEADERS)
-	with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+	with urllib.request.urlopen(  # nosec B310 - fixed official HTTPS WNBA Stats endpoint.
+		request, timeout=TIMEOUT_SECONDS
+	) as response:
 		html_bytes = response.read()
 	html = html_bytes.decode("utf-8")
 	return html

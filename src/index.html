@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A daily WNBA player guessing game with a nine-clue comparison grid."
+    />
+    <title>WNBA Pickle</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#game">Skip to the game</a>
+    <main id="game" class="game-shell" aria-labelledby="game-title">
+      <header class="game-header">
+        <p class="eyebrow">Daily WNBA player puzzle</p>
+        <h1 id="game-title">WNBA Pickle</h1>
+        <p class="lede">Name the mystery player. Each guess reveals nine useful clues.</p>
+        <p class="development-notice" role="note">
+          Development build: this bundled player pool is incomplete and is not a current official
+          WNBA roster.
+        </p>
+      </header>
+
+      <section class="play-panel" aria-labelledby="guess-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Today&apos;s matchup</p>
+            <h2 id="guess-title">Who is the mystery player?</h2>
+          </div>
+          <p class="guess-count" aria-label="Six guesses remaining">6 left</p>
+        </div>
+
+        <form id="guess-form" class="guess-form" aria-describedby="guess-help" novalidate>
+          <label for="player-search">Search a WNBA player</label>
+          <div class="guess-actions">
+            <input
+              id="player-search"
+              name="player-search"
+              type="search"
+              placeholder="Start typing a player name"
+              autocomplete="off"
+              aria-autocomplete="list"
+              aria-controls="player-suggestions"
+              aria-expanded="false"
+              role="combobox"
+              disabled
+            />
+            <button id="guess-button" type="submit" disabled>Guess</button>
+          </div>
+          <ul
+            id="player-suggestions"
+            class="player-suggestions"
+            role="listbox"
+            aria-label="Player matches"
+          ></ul>
+          <p id="guess-help" class="helper-text">
+            Start typing to find an active WNBA player, then submit your guess.
+          </p>
+          <button id="pick-player" class="secondary-button" type="button" disabled>
+            Pick for me
+          </button>
+        </form>
+        <p id="game-status" class="shell-status" role="status" aria-live="polite">
+          Preparing today&apos;s player pool.
+        </p>
+      </section>
+
+      <section class="comparison-section" aria-labelledby="comparison-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Your clues</p>
+            <h2 id="comparison-title">Comparison grid</h2>
+          </div>
+          <p class="grid-key" aria-label="Feedback key">
+            <span class="key-exact" aria-hidden="true"></span> Exact
+            <span class="key-partial" aria-hidden="true"></span> Close
+            <span class="key-miss" aria-hidden="true"></span> No match
+          </p>
+        </div>
+        <div
+          class="grid-scroll"
+          tabindex="0"
+          aria-label="Comparison grid area. Scroll horizontally for all clues."
+        >
+          <div id="comparison-grid" class="comparison-grid" aria-live="polite">
+            <p class="empty-grid-message">Your guesses will build a clue grid here.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="game-tools" aria-label="Game information and settings">
+        <details class="how-to">
+          <summary>How it works</summary>
+          <p>
+            Use each row's feedback to narrow the field. You have six guesses to find today's
+            player.
+          </p>
+        </details>
+
+        <details class="statistics-panel">
+          <summary>Statistics</summary>
+          <p id="statistics-summary">Your play statistics will appear here.</p>
+        </details>
+
+        <fieldset class="theme-picker">
+          <legend>Color theme</legend>
+          <p class="helper-text">System follows your device until you choose light or dark.</p>
+          <div class="theme-options">
+            <label><input name="theme" type="radio" value="system" checked /> System</label>
+            <label><input name="theme" type="radio" value="light" /> Light</label>
+            <label><input name="theme" type="radio" value="dark" /> Dark</label>
+          </div>
+        </fieldset>
+      </section>
+    </main>
+
+    <dialog class="result-dialog" aria-labelledby="result-title">
+      <h2 id="result-title">Today&apos;s result</h2>
+      <p>Your result will appear here when the round ends.</p>
+      <button type="button" disabled>Share result</button>
+    </dialog>
+  </body>
+</html>

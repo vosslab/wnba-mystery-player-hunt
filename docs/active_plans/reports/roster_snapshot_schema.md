@@ -1,0 +1,87 @@
+# Roster file schema
+
+`src/data/roster.json` is the only game-facing data file. The Python data pipeline writes
+JSON to that path; the TypeScript game calls `parseRosterSnapshot` before using it. The two
+lanes share this document, not imports. It has no file identity, refresh history, or game-side
+freshness tracking.
+
+## Envelope
+
+```json
+{
+  "schemaVersion": 1,
+  "asOfDateUtc": "2026-08-02",
+  "dataKind": "development",
+  "dataStatus": "development",
+  "sourceNote": "Development fixture only; not an official current roster.",
+  "selectionRule": {
+    "kind": "development-fixture",
+    "description": "Hand-built data for interface and gameplay development."
+  },
+  "players": [
+    {
+      "playerId": "1628932",
+      "displayName": "A'ja Wilson",
+      "searchName": "aja wilson",
+      "teamCode": "LVA",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "1996-08-08T00:00:00Z",
+      "draft": { "kind": "drafted", "year": 2018, "overallPick": 1 },
+      "country": "United States",
+      "college": "South Carolina",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    }
+  ]
+}
+```
+
+- `schemaVersion` is the literal number `1`.
+- `asOfDateUtc` is a `YYYY-MM-DD` UTC date.
+- Development fixtures use the inseparable provenance combination `dataKind: "development"`,
+  `dataStatus: "development"`, and `selectionRule.kind: "development-fixture"`; `sourceNote`
+  plainly identifies them as development data.
+- A release candidate uses the inseparable provenance combination `dataKind: "official"`,
+  `dataStatus: "verified"`, and `selectionRule.kind: "official"`.
+- The official `selectionRule` records `eligibilityGate: "current-roster"`,
+  `recognizabilityMetric: "NBA_FANTASY_PTS"`, exactly two distinct adjacent four-digit seasons
+  in current-season-first order, the selected cutoff, and `selectedPoolSize`. The validator
+  requires `selectedPoolSize` to equal the validated `players` array length.
+- The file contains no fantasy points, minutes, or other performance statistics. The cutoff
+  exists only as provenance for the offline selection process.
+
+## Player records
+
+Every `players` entry uses this shape:
+
+```json
+{
+  "playerId": "1628932",
+  "displayName": "A'ja Wilson",
+  "searchName": "aja wilson",
+  "teamCode": "LVA",
+  "conference": "West",
+  "heightInches": 76,
+  "birthDateUtc": "1996-08-08T00:00:00Z",
+  "draft": { "kind": "drafted", "year": 2018, "overallPick": 1 },
+  "country": "United States",
+  "college": "South Carolina",
+  "positionPrimary": "C",
+  "positionAlternates": []
+}
+```
+
+- `playerId` is the decimal WNBA player identifier as a string.
+- `conference` is `East` or `West`; `positionPrimary` and each alternate are `G`, `F`, or `C`.
+- `birthDateUtc` is a UTC ISO timestamp. The game derives age from it and the injected puzzle
+  date; no age field is stored.
+- A drafted player has `kind`, `year`, and `overallPick`. An undrafted player is exactly
+  `{ "kind": "undrafted" }`.
+- `country` and `college` are normalized display values. The pipeline supplies the explicit
+  no-college bucket rather than a blank value.
+
+The validator rejects unrecognized player fields. That is intentional at this data boundary:
+it prevents accidental statistical payloads from becoming shipped game data. It does not
+recompute current-roster membership or fantasy-point eligibility; Python owns those offline
+decisions.

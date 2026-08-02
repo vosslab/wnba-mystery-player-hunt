@@ -7,6 +7,8 @@ OTHER_REPOS/
 # === LOCAL ===
 # Template-only ignores.
 # === PYTHON ===
+__pycache__/
+*.py[cod]
 build/
 dist/
 sdist/
@@ -28,4 +30,6 @@ coverage/
 meta.json
 stats.html
 
-
+# === WNBA DATA PIPELINE ===
+# Private, reproducible working inputs and the candidate file may contain performance totals.
+data/private/
