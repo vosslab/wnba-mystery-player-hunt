@@ -103,7 +103,7 @@ escalate before WP-3.1. Do not change the FP cutoff, two-season rule, or current
 
 - Reviewed [wnba_game-plan.md](../wnba_game-plan.md),
   [wnba_data_access_and_fields.md](../reports/wnba_data_access_and_fields.md),
-  [fetch_wnba_player_data.py](../../../tools/fetch_wnba_player_data.py), and the local sample.
+  [fetch_wnba_player_data.py](../../../fetch_wnba_player_data.py), and the local sample.
 - `source source_me.sh && python3 -m pytest tests/test_markdown_links.py` (pending final run).
 - `git diff --check` (pending final run).
 

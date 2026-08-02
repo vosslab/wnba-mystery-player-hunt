@@ -78,7 +78,9 @@ Every `players` entry uses this shape:
 }
 ```
 
-- `playerId` is the decimal WNBA player identifier as a string.
+- `playerId` is a stable decimal identifier as a string. The active Basketball-Reference HTML
+  adapter deterministically derives it from the player's Basketball-Reference slug/source key;
+  it is not a WNBA league person identifier.
 - `conference` is `East` or `West`; `positionPrimary` and each alternate are `G`, `F`, or `C`.
 - `birthDateUtc` is a UTC ISO timestamp. The game derives age from it and the injected puzzle
   date; no age field is stored.

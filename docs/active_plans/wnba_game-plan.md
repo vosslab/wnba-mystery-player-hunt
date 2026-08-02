@@ -293,29 +293,38 @@ Locked by the user or by this revision. Not reopened during execution.
 One committed roster file at `src/data/roster.json`, imported by the bundle so `dist/` is
 self-contained.
 
-A tracked three-player WNBA Stats sample remains historical field evidence only; it is not the
-live acquisition route. The active harvester uses Basketball-Reference WNBA roster and player HTML
-and emits the same private candidate contract needed by the offline generator. It keeps source URLs
-and derived fantasy totals private; the game-facing snapshot remains a compact allowlist.
+A tracked three-player WNBA Stats sample remains historical field evidence only. It is not an
+active upstream contract or live acquisition route. The active harvester reads
+Basketball-Reference's server-rendered current-roster, player-profile, and seasonal-totals HTML,
+then normalizes those cells and metadata into its private candidate contract. Source URLs and
+derived fantasy totals stay private; the game-facing snapshot remains a compact allowlist.
 
-| Field | Type | Upstream key | Notes |
+| Field | Type | Active source or adapter field | Notes |
 | --- | --- | --- | --- |
-| `playerId` | branded string | `PERSON_ID` | Stable league person id; the join key. Sample: `1628932` |
-| `displayName` | string | `DISPLAY_FIRST_LAST` | Proper display form, apostrophes preserved. Sample: `A'ja Wilson` |
-| `searchName` | string | derived | Lowercased, punctuation and diacritics stripped |
-| `teamCode` | string | `TEAM_ABBREVIATION` | Sample: `LVA`, `IND`, `NYL` |
+| `playerId` | branded string | derived from Basketball-Reference player slug/source key | Stable deterministic decimal identifier used as the join key; it is not a WNBA league person id |
+| `displayName` | string | current-roster `player` cell | Proper display form, apostrophes preserved |
+| `searchName` | string | derived from `displayName` | Lowercased, punctuation and diacritics stripped |
+| `teamCode` | string | current-roster team page and roster row | Normalized to the game's team-code convention |
 | `conference` | `"East" \| "West"` | derived | Static team-to-conference table in `src/constants.ts` |
-| `heightInches` | number | `HEIGHT` | Upstream is feet-dash-inches. Sample: `6-4`, `6-0` |
-| `birthDateUtc` | ISO date string | `BIRTHDATE` | Sample: `1996-08-08T00:00:00`. Age is derived from this for the puzzle date by the clue engine; the upstream `AGE` field is deliberately unused, because it is current-day and not puzzle-day |
-| `draft` | discriminated union | `DRAFT_YEAR`, `DRAFT_NUMBER` | Drafted players carry year and overall pick. Both are strings upstream; the sample confirms `"2018"` and `"1"`. The undrafted spellings remain a WP-1.2 question |
-| `country` | string | `COUNTRY` | Sample: `USA`. Normalized per the country authority above |
-| `college` | string | `SCHOOL` | Sample: `South Carolina`, `Iowa`, `Connecticut`. `LAST_AFFILIATION` (`Iowa/USA`) is the cross-check for players with no US college |
-| `positionPrimary` | `"G" \| "F" \| "C"` | `POSITION_INITIALS` | Sample: `C`, `G`, `F` |
-| `positionAlternates` | ordered array | `POSITION` | Upstream is a full word in all three samples (`Center`, `Guard`, `Forward`), so alternates are empty for them. Compound spellings may exist for other players; WP-1.2 reports the league-wide value set |
+| `heightInches` | number | current-roster `height` cell or player-profile height metadata | Source feet-and-inches text is normalized to inches |
+| `birthDateUtc` | ISO date string | current-roster `birth_date` cell or player-profile birth-date metadata | Age is derived for the injected puzzle date; no current-day age field is shipped |
+| `draft` | discriminated union | player-profile draft text | Draft year and overall pick are parsed when present; otherwise the adapter emits the explicit undrafted form |
+| `country` | string | player-profile country metadata | Normalized per the country authority above |
+| `college` | string | current-roster `college` cell or player-profile metadata | The adapter supplies the explicit no-college bucket rather than a blank value |
+| `positionPrimary` | `"G" \| "F" \| "C"` | current-roster `pos` cell or player-profile position metadata | Compound source positions are normalized to the primary game position |
+| `positionAlternates` | ordered array | derived from normalized source position | Compound source positions contribute normalized alternates |
 
-Roster file envelope: `schemaVersion`, `asOfDateUtc`, `sourceNote`, `selectionRule`,
-`players[]`. The `selectionRule` field records the current-roster gate, ranking quantity,
-seasons used, and selected pool size, so the shipped file states the rule that produced it.
+The historical WNBA Stats sample preserves earlier evidence for display and normalization behavior,
+including names, team codes, heights, birth dates, schools, countries, and positions. It does not
+define active upstream keys, identifiers, or a fallback retrieval route.
+
+Roster file envelope: `schemaVersion`, `asOfDateUtc`, `dataKind`, `dataStatus`, `sourceNote`,
+`selectionRule`, `players[]`. Provenance is a strict triplet: development data uses
+`development` / `development` / `development-fixture`; a verified Basketball-Reference
+snapshot uses `derived` / `verified` / `derived`; and a verified official-source snapshot uses
+`official` / `verified` / `official` (`dataKind` / `dataStatus` / `selectionRule.kind`). The
+source-neutral recognizability rule records the current-roster gate, metric, two seasons,
+cutoff, and selected pool size, so the shipped file states the rule that produced it.
 
 ### Stable game-facing interface
 
@@ -351,19 +360,26 @@ reset.
 The importer allowlists field names rather than blocklisting them, so a new upstream
 statistic cannot leak in silently.
 
-Working-file-only fields, present in the gitignored candidate file and deliberately absent
-from the shipped snapshot: `fantasyPointsCurrentSeason`, `fantasyPointsPreviousSeason`, the derived entrant year,
-`ROSTERSTATUS`, `GAMES_PLAYED_CURRENT_SEASON_FLAG`, `TO_YEAR`, `SEASON_EXP`, `DRAFT_ROUND`, the whole
-`headline_stats` block, and the raw upstream country and school strings. These support pool
-selection and normalization and stop there.
+The gitignored candidate envelope preserves the evidence needed by the offline pipeline: a
+derived stable player ID; a current-team `rosterSourceUrl`; a player `playerPageSourceUrl`;
+the parsed Basketball-Reference roster and biography mappings; and
+`fantasyPointsCurrentSeason` plus `fantasyPointsPreviousSeason`. The roster mapping carries
+the source team, name, number, position, height, weight, college, and Basketball-Reference
+player slug. Its `EXP` value derives `FROM_YEAR` for every player for the existing normalizer;
+an explicit `R` also proves a current-season entrant with a known pre-league prior-season total
+of zero. The biography mapping carries the normalized identity, birth date, country, height,
+position, draft year, draft round, and overall draft number parsed from Basketball-Reference
+player-page metadata and prose. Its birth date is copied into the normalized roster and profile
+compatibility mappings. None of those private
+mappings or either fantasy total ships; the public snapshot
+contains biography clues and source-neutral selection provenance, never performance data.
 
 Candidate eligibility is computed, not reviewed. Current-roster membership from the current
 Basketball-Reference team roster pages is the sole eligibility gate. The pipeline must also have
 complete current- and preceding-season fantasy-point totals to rank an eligible candidate. An
 explicit zero is valid data. A current-season entrant marked `R` by the Basketball-Reference
-roster has a known pre-league preceding-season value of zero; every established
-player's absent prior-season record or field remains incomplete and must not be silently converted
-to zero. `ROSTERSTATUS` is diagnostic only and never changes that rule.
+roster has a known pre-league preceding-season value of zero; every established player's absent
+prior-season record remains incomplete and must not be silently converted to zero.
 
 The recognition rule is `max(fantasyPointsCurrentSeason, fantasyPointsPreviousSeason) >=
 approvedFantasyPointsCutoff`. This keeps established players visible during an injury-shortened
@@ -380,10 +396,8 @@ current checklist is easy to verify, the report may state overlap as context. If
 the report proceeds unchanged and card data is absent from the pipeline, snapshot, and
 release gates.
 
-`ROSTERSTATUS` (`Active` in all three samples) is diagnostic supporting evidence only, never
-an eligibility filter. It may expose a cadence difference between the player page and the
-authoritative roster enumeration. WP-1.2 reports its distinct values and disagreements with
-current-roster membership without changing the sole roster-membership gate.
+The historical three-player WNBA Stats sample remains evidence for the rejected route only. It
+is neither an acquisition input nor an eligibility, selection, or snapshot-data source.
 
 The harvester derives fantasy points from server-rendered season totals with the documented WNBA
 formula. Its bounded run proves the path and row coverage needed for a later full run; it does not
