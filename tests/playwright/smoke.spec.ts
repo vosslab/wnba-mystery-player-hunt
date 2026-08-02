@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 /*
  * Selector contract:
- * - src/index.html: player-search, guess-button, pick-player, game-status, and the development note.
+ * - src/index.html: player-search, guess-button, pick-player, and game-status.
  * - src/ui_grid.ts: [data-grid="comparison"] and [data-feedback] identify rendered game state.
  * - src/result_dialog.ts: role dialog and its named controls expose the completed-round path.
  */
@@ -19,10 +19,7 @@ async function expectCleanBoot(page: Page): Promise<void> {
   });
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "WNBA Pickle" })).toBeVisible();
-  await expect(
-    page.getByText(/Development build: this bundled player pool is incomplete/i),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "WNBA Mystery Player Hunt" })).toBeVisible();
   await expect(page.getByLabel("Search a WNBA player")).toBeEnabled();
   await expect(page.getByRole("button", { name: "Guess" })).toBeEnabled();
   await expect(page.getByRole("button", { name: "Pick for me" })).toBeEnabled();
@@ -30,7 +27,7 @@ async function expectCleanBoot(page: Page): Promise<void> {
   expect(errors).toEqual([]);
 }
 
-test("smoke: boot exposes a clear next action and a bundled development-data disclosure", async ({
+test("smoke: boot exposes a clear next action without introductory UI clutter", async ({
   page,
 }) => {
   await expectCleanBoot(page);

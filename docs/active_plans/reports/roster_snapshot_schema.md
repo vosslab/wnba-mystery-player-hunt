@@ -42,12 +42,18 @@ freshness tracking.
 - Development fixtures use the inseparable provenance combination `dataKind: "development"`,
   `dataStatus: "development"`, and `selectionRule.kind: "development-fixture"`; `sourceNote`
   plainly identifies them as development data.
-- A release candidate uses the inseparable provenance combination `dataKind: "official"`,
-  `dataStatus: "verified"`, and `selectionRule.kind: "official"`.
-- The official `selectionRule` records `eligibilityGate: "current-roster"`,
-  `recognizabilityMetric: "NBA_FANTASY_PTS"`, exactly two distinct adjacent four-digit seasons
+- A verified snapshot derived from Basketball-Reference's server-rendered WNBA roster and
+  totals pages uses the inseparable combination `dataKind: "derived"`,
+  `dataStatus: "verified"`, and `selectionRule.kind: "derived"`. Its `sourceNote` identifies
+  that derived provenance rather than presenting it as an official WNBA source.
+- A verified snapshot from an official WNBA source uses the inseparable combination
+  `dataKind: "official"`, `dataStatus: "verified"`, and `selectionRule.kind: "official"`.
+- Derived and official recognizability rules both record `eligibilityGate: "current-roster"`,
+  `recognizabilityMetric: "WNBA_FANTASY_PTS"`, exactly two distinct adjacent four-digit seasons
   in current-season-first order, the selected cutoff, and `selectedPoolSize`. The validator
   requires `selectedPoolSize` to equal the validated `players` array length.
+- These are strict provenance pairings, not freshness or data-tracking states. The game uses
+  the bundled snapshot as-is and neither records when it was harvested nor checks it online.
 - The file contains no fantasy points, minutes, or other performance statistics. The cutoff
   exists only as provenance for the offline selection process.
 

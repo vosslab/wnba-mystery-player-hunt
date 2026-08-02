@@ -55,7 +55,7 @@ position, height, birthdate, college/country, and draft year/round/pick. The off
 [Sami Whitcomb profile](https://www.wnba.com/player/1628244/sami-whitcomb/bio) demonstrates
 an undrafted player and a college biography. The official [traditional player statistics
 surface](https://stats.wnba.com/players/traditional/) supplies the separate, working-file-only
-`NBA_FANTASY_PTS` ranking input. These are availability evidence; roster/team fields require
+`WNBA_FANTASY_PTS` ranking input. These are availability evidence; roster/team fields require
 refresh-time validation. Fan salience below means visible official presentation, not a survey
 claim about what fans know.
 

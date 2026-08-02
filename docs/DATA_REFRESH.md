@@ -1,36 +1,53 @@
 # Refresh WNBA roster data
 
-This is an optional, two-stage, Python-only maintenance workflow. It validates saved official
-Stats responses, then creates a static, game-safe roster snapshot. The browser, Playwright, and
-the released game never contact WNBA endpoints; they use the bundled snapshot only. A snapshot
-may be months old and the game remains playable; only its schema and selection invariants matter
-to the game.
+This is an optional two-stage Python-only maintenance workflow. The game uses its committed static
+snapshot and remains playable regardless of when that snapshot was gathered. Refreshing data never
+runs during a build, test, or browser session.
 
-## Choose an input mode
+The live harvester gets server-rendered Basketball-Reference WNBA HTML with Python GET requests.
+The current-season totals page discovers the current team pages and supplies totals; team roster
+pages establish membership; player pages supply biography fields. Fantasy points are derived in the
+ignored candidate file with the documented WNBA formula. They never enter the shipped snapshot.
 
-Use a saved-export manifest containing Python-produced official responses. This is the repeatable
-route for review and recovery. The manifest and every referenced response remain below ignored
-`data/private/official_exports/`. Its required structure is documented in
-[python_candidate_pipeline.md](active_plans/reports/python_candidate_pipeline.md).
+`get_page()` is the only network function. It validates URLs, redirects, and HTML media types, and
+rejects JSON, API, XML, POST, browser rendering, JavaScript execution, off-host URLs, and non-HTML
+responses. It waits at least three seconds plus random jitter between requests, respecting Sports
+Reference's published other-sites cap of 20 requests per minute. See the
+[Sports Reference bot-traffic policy](https://www.sports-reference.com/bot-traffic.html).
+
+## Harvest candidates
+
+Run the root command manually when a refresh is wanted:
 
 ```bash
-source source_me.sh && python3 tools/fetch_wnba_candidates.py \
-  --input-manifest data/private/official_exports/manifest.json \
-  --output data/private/wnba_candidates.json
+source source_me.sh && python3 fetch_wnba_player_data.py --season 2026
 ```
 
-The first-stage command must finish with a saved candidate count. It requires one nonempty
-current-roster response for every official team, one player page for every rostered player, and
-2026 plus 2025 traditional totals. A numeric `NBA_FANTASY_PTS` value of zero is valid. A missing
-player or missing/non-numeric fantasy-points field stops the run; it is never silently treated as
-zero.
+The no-limit command fetches every player listed on current roster pages and writes ignored
+`data/private/wnba_candidates.json`. It has not yet been run to completion, so do not treat this
+document as evidence of a complete refresh or a selected cutoff.
+
+Use a short, explicitly incomplete plumbing run first:
+
+```bash
+source source_me.sh && python3 fetch_wnba_player_data.py --season 2026 --max 3
+```
+
+The bounded 2026 command succeeded with 15 team pages, 223 current totals rows, 182 prior totals
+rows, and candidates for A'ja Wilson, Alyssa Thomas, and Dearica Hamby. It writes ignored
+`data/private/wnba_candidates_test_limit_3.json` with `source.kind` set to
+`basketball-reference-html` and `validation.scope` set to `test-limit`. Stage two deliberately
+rejects this incomplete file.
+
+An explicit `--output` is allowed only below `data/private/`; it does not change the file's scope.
+`--max` truncates after current roster membership is known and favors the highest two-season fantasy
+scores, so the small run exercises real joins without claiming a full roster.
 
 ## Build a review snapshot
 
-The second command is offline. It admits only players already present in the complete current
-roster data, then applies `max(2026 NBA_FANTASY_PTS, 2025 NBA_FANTASY_PTS) >= cutoff`. The cutoff
-is a product choice still awaiting approval. Run the approved option explicitly; neither option is
-a default.
+Stage two is offline. It accepts only a `complete` candidate file, uses current roster membership
+as the eligibility rule, and then applies the approved two-season fantasy cutoff. Neither 200 nor
+300 is currently a default product decision.
 
 ```bash
 source source_me.sh && python3 tools/build_roster_file.py \
@@ -39,46 +56,27 @@ source source_me.sh && python3 tools/build_roster_file.py \
   --output data_review/wnba_roster_review_fp200.json
 ```
 
-```bash
-source source_me.sh && python3 tools/build_roster_file.py \
-  --input data/private/wnba_candidates.json \
-  --cutoff 300 \
-  --output data_review/wnba_roster_review_fp300.json
-```
+Run the 300-point comparison separately after a complete harvest. Review the pool counts and
+preceding-season additions before promoting any output to `src/data/roster.json`. The generated
+snapshot excludes fantasy points and all other performance data.
 
-Review the selected-pool count and preceding-season additions printed by the command. The review
-outputs retain no fantasy points, minutes, or other performance stats. They are static
-`RosterSnapshotV1` files containing only the game allowlist. Do not replace `src/data/roster.json`
-until the official candidate refresh, cutoff decision, generated snapshot, and game-import
-validation have all been explicitly verified.
+## Data-use boundary
 
-## Recover from data failures
+Basketball-Reference candidates and snapshots are derived, not official WNBA data. Public
+deployment of scraped Basketball-Reference output remains conditional on a human data-use review
+and permission decision. Consult the [Sports Reference data-use policy](https://www.sports-reference.com/data_use.html)
+and [wnba_data_use.md](active_plans/decisions/wnba_data_use.md) at that decision point.
 
-- Missing or duplicate team rosters mean the export set is incomplete. Produce a new saved
-  official export set in Python, then run the first stage again. Do not gather responses through
-  the browser or Playwright.
-- A rostered player missing a 2026 or 2025 total needs the matching complete traditional-totals
-  export. Preserve an explicit zero; repair an absent record instead of inventing one.
-- A missing player page or required biography field needs that player's official page export.
-  The tool names the player and field so the manifest can be corrected.
-- An unknown country or team code in stage two needs a reviewed correction in the maintained
-  `data_review/` CSV mapping, followed by another stage-two run. An eligibility override can only
-  document a roster-source team-code correction; it cannot add, remove, or rank a player.
+The WNBA Stats traditional page remains an Angular shell in direct HTML, while its JSON/API route
+is forbidden. This is retained as rejected-route evidence only; it does not block the independent
+game or this working HTML-only Python path.
 
-## Repeat a refresh
-
-Keep the old ignored candidate file until the new run is accepted. Each successful stage writes a
-complete replacement through a temporary sibling file, so an interrupted write does not publish a
-partial JSON file. After replacing the saved exports, rerun stage one and then both review outputs
-above to compare the 200 and 300 pools. Re-run the focused Python tests before promoting a
-verified snapshot:
+## Validate offline stages
 
 ```bash
 source source_me.sh && python3 -m pytest \
   tests/test_fetch_wnba_candidates.py tests/test_build_roster_file.py
 ```
 
-An incomplete official refresh does not prevent the existing static game snapshot from building or
-playing. For the private-file schema and public normalization contract, see
-[python_candidate_pipeline.md](active_plans/reports/python_candidate_pipeline.md) and
-[python_roster_generation.md](active_plans/reports/python_roster_generation.md).
+The legacy `tools/fetch_wnba_candidates.py` command validates saved local exports only. It is not a
+live acquisition fallback and it never contacts the network.

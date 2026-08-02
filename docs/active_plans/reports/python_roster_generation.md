@@ -1,12 +1,14 @@
 # Python roster generation
 
-`tools/build_roster_file.py` is the offline second stage of the roster refresh. It reads the
-private candidate file produced by `tools/fetch_wnba_candidates.py`; it does not fetch data,
-import browser code, or write to the game unless its caller explicitly names the output path.
+`data_fetcher/wnba_roster.py` is the reusable offline second stage of the roster refresh, exposed
+through `tools/build_roster_file.py`. It reads the private candidate file produced by
+`data_fetcher/wnba_harvester.py`; it does not fetch data, import browser code, or write to the
+game unless its caller explicitly names the output path.
 
 ## Standard run
 
-After the user approves a cutoff and a complete official candidate file is available, run:
+After the user approves a cutoff and a candidate file with `validation.scope: "complete"` is
+available, run:
 
 ```bash
 source source_me.sh && python3 tools/build_roster_file.py \
@@ -22,8 +24,12 @@ cutoff is a product decision, not an implementation preference.
 
 - Every input candidate already comes from an authoritative current-roster response. That is the
   only eligibility gate.
+- The generator rejects `validation.scope: "test-limit"`; an intentionally truncated plumbing
+  harvest cannot become a review or game snapshot.
 - The selection rule is exactly
   `max(fantasyPointsCurrentSeason, fantasyPointsPreviousSeason) >= cutoff`.
+- The corresponding years are read from `candidate_file.source.seasons.current` and `.previous`.
+  No downstream selection path assumes particular calendar years.
 - A numeric zero is valid. A missing or nonnumeric fantasy total fails before selection.
 - The command reports the current-season-only count, the two-season union count, and player IDs
   added only by the preceding season.

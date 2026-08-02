@@ -27,7 +27,7 @@ full behavior-equivalence requirement.
 ## Retained gates
 
 - Current-roster membership remains the sole eligibility gate.
-- Recognizability remains `max(2026, 2025) NBA_FANTASY_PTS` at the user-approved 200 or 300
+- Recognizability remains `max(2026, 2025) WNBA_FANTASY_PTS` at the user-approved 200 or 300
   cutoff, after current-roster intersection. Fantasy points stay out of the shipped snapshot.
 - Official roster and two-season fantasy-point evidence remain required before release and
   calibration of the real pool.

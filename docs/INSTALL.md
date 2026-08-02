@@ -1,7 +1,7 @@
 # Install
 
 Installing this repository prepares its TypeScript browser-game tooling. The playable site is a
-static build in `dist/`; the bundled roster is currently incomplete development data.
+static build in `dist/` that uses the committed bundled player roster.
 
 ## Requirements
 
@@ -49,7 +49,7 @@ Build the exact static artifact that local preview and GitHub Pages use:
 
 The command writes `dist/index.html`, `dist/main.js`, its source map, and `dist/.nojekyll`.
 
-## Known gaps
+## Optional data maintenance
 
-- TODO: Confirm supported Node.js and operating-system version ranges before promising them.
-- TODO: Replace the development roster with a verified official snapshot before public release.
+The build uses the committed bundled roster and does not fetch WNBA data. For the separate,
+manual Python maintenance workflow, see [Data refresh](DATA_REFRESH.md).

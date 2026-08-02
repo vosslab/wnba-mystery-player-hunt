@@ -13,7 +13,7 @@ failures and remains entirely Python-based.
 - `resolve_manifest_path()` resolves both the manifest directory and every relative export path,
   then requires containment. This rejects parent traversal and an in-directory symlink that
   resolves outside the export directory. Absolute paths are also rejected.
-- Both traditional-stat seasons are indexed independently. A numeric `NBA_FANTASY_PTS` value of
+- Both traditional-stat seasons are indexed independently. A numeric `WNBA_FANTASY_PTS` value of
   `0` is retained; an absent field or absent player-season row fails explicitly.
 - `main()` validates its output before writing. The only accepted destination is under ignored
   `data/private/`; `write_json()` writes a sibling temporary file and replaces the destination

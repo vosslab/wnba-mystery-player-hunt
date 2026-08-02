@@ -13,7 +13,7 @@ Two small changes are needed before accepting this test lane.
 
 1. Add an offline test that proves a current-roster player with no row at all
    in one season's traditional totals is rejected. The current zero test only
-   covers a present row missing its `NBA_FANTASY_PTS` field. A missing player
+   covers a present row missing its `WNBA_FANTASY_PTS` field. A missing player
    row is the higher-impact form of the stated "missing is not zero" contract
    because it is the join boundary used by `build_candidates`.
 2. Add an offline test that an untrusted/non-official URL is rejected by

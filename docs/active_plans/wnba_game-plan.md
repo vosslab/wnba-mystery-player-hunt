@@ -2,7 +2,7 @@
 
 ## Context
 
-`wnba-20-questions` is a fresh `REPO_TYPE=typescript` scaffold with no `src/` yet.
+`wnba-mystery-player-hunt` began as a fresh `REPO_TYPE=typescript` scaffold with no `src/` yet.
 
 **North star: this is MLB Pickle for the WNBA.** [mlbpickle.com](http://www.mlbpickle.com/)
 is the reference implementation, and the only deliberate departures are the ones
@@ -20,29 +20,23 @@ An earlier draft (`plan_draft.md`) locked most of the product surface. This plan
 it and changes four things the draft got wrong or left
 unresolved:
 
-1. **Data comes from JSON embedded in public stats.wnba.com HTML pages wherever
-   available, with any additional source selected and documented by WP-1.2.** The player
-   page is the proven case, not necessarily the whole dataset: enumerating the league and
-   obtaining per-season `NBA_FANTASY_PTS` totals may require team pages, a league page, or a limited,
-   heavily paced REST call. The direction is page-first; the full source list is WP-1.2's
-   output. A working prototype already exists at `fetch_wnba_player_data.py`: it requests
-   `https://stats.wnba.com/player/<id>/` with a browser user agent and pulls the
-   `window.nbaStatsPlayerInfo`, `window.nbaStatsPlayerStats`, and
-   `window.nbaStatsPlayerSeasons` assignments out of the HTML. That is structured JSON
-   carrying every biography field the game needs, it needs no account, and it uses only the
-   Python standard library.
+1. **Data is gathered offline with Python from server-rendered Basketball-Reference WNBA
+   HTML, an additional WP-1.2 source.** The current-season totals page discovers current team
+   pages and supplies totals; those roster pages establish membership; player pages supply
+   biography fields. The harvester derives `WNBA_FANTASY_PTS` from the documented WNBA formula.
+   It sends GET requests for HTML only: no WNBA JSON, API, XML, POST, browser, or JavaScript
+   renderer is a data source. A single validated `get_page()` boundary enforces that rule.
 
-   A known player page is the route proven for individual biography data:
-   `https://stats.wnba.com/player/1628932/` loads immediately, while the equivalent REST
-   call `https://stats.wnba.com/stats/commonplayerinfo?LeagueID=10&PlayerID=1628932` gets
-   throttled. That does not prove player pages replace league-list or team-roster endpoints.
-   Every data-lane decision therefore records the route used, prefers a reliable official
-   response, and treats any full-league live pull as unproven until it completes.
+   The bounded command has succeeded for 2026 with `--max 3`: it found 15 teams, 223 current
+   totals rows, 182 preceding totals rows, and produced candidates for A'ja Wilson, Alyssa
+   Thomas, and Dearica Hamby. This proves the retrieval path, not a complete refresh or a
+   selected cutoff. The no-limit command remains the manual path for a later complete run.
 
-   The route is also undocumented and can change without notice, so the production fetcher
-   records the retrieved field structure on every run and fails clearly when a required
-   field moves or disappears. Authenticated commercial feeds (Sportradar and similar) are
-   ruled out: they require an account, which the user has declined.
+   The known WNBA Stats player page still loads while its `commonplayerinfo` REST equivalent
+   throttles, and the WNBA traditional page remains an Angular shell whose visible table is
+   JavaScript-populated. Those observations explain the rejected route; they do not make the
+   static game depend on a future WNBA Stats response. Authenticated commercial feeds remain
+   outside scope.
 2. **Guess count 9 -> 6, the one deliberate gameplay departure.** MLB Pickle draws from
    1000+ players. Active WNBA rosters are roughly 180 players (15 teams after the 2026
    Portland Fire and Toronto Tempo expansion, 12 roster spots each). Nine guesses against
@@ -79,7 +73,7 @@ the game into repeated encounters with names a typical fan does not know. The us
 that the Panini Donruss base set carries roughly 100 players, including rookies; that is a
 useful observation about the likely scale of a recognizable pool, not a data source or a
 gate. Card checklist data may be difficult to obtain and blocks nothing. WP-1.3 instead
-compares direct 200 and 300 `NBA_FANTASY_PTS` cutoffs across current and preceding seasons,
+compares direct 200 and 300 `WNBA_FANTASY_PTS` cutoffs across current and preceding seasons,
 where either season can qualify a current-roster player. It also retains the 75, 100, 125,
 and 150 boundary comparison only as supporting context, shows boundary names, and brings a
 recommended cutoff rule to the user. A readily
@@ -91,15 +85,20 @@ information-gain guesses.
 
 The data lane is independent maintenance, not a runtime, build, or gameplay gate. The static
 TypeScript game uses its bundled snapshot only and remains playable when the snapshot is months
-old, provided its schema and recorded selection invariants are valid. Official refresh completion
-affects only a future snapshot and the 200-versus-300 cutoff decision.
+old, provided its schema and recorded selection invariants are valid. A refresh affects only a
+future snapshot and the 200-versus-300 cutoff decision.
 
-The known page-first result is retained: `https://stats.wnba.com/player/1628932/` loads
-immediately for biography evidence, while `commonplayerinfo` REST is throttled. The team and
-traditional HTML pages load but do not expose the complete roster or fantasy-point inputs needed
-for this workflow; a page-primed exact `commonteamroster` REST request timed out. The fetcher is
-therefore manifest-only: it validates Python-produced saved official responses and makes no
-unproven live REST promise. Browser and Playwright are never data sources.
+The proven path is Python GET requests to server-rendered Basketball-Reference WNBA HTML. The
+current-season totals page discovers the 15 current team links, the current team pages establish
+membership, and player pages provide biography fields. The harvester derives fantasy points from
+the season totals with the documented WNBA formula and waits at least three seconds plus random
+jitter between requests. Its single `get_page()` boundary rejects JSON, APIs, XML, POST,
+off-host redirects, non-HTML responses, browser rendering, and JavaScript execution. The bounded
+2026 `--max 3` run succeeded; a full no-limit refresh and cutoff decision are not claimed.
+
+The retained WNBA Stats evidence is negative route evidence: the player page loads but
+`commonplayerinfo` throttles, and the traditional page is an Angular shell without HTML table rows.
+Browser and Playwright are never data sources.
 
 ## Objectives
 
@@ -171,9 +170,8 @@ Evidence strategy for uncertain methods:
   low-impact details do not block implementation.
 - WNBA clue identity is evaluated in WP-1.4 with a fan-salience and data-quality matrix;
   WP-5.1 then measures each selected clue's information gain and redundancy.
-- Data source viability is proved by a bounded multi-team, multi-player probe (WP-1.2) that
-  also characterizes request pacing and access behavior. The probe's first job is finding a
-  page-based enumeration route, because the REST family is already known to throttle.
+- Data source viability is proved by a bounded multi-team, multi-player Basketball-Reference
+  HTML probe (WP-1.2) that also characterizes request pacing and access behavior.
 - Recognizability is tested in WP-1.3 by comparing direct 200 and 300 fantasy-point
   cutoffs with `max(currentSeason, previousSeason)`, then reporting their 75, 100, 125, and
   150 boundary context and named boundary players. The Donruss observation motivates
@@ -193,11 +191,11 @@ Evidence strategy for uncertain methods:
   College, Age, and Position, with exact and partial states. The observed no-arrow reference
   is the v1 default; clue count stays configurable.
 - Build a two-stage Python 3.12 data pipeline that stands entirely apart from the game:
-  validate Python-produced official candidate data in an ignored working file, then apply
+  validate Python-produced derived candidate data in an ignored working file, then apply
   the computed eligibility rule and emit a schema-validated static roster JSON committed to
   the repo. The game consumes only that file; no build or test step ever runs the fetcher.
 - Compute a current-roster candidate pool, retain players meeting the WP-1.3 cutoff in
-  either the current or preceding season's `NBA_FANTASY_PTS` total, and apply that
+  either the current or preceding season's `WNBA_FANTASY_PTS` total, and apply that
   recognizability rule to both the answer pool and autocomplete. Fantasy points stay in the
   working file and never enter the shipped snapshot.
 - Persist puzzle progress, statistics, guess distribution, streaks, and theme under one
@@ -247,12 +245,12 @@ Locked by the user or by this revision. Not reopened during execution.
 | Guesses per day | 6. Calibration may move it within 5 to 7. Nine is reference information only and does not re-enter automatically | User selection, narrowed by review |
 | Candidate pool | Players listed on a current WNBA roster | User requirement, made measurable |
 | Answer and guess pool | One recognizable subset selected by WP-1.3 from the same ranked candidates | User concern about unknown players |
-| Recognizability experiment | Compare direct 200 and 300 `NBA_FANTASY_PTS` cutoffs using the maximum of current and preceding seasons, report how the preceding season expands each pool, retain 75/100/125/150 only as supporting context, and obtain user approval for the deterministic cutoff rule | User decision |
+| Recognizability experiment | Compare direct 200 and 300 `WNBA_FANTASY_PTS` cutoffs using the maximum of current and preceding seasons, report how the preceding season expands each pool, retain 75/100/125/150 only as supporting context, and obtain user approval for the deterministic cutoff rule | User decision |
 | Trading cards | Motivation or optional context only; never a gate or required data source | User decision |
 | Rookie treatment | Evaluated in the same ranked pool; WP-1.3 must call out recognizable rookies near or outside each boundary | User concern |
 | Fantasy points visibility | Build-time ranking metric only; never a clue, never a snapshot field | User decision on recognizability and performance statistics |
-| Data source | JSON embedded in stats.wnba.com HTML pages (`window.nbaStats*`), no account required | User selection, proven by the prototype |
-| Retrieval route | Prefer HTML pages; `/stats/` REST is throttled and is a last resort requiring proven pacing | Observed behavior |
+| Data source | Server-rendered Basketball-Reference WNBA HTML; candidates and snapshots are derived, not official | WP-1.2 additional-source decision |
+| Retrieval route | Python GET HTML only; no JSON, API, XML, POST, browser, or JavaScript renderer | Proven bounded run |
 | Authenticated feeds | Ruled out; Sportradar and similar require an account | User decision |
 | Data delivery | Pulled offline, committed as JSON, bundled into `dist/`; zero runtime fetches | User requirement |
 | Handedness | Omitted; basketball has no equivalent of Pickle's bats/throws column | User guidance |
@@ -267,7 +265,7 @@ Locked by the user or by this revision. Not reopened during execution.
 | Completion ownership | One pure transition in `src/game_state.ts` updates puzzle state and statistics together; dialog and share read it | Review point 25 |
 | Primary viewport | 800x1280 portrait (10:16), across desktop and mobile | User decision |
 | Palette | Ultra Black `#050707`, Neutral Dark Gray `#4C4C4D`, Balm `#EFE3C6`, Orange Passion `#F57B20` | Draft, retained |
-| Pages activation | Operator action, outside the software deliverable | Review point 19 |
+| Pages deployment | Existing `.github/workflows/deploy-pages.yml` deploys `main` to [WNBA Mystery Player Hunt](https://vosslab.github.io/wnba-mystery-player-hunt/) | Repository: [vosslab/wnba-mystery-player-hunt](https://github.com/vosslab/wnba-mystery-player-hunt) |
 
 ## Current state summary
 
@@ -277,15 +275,16 @@ Locked by the user or by this revision. Not reopened during execution.
   coverage, contrast work, and supporting documentation are implemented against a clearly
   labeled development fixture. The development fun probe keeps six guesses provisionally.
 - The Python-only roster-generation and validation pipeline is implemented separately from
-  the browser. It validates saved Python-produced official data and emits a static roster
-  artifact; browser runtime and Playwright never gather WNBA data.
-- A live official refresh timed out before it could establish a complete current-roster plus
-  2025/2026 fantasy-point pool. This does not invalidate development play, but it leaves the
-  real-pool decision unresolved.
-- Still required before release: complete official 2025/2026 roster and fantasy-point
-  evidence, the user's 200-versus-300 cutoff choice, real-pool calibration, human
-  permission or alternate-source approval for public use, and the operator's public GitHub
-  Pages deployment.
+  the browser. `fetch_wnba_player_data.py` runs the full private harvester; reusable modules
+  live under `data_fetcher/`, and executable `tools/` wrappers serve offline stages. Browser
+  runtime and Playwright never gather WNBA data.
+- A bounded derived-data harvest has succeeded: 15 team pages, 223 current totals rows, 182 prior
+  totals rows, and three `--max` candidates. A complete no-limit harvest and real-pool cutoff
+  decision are not recorded. This does not invalidate development play.
+- Still required before a public derived-data release decision: a complete requested-current and
+  preceding-season harvest, the user's 200-versus-300 cutoff choice, real-pool calibration, and
+  human permission or data-use approval for Basketball-Reference-sourced output. The Pages
+  workflow is separate from those unresolved data decisions.
 - This plan remains active. Do not move or archive it until those release decisions and
   release checks are complete.
 
@@ -294,13 +293,10 @@ Locked by the user or by this revision. Not reopened during execution.
 One committed roster file at `src/data/roster.json`, imported by the bundle so `dist/` is
 self-contained.
 
-A real three-player sample of `commonplayerinfo` output is already in the repo at
-`data/wnba_player_samples.json` (A'ja Wilson, Caitlin Clark, Breanna Stewart). It confirms the
-field names and formats in the table below, so the plan no longer guesses at them. It also
-confirms three things worth stating plainly: `SCHOOL` is present, which is what makes the
-College clue possible; `DRAFT_NUMBER` is present, which makes overall Draft pick available;
-and `headline_stats` carries `PTS`, `AST`, `REB`, and `PIE`, which is exactly the payload
-the field allowlist exists to drop.
+A tracked three-player WNBA Stats sample remains historical field evidence only; it is not the
+live acquisition route. The active harvester uses Basketball-Reference WNBA roster and player HTML
+and emits the same private candidate contract needed by the offline generator. It keeps source URLs
+and derived fantasy totals private; the game-facing snapshot remains a compact allowlist.
 
 | Field | Type | Upstream key | Notes |
 | --- | --- | --- | --- |
@@ -356,16 +352,18 @@ The importer allowlists field names rather than blocklisting them, so a new upst
 statistic cannot leak in silently.
 
 Working-file-only fields, present in the gitignored candidate file and deliberately absent
-from the shipped snapshot: `fantasyPointsCurrentSeason`, `fantasyPointsPreviousSeason`, `ROSTERSTATUS`,
-`GAMES_PLAYED_CURRENT_SEASON_FLAG`, `TO_YEAR`, `SEASON_EXP`, `DRAFT_ROUND`, the whole
+from the shipped snapshot: `fantasyPointsCurrentSeason`, `fantasyPointsPreviousSeason`, the derived entrant year,
+`ROSTERSTATUS`, `GAMES_PLAYED_CURRENT_SEASON_FLAG`, `TO_YEAR`, `SEASON_EXP`, `DRAFT_ROUND`, the whole
 `headline_stats` block, and the raw upstream country and school strings. These support pool
 selection and normalization and stop there.
 
-Candidate eligibility is computed, not reviewed. Current-roster membership, from whichever
-enumeration route WP-1.2 proves, is the sole eligibility gate. The pipeline must also have
-complete current- and preceding-season fantasy-point totals to rank an eligible candidate: an
-explicit zero is valid data, while an absent record or field is incomplete and must not be
-silently converted to zero.
+Candidate eligibility is computed, not reviewed. Current-roster membership from the current
+Basketball-Reference team roster pages is the sole eligibility gate. The pipeline must also have
+complete current- and preceding-season fantasy-point totals to rank an eligible candidate. An
+explicit zero is valid data. A current-season entrant marked `R` by the Basketball-Reference
+roster has a known pre-league preceding-season value of zero; every established
+player's absent prior-season record or field remains incomplete and must not be silently converted
+to zero. `ROSTERSTATUS` is diagnostic only and never changes that rule.
 
 The recognition rule is `max(fantasyPointsCurrentSeason, fantasyPointsPreviousSeason) >=
 approvedFantasyPointsCutoff`. This keeps established players visible during an injury-shortened
@@ -387,18 +385,17 @@ an eligibility filter. It may expose a cadence difference between the player pag
 authoritative roster enumeration. WP-1.2 reports its distinct values and disagreements with
 current-roster membership without changing the sole roster-membership gate.
 
-The fantasy-point fields are the one part of this rule the sample does not confirm:
-`headline_stats` carries `PTS`, `AST`, `REB`, and `PIE` but no fantasy points. WP-1.2 must
-prove the supplied traditional-stats route, its season coverage, and a page-embedded or
-otherwise viable league-wide `NBA_FANTASY_PTS` pull. Page-embedded data is preferred over a
-throttled REST route. There is no games-played fallback: user approval locks a deterministic
+The harvester derives fantasy points from server-rendered season totals with the documented WNBA
+formula. Its bounded run proves the path and row coverage needed for a later full run; it does not
+select a cutoff. There is no games-played fallback: user approval locks a deterministic
 fantasy-point cutoff rule after the 75/100/125/150 comparison.
 
 Two seasons are used because a single-season cutoff would bury established players who are
-injured or otherwise have little current-season production. A rookie can qualify on her
-current-season total when the source returns an explicit zero for the preceding season; an
-absent prior-season value remains incomplete data, not an inferred zero. The WP-1.3 cutoff
-review makes any recognizability failure visible rather than hiding it in a special-case rule.
+injured or otherwise have little current-season production. A current-season entrant can qualify on her
+current-season total when the current Basketball-Reference roster marks her `R`, making the preceding season
+pre-league and its total a known zero. An absent prior-season value for an established player
+remains incomplete data, not an inferred zero. The WP-1.3 cutoff review makes any recognizability
+failure visible rather than hiding it in a special-case rule.
 
 `data_review/eligibility_overrides.csv` (committed, expected to stay empty or near-empty):
 `playerId`, `displayName`, `forceEligible`, `reason`, `reviewDateUtc`. This is an escape
@@ -413,13 +410,14 @@ override it applied so an accumulating override list is visible rather than sile
 The roster tooling and the game share exactly one thing: a committed JSON file and its
 documented schema. Nothing else crosses that line.
 
-- Different languages, no shared code. The pipeline is Python under `tools/`; the game is
-  TypeScript under `src/`. Neither imports from the other, and no build step runs the
-  fetcher.
-- All further roster and statistics gathering is Python-only. Python may retrieve official
-  HTML, JSON, or API data, or ingest an official export, then normalize and validate it into
-  static `src/data/roster.json`. Browser observation is completed discovery evidence only:
-  the browser runtime and Playwright never gather roster or statistics data.
+- Different languages, no shared code. The reusable Python pipeline is under `data_fetcher/`, with
+  root and `tools/` executable entry points; the game is TypeScript under `src/`. Neither imports
+  from the other, and no build step runs the fetcher.
+- All further roster and statistics gathering is Python-only. Python retrieves validated,
+  server-rendered Basketball-Reference WNBA HTML with GET only, then normalizes and validates it
+  into static `src/data/roster.json`. JSON, API, XML, POST, browser rendering, and JavaScript
+  execution are forbidden acquisition routes; the browser runtime and Playwright never gather
+  roster or statistics data.
 - Different commands. `./check_codebase.sh`, `./build_github_pages.sh`, and
   `./run_playwright_tests.sh` never fetch anything and never need network access. The
   refresh is its own invocation, run by a maintainer when rosters change.
@@ -473,7 +471,7 @@ inside another lane's files requests it through the orchestrator.
 | M1 / WS-A0 | `src/types/*.ts`, `src/brands.ts` | Orchestrator-owned for the whole build |
 | M1 / WS-Q | Probe, recognizability, parity, and clue-identity reports under `docs/active_plans/reports/` | Observation and reporting; writes no product code |
 | M2 / WS-F | `src/main.ts`, `src/index.html`, `src/style.css`, `src/constants.ts`, a development `src/data/roster.json`, `tsconfig.lint.json`, `pip_requirements.txt`, `tests/playwright/smoke.spec.ts` | Sequential; unblocks every parallel lane without waiting on real data |
-| M3 / WS-D | `tools/*.py`, `data_review/`, `src/data/`, `tests/test_build_roster_file.py`, `tests/test_fetch_wnba_candidates.py` | Python lane; publishes the snapshot |
+| M3 / WS-D | `fetch_wnba_player_data.py`, `data_fetcher/*.py`, `tools/*.py`, `data_review/`, `src/data/`, `tests/test_build_roster_file.py`, `tests/test_fetch_wnba_candidates.py` | Python lane; publishes the snapshot |
 | M3 / WS-U | `src/ui_grid.ts`, `src/ui_controls.ts`, `src/style.css`, `src/index.html` | Presentation; publishes render functions |
 | M3 / WS-P | `src/save_load.ts`, `src/stats_state.ts` | Storage; publishes load, save, and counter updates |
 | M4 / WS-G | `src/daily_puzzle.ts`, `src/clue_engine.ts`, `src/game_state.ts` | Pure logic; publishes selection, evaluation, and transitions |
@@ -496,13 +494,14 @@ inside another lane's files requests it through the orchestrator.
 ### Milestone: M1 external assumptions and contracts
 
 - Depends on: none.
-- Deliverables: `src/types/*.ts` and `src/brands.ts`; an API field-inventory, access, and
-  fantasy-points-pull report; a recognizable-pool decision report; an observed-Pickle-behavior and
+- Deliverables: `src/types/*.ts` and `src/brands.ts`; an HTML field-inventory, access, and
+  fantasy-points-derivation report; a recognizable-pool decision report; an observed-Pickle-behavior and
   WNBA-clue report; a data-use decision record.
 - Entry criteria: none.
 - Exit criteria: `npx tsc --noEmit -p tsconfig.json` succeeds on the types alone; WP-1.4
   freezes the observed core loop and nine WNBA clues; data work records its current evidence
-  and risks. Official roster plus 2025/2026 fantasy-point evidence remains a release-data
+  and risks. A complete derived roster plus requested-current and preceding-season fantasy-point evidence
+  remains a release-data
   requirement, not a prerequisite for development play.
 - Done checks: contracts compile and the core-loop/clue report is available; data evidence is
   preserved for the release-data decision.
@@ -580,8 +579,9 @@ inside another lane's files requests it through the orchestrator.
   contrast audit), WS-R (result dialog, share with clipboard fallback), WS-X (README,
   data-refresh runbook, changelog).
 - Workstreams: WS-Q, WS-R, WS-X.
-- Entry criteria: M4 exit criteria met. Official roster plus 2025/2026 fantasy-point evidence
-  is required before release and real-pool calibration, but data-access experimentation is not
+- Entry criteria: M4 exit criteria met. A complete derived roster plus requested-current and preceding-season
+  fantasy-point evidence is required before release and real-pool calibration, but data-access
+  experimentation is not
   a delivery blocker for development-data playtesting.
 - Exit criteria: the guess count matches the WP-5.1 decision rule; no critical or serious
   accessibility violation remains; every documented contrast pair meets its target; the
@@ -616,9 +616,10 @@ inside another lane's files requests it through the orchestrator.
 - Provides: `src/data/roster.json`, plus the validator and the refresh commands. That one
   fixed path and its documented schema are the lane's entire public surface; a refresh
   rewrites data, never TypeScript.
-- Review boundary: owns `tools/*.py`, `data_review/`, `src/data/`, and its own pytest
-  module. It imports nothing from `src/*.ts` and nothing in `src/*.ts` imports from it; the
-  game reads the JSON through the WP-1.1 validator and never reaches into the pipeline.
+- Review boundary: owns `fetch_wnba_player_data.py`, `data_fetcher/*.py`, executable
+  `tools/*.py` wrappers, `data_review/`, `src/data/`, and its own pytest module. It imports
+  nothing from `src/*.ts` and nothing in `src/*.ts` imports from it; the game reads the JSON
+  through the WP-1.1 validator and never reaches into the pipeline.
 
 ### Workstream: WS-U interface shell
 
@@ -683,7 +684,7 @@ inside another lane's files requests it through the orchestrator.
 - Owner: `playwright_operator`, with `tester` for the fantasy-point and solver analyses and
   `image_evaluator` for the visual pass.
 - Work packages: WP-1.2, WP-1.3, WP-1.4 (in M1), WP-5.1, WP-5.4, WP-5.5.
-- Needs: completed browser interaction discovery for M1, Python-only official-data evidence
+- Needs: completed browser interaction discovery for M1, Python-only Basketball-Reference HTML evidence
   for the pool work, and a complete playable build in M5.
 - Provides: the M1 reports, the approved pool rule, the calibration report, the Playwright
   suite, and the contrast audit.
@@ -718,42 +719,32 @@ inside another lane's files requests it through the orchestrator.
 - Obvious follow-ons: publish the snapshot JSON schema in prose so WP-3.2 can target it
   without importing TypeScript.
 
-### Work package: WP-1.2 probe API fields, access, and pacing
+### Work package: WP-1.2 prove HTML source fields, access, and pacing
 
 - Owner: `coder`.
 - Touch points: `_temp_probe.py` (scratch, removed after), one report under
   `docs/active_plans/reports/`.
 - Depends on: none.
-- Method boundary: all further official-data access occurs through Python-produced saved
-  responses validated by the later manifest-only Python refresh pipeline. Existing browser
-  observations are discovery evidence only; neither Playwright nor the browser game gathers
-  roster or statistics data.
-- Already answered by `wnba_player_samples.json`, and not to be re-derived: the
-  `commonplayerinfo` field names, the height format (`6-4`), the birthdate format
-  (`1996-08-08T00:00:00`), the drafted representations (`DRAFT_YEAR` and `DRAFT_NUMBER` as
-  strings), the team tricode field, the presence of `SCHOOL`, `COUNTRY`,
-  `POSITION_INITIALS`, and `ROSTERSTATUS`, and the fact that `headline_stats` carries
-  scoring lines that the allowlist must drop.
-- Acceptance criteria: the report resolves the questions the sample leaves open, using a
-  league-wide pull rather than three players:
-  - How to enumerate every current player. The prototype fetches by hard-coded id, so this
-    is the largest open question. Test HTML pages first, since those are the ones that load:
-    a team page carrying an embedded roster JSON in the same `window.` style, then a
-    league-wide players or roster page. Record a working page-derived route only after a complete
-    Python-produced response set exists; the page-primed `commonteamroster` REST route timed out
-    and is not a refresh fallback.
-  - Whether the supplied [WNBA traditional-stats route](https://stats.wnba.com/players/traditional/?PerMode=Totals&sort=NBA_FANTASY_PTS&dir=-1)
-    exposes page-embedded league-wide data for both the current and preceding seasons, and
-    how its season parameter works. Before intersecting with the current roster, cross-check
-    the user-supplied 2026 current-season counts over all rows returned by that page: 102
-    players at a 300-point cutoff and 131 at a 200-point cutoff. Report both those all-page
-    counts and the corresponding post-current-roster-intersection counts, so the roster gate
-    cannot look like a source mismatch. Capture `NBA_FANTASY_PTS` totals for every
-    current-roster player, preferring embedded page data over a throttled `/stats/` REST
-    route. Distinguish an explicit zero from an absent record or field, which is incomplete
-    data.
-  - How an undrafted player is represented in both `DRAFT_YEAR` and `DRAFT_NUMBER` (all
-    three samples are number one picks, so this is unconfirmed).
+- Method boundary: all data access occurs in the Python-only refresh pipeline. Existing browser
+  observations are discovery evidence only; neither Playwright nor the browser game gathers roster
+  or statistics data. Live acquisition is validated Basketball-Reference WNBA HTML with GET only.
+- The parser contract is the server-rendered Basketball-Reference table structure: the current
+  and preceding season totals pages provide player slugs and the components of the WNBA fantasy
+  formula; current team roster pages provide membership, number, position, height, weight,
+  birth date, experience, and college; player pages provide biography and draft fields. The
+  committed `wnba_player_samples.json` remains only bounded development evidence, never an
+  acquisition input.
+- Acceptance result: the active additional source is server-rendered Basketball-Reference WNBA
+  HTML. The 2026 totals page discovers current team links and supplies totals; team roster pages
+  establish membership; player pages supply biographies. The bounded `--max 3` command proved 15
+  teams, 223 current totals rows, 182 prior totals rows, and candidates for A'ja Wilson, Alyssa
+  Thomas, and Dearica Hamby. It derives WNBA fantasy points from totals with the documented formula.
+  This is a technical path result, not a complete refresh, cutoff decision, or data-use approval.
+  The no-limit command remains the future complete-harvest action.
+  - The direct WNBA traditional page remains rejected evidence: its fetched HTML is an Angular shell,
+    and its JSON/API route is forbidden. No browser, JavaScript renderer, POST, or XML is used.
+  - How the player-page draft prose represents every undrafted case, so WP-3.2 can keep the
+    normalized undrafted values stable.
   - The full set of distinct `POSITION` values league-wide, which settles whether compound
     positions such as `Guard-Forward` exist at all, and therefore whether the Position
     partial state can ever trigger.
@@ -762,11 +753,8 @@ inside another lane's files requests it through the orchestrator.
     WP-3.2 can define the normalized bucket and the plan can judge whether the College
     column carries enough information.
   - The distinct raw `COUNTRY` values, so WP-3.2 can seed the override table.
-  - The distinct `ROSTERSTATUS` values and disagreements with the roster enumeration as
-    diagnostic evidence only; it never becomes an eligibility filter.
-  - The exact endpoint URLs and any headers the requests need; access behavior at
-    league-wide volume, including throttling, intermittent failure, and the pacing that
-    worked; and the request volume a full refresh requires.
+  - The request behavior is GET HTML through one `get_page()` boundary with at least three seconds
+    plus random jitter, below Sports Reference's published 20-requests-per-minute other-sites cap.
 - Evidence: the value distributions above, quoted from the real pull.
 - Obvious follow-ons: if a field is missing upstream or the request volume looks
   impractical, escalate to the user before M3 rather than substituting a source.
@@ -782,7 +770,8 @@ inside another lane's files requests it through the orchestrator.
   fantasyPointsPreviousSeason) >= cutoff` at 200 and 300 points. For each cutoff, report the
   current-season-only pool and the union after the preceding season is included, naming every
   player added by the union. Treat the 102-at-300 and 131-at-200 values as WP-1.2's
-  all-traditional-stats-page-row cross-checks, not expected post-roster counts. Retain the
+  user-supplied WNBA Stats reference counts, not expected Basketball-Reference post-roster
+  counts. Retain the
   75, 100, 125, and 150 comparisons only as supporting context, ordered by the same maximum
   with ascending `playerId` as the deterministic tie-break. Report:
   - The complete selected name list and at least ten names on each side of the boundary.
@@ -890,7 +879,7 @@ inside another lane's files requests it through the orchestrator.
 - Depends on: WP-1.1.
 - Purpose: unblock and playtest every game lane while the data investigation continues.
   Contracts, interface shell, storage, and pure gameplay logic need a schema-valid roster,
-  not a completed official pull. The file is plainly labeled development data and cannot ship.
+  not a completed full refresh. The file is plainly labeled development data and cannot ship.
 - Acceptance criteria: a hand-built roster file, schema-valid against WP-1.1's validator,
   carrying the three real players already in `wnba_player_samples.json` plus enough
   additional hand-entered players to exercise the interface (distinct teams, both
@@ -918,26 +907,38 @@ inside another lane's files requests it through the orchestrator.
 ### Work package: WP-3.1 build the candidate fetcher
 
 - Owner: `coder`.
-- Touch points: `tools/fetch_wnba_candidates.py`, `.gitignore`.
+- Touch points: `fetch_wnba_player_data.py`, `data_fetcher/wnba_harvester.py`,
+  `data_fetcher/wnba_candidates.py`, `tools/fetch_wnba_candidates.py`, `.gitignore`.
 - Depends on: WP-1.2.
-- Starting point: the root prototype `fetch_wnba_player_data.py` becomes
-  `tools/fetch_wnba_candidates.py`, keeping its request headers, its polite sleep, and its
-  `window.` extraction approach, which are all already correct. Two changes are required:
-  replace the hard-coded `PLAYER_IDS` tuple with the enumeration WP-1.2 proved, and replace
-  the first-semicolon scan in `extract_json_value` with `json.JSONDecoder().raw_decode`, so
-  a value containing a semicolon inside a string cannot truncate the parse.
+- Starting point: the root `fetch_wnba_player_data.py` command calls the reusable
+  `data_fetcher/wnba_harvester.py`. Its single validated `get_page()` request boundary permits
+  only allowlisted, server-rendered Basketball-Reference WNBA HTML GET responses, applies the
+  measured polite delay plus random jitter, and rejects JSON, API, XML, POST, browser-rendered,
+  JavaScript-executed, off-host, redirected, and non-HTML routes. It reads current and preceding
+  totals tables, discovers current team roster links from the current totals page, and fetches
+  roster player pages for biography fields. It enumerates players from complete current team rosters and
+  supports `-m` / `--max` for a plumbing run only when it actually truncates the discovered pool;
+  that output is separately named and marked `validation.scope: test-limit`. The candidate
+  validator uses `json.JSONDecoder().raw_decode`, so a value containing a semicolon inside a
+  string cannot truncate the parse.
   `data/wnba_player_samples.json` remains bounded WP-1.2 evidence; it is not an
   acquisition or runtime input.
-- Acceptance criteria: fetches every current team roster, per-player biography, and
-  per-season `NBA_FANTASY_PTS` totals for the current and preceding seasons, and writes one
+- Acceptance criteria: fetches the current and preceding Basketball-Reference WNBA totals pages,
+  every current team roster, and every rostered player's biography page. It derives each season's
+  `WNBA_FANTASY_PTS` from the documented totals formula and writes one
   gitignored candidate JSON; allowlists field names, so the only statistical value carried
   forward is fantasy points and only into the working file; fails with a clear message naming
   the field when a
   required field is absent from a fetched record, rather than writing a record with a hole
-  in it; paces requests politely using the interval WP-1.2 found
+  in it. The one intentional prior-season absence is a current-season entrant marked `R` in the
+  Basketball-Reference roster, which produces zero rather than a gap. An established player's
+  absent prior total is an error. It paces requests politely using the interval WP-1.2 found
   workable, following the request guidance in `docs/PYTHON_STYLE.md`; reports failures
-  clearly and exits non-zero on incomplete data so a partial fetch cannot silently become a
-  roster file; follows the repo's Python conventions (tabs, type hints on every `def`, a
+  clearly and exits non-zero on incomplete complete-harvest data so an accidental partial fetch
+  cannot silently become a roster file; a deliberate `test-limit` candidate file is rejected by
+  stage two. `--max` sorts the discovered roster deterministically, writes the separately named
+  private test-limit file only when it actually truncates, and is a plumbing check rather than a
+  complete refresh. It follows the repo's Python conventions (tabs, type hints on every `def`, a
   `main()` plus name guard, argparse with paired short and long flags).
 - Evidence: the output file's key set and the run's exit status.
 - Implementation latitude: the fetch, retry, and error-reporting mechanism is the coder's
@@ -946,12 +947,15 @@ inside another lane's files requests it through the orchestrator.
 ### Work package: WP-3.2 build the roster generator and validator
 
 - Owner: `coder`.
-- Touch points: `tools/build_roster_file.py`, `data_review/country_overrides.csv`,
-  `data_review/eligibility_overrides.csv`, `src/data/roster.json`.
+- Touch points: `data_fetcher/wnba_roster.py`, `tools/build_roster_file.py`,
+  `data_review/country_overrides.csv`, `data_review/eligibility_overrides.csv`,
+  `src/data/roster.json`.
 - Depends on: WP-3.1, WP-1.1, WP-1.3.
 - Acceptance criteria: applies the computed current-roster eligibility rule and the approved
   recognizability rule (`max(fantasyPointsCurrentSeason, fantasyPointsPreviousSeason)` at or
-  above the WP-1.3 cutoff), records both rules and the cutoff in the file envelope, applies
+  above the WP-1.3 cutoff), reads the season pair from candidate `source.seasons` rather than
+  calendar-year literals, rejects `validation.scope: test-limit`, records both rules and the
+  cutoff in the file envelope, applies
   an override only as a documented correction to proven authoritative roster-data error, and
   drops fantasy points before writing so no
   performance value reaches the shipped file, and reports every applied override from
@@ -978,7 +982,10 @@ inside another lane's files requests it through the orchestrator.
   written roster file; a compound position splits into the right primary and alternates; a
   height string parses to the right inch count; an undrafted player round-trips as
   undrafted; a country needing an override normalizes; non-ASCII output is rejected; a
-  candidate record missing a required field fails with a message naming that field.
+  candidate record missing a required field fails with a message naming that field; a
+  current-season entrant gets a zero prior-season total only from Basketball-Reference roster
+  experience `R`, while an
+  established player's missing prior-season total fails.
   Inputs are inline literals or written into `tmp_path`;
   no committed fixture directory is added. The suite finishes well under one second and
   asserts nothing about today's date, collection lengths, or required-key lists.
@@ -1317,7 +1324,7 @@ source source_me.sh && python3 -m pytest tests/
 | Risk | Impact | Trigger | Owner | Mitigation |
 | --- | --- | --- | --- | --- |
 | The undocumented route changes shape | Blocks the data lane | A refresh fails on a missing field | WS-D owner | The fetcher fails loudly naming the absent field rather than writing an incomplete record; the game keeps playing the committed roster file until the fetcher is fixed |
-| `/stats/` REST paths are throttled | A pipeline built on REST cannot complete a full-league run | Already observed: `commonplayerinfo` throttles while the player page loads immediately | WS-Q, then WS-D | Prefer HTML pages with embedded JSON everywhere; if any step must use REST, WP-1.2 proves a pacing that survives a full run before the pipeline depends on it |
+| A rejected WNBA Stats route is throttled | A future change could accidentally reintroduce an unusable acquisition path | `commonplayerinfo` throttles while the player page loads immediately | WS-Q, then WS-D | Keep the validated Basketball-Reference GET/HTML-only allowlist: no WNBA JSON/API, browser, or JavaScript route is an approved fallback |
 | A full-league page crawl is slow at polite pacing | A refresh takes impractically long | WP-1.2 request-volume estimate at roughly 180 players plus team pages | WS-D owner | Refresh is an offline maintenance action, not a user-facing one, so a slow run is acceptable; if it is not, cache unchanged player pages between refreshes keyed on player id |
 | The 200/300 fantasy-point cutoffs give poor pool boundaries | The pool is arbitrary or wrong | WP-1.3 names many unfamiliar players inside or high-recognition players outside either cutoff | WS-Q owner | WP-1.3 reports both direct cutoffs, their preceding-season additions, and named examples before the user locks the deterministic rule |
 | The selected cutoff excludes too many players | The pool is too small for a daily game | WP-1.3 pool size falls below roughly 120 | WS-Q owner | Pool size is an explicit output of WP-1.3 and feeds WP-5.1; bring the 200-versus-300 trade-off to the user before M3 |
@@ -1327,7 +1334,7 @@ source source_me.sh && python3 -m pytest tests/
 | Answers recur soon after a roster refresh | Mild repetition | Any data refresh | Orchestrator | Accepted behavior; the permutation guarantees no repeat within one roster file, and the README states the limit accurately |
 | A roster refresh lands mid-puzzle | A player's in-progress game rebinds to a different answer | Refresh deployed while a puzzle is open | WS-G owner | The save records the puzzle date, the target, and the evaluated rows; a puzzle whose target is gone is discarded with no loss, and puzzles expire daily anyway |
 | Nine clues crowd the portrait viewport | Core comparison becomes hard to use | Real content at 800x1280, with College adding a wide text cell | WS-U, verified by WS-Q | WP-3.4 designs portrait-first and uses readable scrolling or stacking where helpful; WP-5.4 drives a real interaction walkthrough rather than accepting screenshots |
-| Per-season fantasy points are unavailable or inconsistent | The recognizability rule cannot be verified | WP-1.2 cannot prove complete current and preceding-season `NBA_FANTASY_PTS` coverage | WS-Q owner | Prefer page-embedded data from the supplied traditional-stats route; report the missing coverage and stop before M3 rather than silently substituting a different metric |
+| Per-season fantasy-point components are unavailable or inconsistent | The recognizability rule cannot be verified | WP-1.2 cannot prove complete current and preceding Basketball-Reference totals coverage | WS-Q owner | Derive the documented WNBA formula from the two server-rendered totals tables; report missing coverage and stop before M3 rather than silently substituting a metric |
 | College is thin or inconsistent for international players | A clue column carries little information for part of the pool | WP-1.2 reports many empty or club-name `SCHOOL` values | WS-D owner | Non-US-college players get one normalized bucket rather than a blank; if that bucket is very large, report the share to the user and reconsider the column before M3 |
 | The four-color palette cannot meet contrast targets | The accessibility gate fails at M5 | WP-5.5 measures a failing pair | WS-Q owner | Any remediation built from the four tokens is permitted; if still failing, report the pair to the user rather than adding a hue |
 | Parallel agents redeclare a shared type | Integration debt at the batch boundary | An agent needs a shape absent from `src/types/` | Orchestrator | Pause and invoke `typescript-engineer`; the batch gate re-runs the typecheck across lanes |
@@ -1350,10 +1357,10 @@ source source_me.sh && python3 -m pytest tests/
       matches it.
 - [ ] An independent `reviewer` agent has signed off on the built artifact.
 
-Publishing to GitHub Pages is an operator action outside this deliverable: a human moves
-`deploy-pages.yml` into the workflows directory and enables Pages for the repository, per
-the repo convention that agents edit only root-level files. The software is complete when
-the checklist above is complete; the plan does not claim the site is live.
+GitHub Pages deployment is already defined by `.github/workflows/deploy-pages.yml`, which builds
+and deploys `main` for [WNBA Mystery Player Hunt](https://vosslab.github.io/wnba-mystery-player-hunt/)
+in [vosslab/wnba-mystery-player-hunt](https://github.com/vosslab/wnba-mystery-player-hunt).
+That workflow does not resolve the separate derived-data-use or cutoff decisions above.
 
 ## Documentation close-out requirements
 
@@ -1374,10 +1381,11 @@ None block dispatch. Each is scheduled inside the plan.
 
 - Fantasy-points cutoff:
   - Decision owner: `tester` (WP-1.3).
-  - Evidence and decision rule: cross-check all rows returned by the 2026 traditional-stats
-    page against the user-supplied current-season counts (131 at 200, 102 at 300), then
-    intersect with the current roster before comparing 200 and 300 using
-    `max(currentSeasonNBAFantasyPts, precedingSeasonNBAFantasyPts) >= cutoff`. Report the
+  - Evidence and decision rule: derive WNBA fantasy totals from the 2026 and 2025
+    Basketball-Reference totals pages, compare the resulting 200 and 300 pools with the
+    user-supplied current-season reference counts (131 at 200, 102 at 300), then intersect
+    with the current roster before comparing 200 and 300 using
+    `max(fantasyPointsCurrentSeason, fantasyPointsPreviousSeason) >= cutoff`. Report the
     preceding-season additions for both pools, and retain 75/100/125/150 only as context.
     The user approves one deterministic cutoff rule before WP-3.2. Zero is valid; missing
     data is incomplete and is never coerced to zero.

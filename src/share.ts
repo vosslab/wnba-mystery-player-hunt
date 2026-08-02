@@ -6,7 +6,7 @@ export type ShareFormatOptions = {
   readonly productName?: string;
 };
 
-const DEFAULT_PRODUCT_NAME = "WNBA Pickle";
+const DEFAULT_PRODUCT_NAME = "WNBA Mystery Player Hunt";
 
 /**
  * Produces a compact round summary that deliberately contains no names, ids, or clue values.

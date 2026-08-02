@@ -7,7 +7,7 @@ Independent review of the current diff in `docs/active_plans/wnba_game-plan.md` 
 
 - current-season checks of 102 players at 300 FP and 131 players at 200 FP;
 - include the preceding season;
-- select with `max(current, preceding NBA_FANTASY_PTS) >= cutoff` after current-roster
+- select with `max(current, preceding WNBA_FANTASY_PTS) >= cutoff` after current-roster
   membership;
 - use FP at build time only, never as a clue or shipped snapshot field.
 

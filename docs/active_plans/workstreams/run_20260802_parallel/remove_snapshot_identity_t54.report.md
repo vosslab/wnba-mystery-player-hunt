@@ -18,7 +18,7 @@ evaluated guesses are retained.
 
 ## Validation
 
-- `npx tsc --noEmit` — passed.
+- `npx tsc --noEmit` - passed.
 - `npx tsx --test tests/test_daily_puzzle.mjs tests/test_game_state.mjs tests/test_save_load.mjs`
-  — 13 passed.
-- `source source_me.sh && python3 -m pytest tests/test_build_roster_file.py` — 5 passed.
+  - 13 passed.
+- `source source_me.sh && python3 -m pytest tests/test_build_roster_file.py` - 5 passed.

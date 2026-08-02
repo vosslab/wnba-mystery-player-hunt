@@ -1,14 +1,13 @@
-# WNBA Pickle
+# WNBA Mystery Player Hunt
 
 A daily WNBA player-guessing game for fans who want a quick, clue-driven challenge, using nine
 comparisons to turn each of six guesses into a useful next move.
 
-> Status: playable development build. The bundled player pool is an incomplete fixture, not a
-> verified current official roster. Official 2025/2026 data and the final fantasy-point cutoff
-> are still required before release.
+[Play the game](https://vosslab.github.io/wnba-mystery-player-hunt/) |
+[View the repository](https://github.com/vosslab/wnba-mystery-player-hunt)
 
 <!-- screenshots:begin (managed by screenshot-docs) -->
-![WNBA Pickle development game after one accepted guess, with the current dev-data notice and comparison feedback](docs/screenshots/wnba_pickle_feedback.png)
+![WNBA Mystery Player Hunt after one accepted guess, with nine comparison clues](docs/screenshots/wnba_pickle_feedback.png)
 <!-- screenshots:end -->
 
 ## A daily clue chase
@@ -37,8 +36,7 @@ that the project prepares for GitHub Pages:
 ```
 
 The terminal prints a local URL. Open it, type at least two characters of a player name, choose a
-match, and make a guess. The visible development-data notice is expected: it proves the game loop,
-not a release-ready player pool.
+match, and make a guess.
 
 For setup requirements and the optional Playwright browser installation, see
 [docs/INSTALL.md](docs/INSTALL.md).
@@ -70,9 +68,8 @@ needed.
 4. Solve the mystery player within six guesses to win; otherwise see the answer after the final
    guess.
 
-The development fixture keeps this flow available while the offline data pipeline is completed.
-It is deliberately separate from the browser: there is no browser-connected data acquisition and
-no runtime request to WNBA data sources.
+The game always uses the roster bundled in the repository. Data updates are independent Python
+maintenance work; the browser never fetches roster or statistics data at runtime.
 
 ## Documentation
 
@@ -86,15 +83,10 @@ no runtime request to WNBA data sources.
 - [docs/active_plans/wnba_game-plan.md](docs/active_plans/wnba_game-plan.md) records the active
   implementation plan, including the Python-only data boundary and release-data requirements.
 
-## Current limitations
+## Bundled roster
 
-This is not yet a public release or a confirmed hosted deployment. The bundled roster is a
-hand-built development fixture, intentionally small and incomplete. A release snapshot would
-derive its factual player fields from WNBA Stats through the separate Python workflow, with WNBA
-Stats attribution, only after the current terms and any needed permission are approved under the
-[data-use decision](docs/active_plans/decisions/wnba_data_use.md). A verified current roster, both
-fantasy-point seasons, and an approved cutoff must still replace the fixture before the game can
-represent a release-ready daily WNBA puzzle.
+The browser uses the static roster committed with the game. Updating that file is an independent
+Python maintenance task and is never required to start, build, or play the game.
 
 ## License
 

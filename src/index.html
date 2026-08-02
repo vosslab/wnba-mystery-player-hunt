@@ -7,7 +7,7 @@
       name="description"
       content="A daily WNBA player guessing game with a nine-clue comparison grid."
     />
-    <title>WNBA Pickle</title>
+    <title>WNBA Mystery Player Hunt</title>
     <link rel="stylesheet" href="style.css" />
     <script type="module" src="main.js"></script>
   </head>
@@ -15,23 +15,15 @@
     <a class="skip-link" href="#game">Skip to the game</a>
     <main id="game" class="game-shell" aria-labelledby="game-title">
       <header class="game-header">
-        <p class="eyebrow">Daily WNBA player puzzle</p>
-        <h1 id="game-title">WNBA Pickle</h1>
-        <p class="lede">Name the mystery player. Each guess reveals nine useful clues.</p>
-        <p class="development-notice" role="note">
-          Development build: this bundled player pool is incomplete and is not a current official
-          WNBA roster.
-        </p>
+        <div class="title-row">
+          <h1 id="game-title">WNBA Mystery Player Hunt</h1>
+          <p class="guess-count" aria-label="Six guesses remaining">6 left</p>
+        </div>
+        <p class="lede">Find today&apos;s mystery player. Every guess reveals nine clues.</p>
       </header>
 
       <section class="play-panel" aria-labelledby="guess-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Today&apos;s matchup</p>
-            <h2 id="guess-title">Who is the mystery player?</h2>
-          </div>
-          <p class="guess-count" aria-label="Six guesses remaining">6 left</p>
-        </div>
+        <h2 id="guess-title" class="visually-hidden">Make a guess</h2>
 
         <form id="guess-form" class="guess-form" aria-describedby="guess-help" novalidate>
           <label for="player-search">Search a WNBA player</label>
@@ -49,6 +41,9 @@
               disabled
             />
             <button id="guess-button" type="submit" disabled>Guess</button>
+            <button id="pick-player" class="secondary-button" type="button" disabled>
+              Pick for me
+            </button>
           </div>
           <ul
             id="player-suggestions"
@@ -56,12 +51,9 @@
             role="listbox"
             aria-label="Player matches"
           ></ul>
-          <p id="guess-help" class="helper-text">
+          <p id="guess-help" class="visually-hidden">
             Start typing to find an active WNBA player, then submit your guess.
           </p>
-          <button id="pick-player" class="secondary-button" type="button" disabled>
-            Pick for me
-          </button>
         </form>
         <p id="game-status" class="shell-status" role="status" aria-live="polite">
           Preparing today&apos;s player pool.
@@ -69,11 +61,8 @@
       </section>
 
       <section class="comparison-section" aria-labelledby="comparison-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Your clues</p>
-            <h2 id="comparison-title">Comparison grid</h2>
-          </div>
+        <div class="section-heading comparison-heading">
+          <h2 id="comparison-title">Clues</h2>
           <p class="grid-key" aria-label="Feedback key">
             <span class="key-exact" aria-hidden="true"></span> Exact
             <span class="key-partial" aria-hidden="true"></span> Close

@@ -3,10 +3,10 @@
   "asOfDateUtc": "2026-08-02",
   "dataKind": "development",
   "dataStatus": "development",
-  "sourceNote": "DEVELOPMENT FIXTURE ONLY: hand-built, incomplete, and potentially stale player data for gameplay work. It MUST NOT ship or be presented as an official current WNBA roster.",
+  "sourceNote": "Bundled hand-maintained development player pool for gameplay work. It is not generated from an official current-roster refresh and is not an official current WNBA roster.",
   "selectionRule": {
     "kind": "development-fixture",
-    "description": "Hand-built recognizable-player pool for interface and gameplay development; it is not an official roster selection."
+    "description": "Bundled hand-maintained recognizable-player pool for interface and gameplay development, not an official current-roster selection."
   },
   "players": [
     {

@@ -10,7 +10,7 @@ private working data, and does not choose a recognizability cutoff.
 
 - Current-roster response membership is the sole candidate gate. `ROSTERSTATUS` is retained only
   as diagnostic profile evidence.
-- Both 2026 and 2025 `NBA_FANTASY_PTS` are required working-data fields. A numeric zero is valid;
+- Both 2026 and 2025 `WNBA_FANTASY_PTS` are required working-data fields. A numeric zero is valid;
   a missing value is an explicit error.
 - The fetcher now rejects duplicate or unexpected roster responses, roster rows whose `TEAM_ID`
   disagrees with the requested team, and duplicate traditional-stat player rows. These prevent a
@@ -33,7 +33,7 @@ private working data, and does not choose a recognizability cutoff.
 - A minimal saved-export fixture completed end to end: exactly one candidate was written, the
   2026 value `0` was retained, and the candidate/profile allowlists were verified.
 - The same fixture with a missing 2025 fantasy value failed nonzero with the named
-  `NBA_FANTASY_PTS` field.
+  `WNBA_FANTASY_PTS` field.
 - `source source_me.sh && python3 -m bandit -q tools/fetch_wnba_candidates.py` - pass (Bandit
   emitted informational `nosec` comment-token warnings only).
 - `source source_me.sh && python3 -m pyflakes tools/fetch_wnba_candidates.py` - pass.

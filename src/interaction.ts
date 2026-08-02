@@ -160,7 +160,7 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
       controls?.setStatus(
         puzzle.guesses.length === 0
           ? "Choose a player to make your first guess."
-          : "Choose your next player from the active WNBA development pool.",
+          : "Choose your next player from the bundled player pool.",
       );
       return;
     }
@@ -242,7 +242,7 @@ function rejectionMessage(reason: string): string {
   if (reason === "puzzle-complete") {
     return "Today's round is complete. Open the result to see the answer.";
   }
-  return "That player is unavailable in today's development player pool. Try another match.";
+  return "That player is unavailable in today's bundled player pool. Try another match.";
 }
 
 function formatStatistics(saveData: SaveDataV1): string {

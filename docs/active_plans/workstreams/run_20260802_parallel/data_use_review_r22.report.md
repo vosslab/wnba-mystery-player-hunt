@@ -28,7 +28,7 @@ by the README until those documentation changes land.
 
 ## Verified scope
 
-- The decision's private `NBA_FANTASY_PTS` rule matches the candidate-pipeline report and the
+- The decision's private `WNBA_FANTASY_PTS` rule matches the candidate-pipeline report and the
   snapshot validator's performance-field exclusion.
 - Its static-browser claim is corroborated by the browser test's WNBA-network-request guard.
 - Its statement that complete official roster and two-season input remain unavailable matches the

@@ -25,6 +25,6 @@ export PYTHONDONTWRITEBYTECODE=1
 # or scripts under tools/ or tests/ that import repo-root modules.
 # Must come after sourcing ~/.bashrc, which clears PYTHONPATH.
 # Assumes the repo is inside a Git work tree (git rev-parse).
-#REPO_ROOT="$(git rev-parse --show-toplevel)"
-#export PYTHONPATH="$REPO_ROOT${PYTHONPATH:+:$PYTHONPATH}"
-#unset REPO_ROOT
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+export PYTHONPATH="$REPO_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+unset REPO_ROOT

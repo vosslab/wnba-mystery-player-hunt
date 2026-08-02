@@ -53,7 +53,7 @@ WP-1.2 complete is not.
 ## Accepted evidence
 
 - The report preserves the user's rules: current-roster membership is the sole eligibility gate;
-  `NBA_FANTASY_PTS` remains a build-time-only recognizability metric; 2025 and 2026 totals use the
+  `WNBA_FANTASY_PTS` remains a build-time-only recognizability metric; 2025 and 2026 totals use the
   approved maximum rule; missing values are not coerced to zero.
 - Direct HTML GETs to the listed Stats routes returned HTTP 200 shells without the reported
   embedded records, and the three direct API attempts produced no usable payload within their

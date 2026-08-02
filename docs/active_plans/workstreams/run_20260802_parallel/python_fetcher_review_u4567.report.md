@@ -33,7 +33,7 @@ gaps can silently produce an incomplete roster candidate pool or read files outs
   atomic write, and only carries allowlisted candidate fields.
 - A duplicate roster response, duplicate player, wrong roster `TEAM_ID`, missing team response,
   missing player page, and missing season total each raise an explicit error.
-- Both 2026 and 2025 `NBA_FANTASY_PTS` values are mandatory. An offline end-to-end fixture retained
+- Both 2026 and 2025 `WNBA_FANTASY_PTS` values are mandatory. An offline end-to-end fixture retained
   a numeric 2026 zero. `ROSTERSTATUS` is retained as profile evidence and never filters candidates.
 - `extract_json_value()` uses `JSONDecoder.raw_decode`, so the player-page assignment is parsed
   without delimiter guessing. The fetcher does not choose a fantasy-point cutoff.

@@ -1,7 +1,9 @@
 # Usage
 
-WNBA Pickle is a daily WNBA player-guessing game. The browser build currently uses an incomplete
-development player pool, clearly labelled in the interface, rather than a current official roster.
+WNBA Mystery Player Hunt is a daily WNBA player-guessing game that uses the roster bundled with
+the repository.
+
+[Play the hosted game](https://vosslab.github.io/wnba-mystery-player-hunt/).
 
 ## Play locally
 
@@ -22,8 +24,8 @@ the command running while playing; stop it with `Ctrl-C` when finished.
 - Use the light, dark, or system theme choice; progress, statistics, and streaks persist locally.
 - At the end of six guesses, read the result and use Share result for a non-spoiling summary.
 
-The site makes no runtime request for roster or statistics data. The visible development notice
-means the game loop is ready to evaluate, while the player selection is not release data.
+The site makes no runtime request for roster or statistics data. Updating the bundled roster is a
+separate Python maintenance task and does not affect the game architecture.
 
 ## Developer checks
 
@@ -42,9 +44,3 @@ they are absent (see [INSTALL.md](INSTALL.md)).
 
 Roster refresh is an offline Python workflow, separate from browser play and browser tests. Follow
 [DATA_REFRESH.md](DATA_REFRESH.md) for the exact Python commands, validation, and recovery steps.
-Until an official refresh produces a verified snapshot, do not present the bundled development pool
-as an official current roster.
-
-## Known gaps
-
-- TODO: Add a hosted URL after GitHub Pages deployment is confirmed.

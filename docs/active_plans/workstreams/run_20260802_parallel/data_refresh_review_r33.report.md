@@ -19,7 +19,7 @@ then keeps snapshot generation offline.
   2026 and 2025 traditional totals and a player page for every rostered player; preserves numeric
   zero fantasy totals; and rejects missing or nonnumeric totals.
 - `build_roster_file.py` requires an explicit `--cutoff {200,300}`. It selects only current-roster
-  candidates using `max(2026, 2025 NBA_FANTASY_PTS) >= cutoff`; neither 200 nor 300 is presented
+  candidates using `max(2026, 2025 WNBA_FANTASY_PTS) >= cutoff`; neither 200 nor 300 is presented
   as a default or settled product decision.
 - The documented review destinations are safe before promotion. The generator emits the public
   allowlisted snapshot and excludes fantasy points, minutes, and other performance fields. The

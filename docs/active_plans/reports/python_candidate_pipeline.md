@@ -1,74 +1,63 @@
 # Python candidate pipeline
 
-`tools/fetch_wnba_candidates.py` is a manifest-only Python validation boundary. It reads saved,
-Python-produced official responses; writes a private, ignored working file; never writes
-`src/data/roster.json`; and never imports or controls a browser. The later roster generator is
-responsible for selection and for dropping fantasy points. This optional maintenance workflow is
-independent from game runtime and builds: a valid static snapshot remains playable at any age.
+`fetch_wnba_player_data.py` exposes the reusable Python harvester in
+`data_fetcher/wnba_harvester.py`. This is an optional maintenance command, not a game build or
+runtime dependency. It writes only ignored private candidates and never writes
+`src/data/roster.json`.
 
-## Standard run
+## Network contract
 
-Use a saved manifest when official WNBA Stats responses have been produced locally in Python:
+One `get_page()` function owns all live requests. It receives a URL rather than constructing one,
+then validates the request, referer, redirect, and HTML media type. It permits only HTTPS
+`www.basketball-reference.com/wnba/` HTML pages, uses GET only, and rejects JSON, API, XML, POST,
+browser rendering, JavaScript execution, off-host URLs, and non-HTML responses.
+
+The request boundary waits at least three seconds plus `random.random()` seconds before every
+request. That is deliberately below Sports Reference's published 20-requests-per-minute cap for
+other sites; see the [bot-traffic policy](https://www.sports-reference.com/bot-traffic.html).
+
+## Harvest flow
+
+The current-season Basketball-Reference totals page supplies both current totals and current team
+links. The preceding totals page supplies prior-season totals. Each current team roster page
+establishes membership, then each selected player HTML page supplies biography fields. The
+harvester derives WNBA fantasy points from the totals formula; it never reads a WNBA JSON statistic.
 
 ```bash
-source source_me.sh && python3 tools/fetch_wnba_candidates.py \
-  --input-manifest data/private/official_exports/manifest.json
+source source_me.sh && python3 fetch_wnba_player_data.py --season 2026 --max 3
 ```
 
-The output defaults to `data/private/wnba_candidates.json`, which is ignored. The optional
-`--output` path must also stay below `data/private/`, so candidate performance totals cannot
-accidentally become a game-facing or tracked artifact. There is no `--live` route: the required
-roster and traditional-stat REST responses are not established as a complete refresh source.
+The bounded 2026 run succeeded: 15 team pages, 223 current rows, 182 previous rows, and three
+candidates (A'ja Wilson, Alyssa Thomas, and Dearica Hamby). Its ignored output is
+`data/private/wnba_candidates_test_limit_3.json`; `source.kind` is
+`basketball-reference-html` and `validation.scope` is `test-limit`.
 
-## Export manifest
+The no-limit command has not been completed here. It is expected to visit every player on the
+current roster pages and write `data/private/wnba_candidates.json` with `validation.scope` equal
+to `complete`. Do not claim full roster coverage, a selected cutoff, or a production snapshot until
+that manual run and offline review occur.
 
-All paths are relative to the manifest. Every source URL must be an HTTPS `stats.wnba.com` URL.
-The response files are saved, unmodified official responses produced by Python. `playerPages`
-contains HTML with the `window.nbaStatsPlayerInfo` assignment for every player that appears in a
-current roster response.
+## Candidate boundary
 
-```json
-{
-  "asOfDateUtc": "2026-08-02",
-  "sources": {
-    "teams": {
-      "sourceUrl": "https://stats.wnba.com/js/data/widgets/teams_landing_inner.json",
-      "file": "teams.json"
-    },
-    "rosters": [
-      {
-        "teamId": "1611661317",
-        "sourceUrl": "https://stats.wnba.com/stats/commonteamroster?LeagueID=10&Season=2026&TeamID=1611661317",
-        "file": "rosters/1611661317.json"
-      }
-    ],
-    "traditionalStats": {
-      "2026": { "sourceUrl": "https://stats.wnba.com/stats/leaguedashplayerstats?...Season=2026...", "file": "traditional_2026.json" },
-      "2025": { "sourceUrl": "https://stats.wnba.com/stats/leaguedashplayerstats?...Season=2025...", "file": "traditional_2025.json" }
-    },
-    "playerPages": {
-      "1628932": {
-        "sourceUrl": "https://stats.wnba.com/player/1628932/",
-        "file": "players/1628932.html"
-      }
-    }
-  }
-}
-```
+Each candidate keeps roster and player-page source URLs, roster and biography fields, and current
+and preceding derived fantasy totals. The envelope records the current and previous seasons,
+season totals URLs, team count, roster-response count, totals-row counts, candidate count, and
+scope. Stable decimal identifiers are deterministically derived from Basketball-Reference source
+keys so the established game-facing contract stays numeric.
 
-The representative roster entry above is illustrative only. A real run must provide one roster
-response for every team ID found in the official teams response. The tool rejects missing,
-duplicate, or unexpected team rosters; player records whose reported team does not match the
-roster response; missing player pages; missing required biography fields; and missing 2026 or 2025
-`NBA_FANTASY_PTS` values. An explicit numeric zero is retained; an absent record is an error.
+`--max` sorts by the two-season fantasy score and limits only after the current roster is known.
+When it actually truncates, the candidate file is deliberately incomplete and stage two rejects it.
+An explicit `--output` must remain below `data/private/` and never changes that scope.
 
-## Private candidate schema
+The separate `tools/fetch_wnba_candidates.py` command is an offline validator for saved local
+exports. It has no live network role in this path.
 
-The output includes provenance and validation counts, followed by one candidate for each player in
-the authoritative current-roster responses. Candidate records retain only the allowlisted roster
-and biography fields plus `fantasyPointsCurrentSeason` and
-`fantasyPointsPreviousSeason`. `ROSTERSTATUS` is raw diagnostic evidence only; it does not filter
-the roster. This file is the only place in the pipeline where fantasy points persist.
+## Snapshot boundary
 
-No cutoff is chosen here. The downstream generator applies the approved two-season
-recognizability rule after current-roster membership has already established eligibility.
+`tools/build_roster_file.py` is offline. It accepts only a complete candidate envelope, applies the
+current-roster eligibility gate and a user-approved 200 or 300 two-season cutoff, then drops all
+performance fields before writing a static snapshot. The game uses whichever valid snapshot is
+committed, regardless of its source date.
+
+Basketball-Reference output is derived rather than official WNBA data. Public use remains subject
+to the [data-use decision](../decisions/wnba_data_use.md) and its linked Sports Reference policies.

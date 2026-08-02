@@ -20,11 +20,11 @@ not apply pixel, timing, or reference-parity gates.
   `.nojekyll`. The HTML loads only local `style.css` and `main.js`; the roster is inlined in the
   JavaScript bundle.
 - Direct built-artifact inspection found no runtime `fetch`, `XMLHttpRequest`, WNBA/NBA URL, or
-  performance field (`NBA_FANTASY_PTS`, minutes, points, rebounds, assists, PIE, or
+  performance field (`WNBA_FANTASY_PTS`, minutes, points, rebounds, assists, PIE, or
   `ROSTERSTATUS`) in the shipped snapshot. The browser suite likewise exercises only bundled
   data and records no WNBA network request.
-- The visible page states: “Development build: this bundled player pool is incomplete and is not
-  a current official WNBA roster.” The bundled provenance is `development` / `development-fixture`.
+- The visible page states: "Development build: this bundled player pool is incomplete and is not
+  a current official WNBA roster." The bundled provenance is `development` / `development-fixture`.
 - Direct source and artifact inspection found no logos, headshots, image assets, SVG branding, or
   runtime backend/data-acquisition path. The Python-only acquisition boundary is documented in
   `docs/DATA_REFRESH.md`.

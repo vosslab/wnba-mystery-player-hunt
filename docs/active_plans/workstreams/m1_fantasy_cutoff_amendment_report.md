@@ -4,7 +4,7 @@
 
 - The current WNBA roster enumeration remains the authoritative eligibility source.
 - The supplied WNBA traditional-stats route can be tested for current and preceding-season
-  `NBA_FANTASY_PTS` coverage before the data pipeline is implemented.
+  `WNBA_FANTASY_PTS` coverage before the data pipeline is implemented.
 - A reported zero is valid. An absent row or field is incomplete data and is not converted
   to zero.
 
@@ -22,7 +22,7 @@
 ## Concrete next steps
 
 - WP-1.2 proves the traditional-stats route, its season parameter, embedded-data availability,
-  and league-wide `NBA_FANTASY_PTS` coverage for both seasons.
+  and league-wide `WNBA_FANTASY_PTS` coverage for both seasons.
 - WP-1.2 reconciles its current-season counts with 131 at 200 and 102 at 300.
 - WP-1.3 presents both direct cutoff pools, preceding-season additions, named boundaries, and
   supporting 75/100/125/150 context for user approval.
