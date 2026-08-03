@@ -16,15 +16,19 @@ import urllib.request
 # local repo modules
 import data_fetcher.wnba_basketball_reference
 import data_fetcher.wnba_candidates
+import data_fetcher.wnba_roster
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_OUTPUT = pathlib.Path("data/private/wnba_candidates.json")
+PUBLIC_ROSTER_OUTPUT = REPO_ROOT / "src/data/roster.json"
+PUBLIC_ROSTER_CUTOFF = 300
 CHECKPOINT_INTERVAL = 5
 CHECKPOINT_SCHEMA_VERSION = 1
 PROFILE_CACHE_FILE = "wnba_player_profiles.json"
 PROFILE_CACHE_SCHEMA_VERSION = 1
 PROFILE_CACHE_MAX_AGE_SECONDS = 14 * 24 * 3600
+PLAYER_REFRESH_MODES = {"automatic", "cache-only", "refresh"}
 TIMEOUT_SECONDS = 30
 BREF_HOST = "www.basketball-reference.com"
 BREF_ROOT = f"https://{BREF_HOST}"
@@ -74,6 +78,14 @@ def parse_args() -> argparse.Namespace:
 			"test-limit path unless this option is supplied."))
 	parser.add_argument("-m", "--max", dest="max_players", type=positive_integer,
 		help="Limit current roster candidates for a short pipeline test.")
+	profile_group = parser.add_mutually_exclusive_group()
+	profile_group.add_argument("-R", "--refresh-players", dest="player_refresh_mode",
+		action="store_const", const="refresh",
+		help="Refresh every player biography while retaining stale cache fallbacks.")
+	profile_group.add_argument("-F", "--fast", dest="player_refresh_mode",
+		action="store_const", const="cache-only",
+		help="Never request player pages; use cached biographies only.")
+	parser.set_defaults(player_refresh_mode="automatic")
 	args = parser.parse_args()
 	return args
 
@@ -645,8 +657,11 @@ def harvest_player_candidates(entries: list[dict[str, str]], current_season: str
 		current_points: dict[str, float], previous_points: dict[str, float],
 		checkpoint_path: pathlib.Path | None = None,
 		profile_cache_path: pathlib.Path | None = None,
-		candidate_seed_path: pathlib.Path | None = None) -> tuple[list[dict], list[dict[str, str]]]:
+		candidate_seed_path: pathlib.Path | None = None,
+		player_refresh_mode: str = "automatic") -> tuple[list[dict], list[dict[str, str]]]:
 	"""Fetch profiles, retaining successes and retrying failed players on a rerun."""
+	if player_refresh_mode not in PLAYER_REFRESH_MODES:
+		raise ValueError(f"Unsupported player refresh mode: {player_refresh_mode}")
 	source_fingerprint = harvest_source_fingerprint(
 		entries, current_season, current_points, previous_points
 	)
@@ -700,12 +715,26 @@ def harvest_player_candidates(entries: list[dict[str, str]], current_season: str
 			new_since_checkpoint += 1
 		elif candidate is None:
 			cache_entry = profile_cache.get(entry["slug"])
-			cache_is_fresh = cache_entry is not None and profile_cache_entry_is_fresh(
+			cache_matches_player = (
+				cache_entry is not None
+				and cache_entry["playerPageSourceUrl"] == player_url
+			)
+			cache_is_fresh = cache_matches_player and profile_cache_entry_is_fresh(
 				cache_entry, player_url, current_time
 			)
-			if cache_is_fresh:
+			use_cached_profile = (
+				player_refresh_mode == "cache-only" and cache_matches_player
+			) or (
+				player_refresh_mode == "automatic" and cache_is_fresh
+			)
+			if use_cached_profile:
 				metadata = cache_entry["metadata"]
 				profile_cache_hits += 1
+			elif player_refresh_mode == "cache-only":
+				failed_entries.append(entry)
+				print(f"WARNING: Skipping {entry['name']} ({entry['slug']}): "
+					"--fast found no cached player profile", flush=True)
+				continue
 			else:
 				print(f"Pulling Basketball-Reference player page {index} of {len(entries)} "
 					f"({entry['name']}); found {len(candidates)} players...", flush=True)
@@ -762,7 +791,7 @@ def harvest_player_candidates(entries: list[dict[str, str]], current_season: str
 		print(f"Checkpointed {len(candidates)} players to {checkpoint_path}.", flush=True)
 	if profile_cache_path is not None and cache_updates_since_write:
 		write_profile_cache(profile_cache_path, profile_cache)
-	print(f"Used {profile_cache_hits} fresh cached profiles and "
+	print(f"Used {profile_cache_hits} cached player profiles and "
 		f"{stale_fallbacks} stale fallbacks.", flush=True)
 	return candidates, failed_entries
 
@@ -772,7 +801,8 @@ def harvest_player_candidates(entries: list[dict[str, str]], current_season: str
 def harvest_candidates(current_season: str, max_players: int | None = None,
 		checkpoint_path: pathlib.Path | None = None,
 		profile_cache_path: pathlib.Path | None = None,
-		candidate_seed_path: pathlib.Path | None = None) -> dict:
+		candidate_seed_path: pathlib.Path | None = None,
+		player_refresh_mode: str = "automatic") -> dict:
 	"""Harvest the complete current roster through server-rendered HTML only."""
 	previous_season = str(int(current_season) - 1)
 	current_url = season_totals_url(current_season)
@@ -815,7 +845,7 @@ def harvest_candidates(current_season: str, max_players: int | None = None,
 		entries = entries[:max_players]
 	candidates, failed_entries = harvest_player_candidates(
 		entries, current_season, current_points, previous_points, checkpoint_path,
-		profile_cache_path, candidate_seed_path
+		profile_cache_path, candidate_seed_path, player_refresh_mode
 	)
 	print(f"Found {len(candidates)} players.", flush=True)
 	if failed_entries:
@@ -851,8 +881,28 @@ def harvest_candidates(current_season: str, max_players: int | None = None,
 
 #============================================
 
+def update_public_roster(candidate_file: dict,
+		output_path: pathlib.Path = PUBLIC_ROSTER_OUTPUT) -> bool:
+	"""Publish a complete private pull as the tracked GitHub Pages roster."""
+	scope = candidate_file["validation"]["scope"]
+	if scope != "complete":
+		print(f"Kept {output_path} unchanged because the candidate pull is {scope}.", flush=True)
+		return False
+	validated = data_fetcher.wnba_roster.validate_candidate_envelope(candidate_file)
+	snapshot, selection_summary = data_fetcher.wnba_roster.build_snapshot(
+		validated, PUBLIC_ROSTER_CUTOFF
+	)
+	data_fetcher.wnba_roster.write_json(output_path, snapshot)
+	selected_count = selection_summary["twoSeasonPoolSize"]
+	print(f"Updated GitHub Pages roster with {selected_count} players at {output_path}.",
+		flush=True)
+	return True
+
+
+#============================================
+
 def main() -> None:
-	"""Harvest and atomically write a private candidate file."""
+	"""Harvest private candidates and publish a complete game-safe roster."""
 	args = parse_args()
 	current_season = str(args.season)
 	selected_output = output_path_for_run(args.output, args.max_players)
@@ -861,9 +911,11 @@ def main() -> None:
 	profile_cache_file = profile_cache_path_for_output(output_file)
 	candidates = harvest_candidates(
 		current_season, max_players=args.max_players, checkpoint_path=checkpoint_file,
-		profile_cache_path=profile_cache_file, candidate_seed_path=output_file
+		profile_cache_path=profile_cache_file, candidate_seed_path=output_file,
+		player_refresh_mode=args.player_refresh_mode
 	)
 	data_fetcher.wnba_candidates.write_json(output_file, candidates)
+	update_public_roster(candidates)
 	if checkpoint_file.exists() and candidates["validation"]["scope"] != "incomplete":
 		checkpoint_file.unlink()
 	count = candidates["validation"]["candidateCount"]

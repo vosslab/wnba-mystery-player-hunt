@@ -3,6 +3,7 @@
 # Standard Library
 import json
 import pathlib
+import sys
 import urllib.request
 
 # PIP3 modules
@@ -11,6 +12,70 @@ import pytest
 # local repo modules
 import data_fetcher.wnba_candidates as fetcher
 import data_fetcher.wnba_harvester as wnba_harvester
+
+
+#============================================
+
+@pytest.mark.parametrize(("option", "expected_mode"), [
+	("-R", "refresh"),
+	("--refresh-players", "refresh"),
+	("-F", "cache-only"),
+	("--fast", "cache-only"),
+])
+def test_player_refresh_command_options_select_the_requested_mode(
+		option: str, expected_mode: str, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Expose both short and long forms of the two player-cache controls."""
+	monkeypatch.setattr(sys, "argv", ["fetch_wnba_player_data.py", option])
+	args = wnba_harvester.parse_args()
+	assert args.player_refresh_mode == expected_mode
+
+
+#============================================
+
+def test_complete_pull_updates_the_tracked_public_roster(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Finish a successful root refresh by publishing the game-safe snapshot."""
+	candidate_file = {"validation": {"scope": "complete"}}
+	validated_file = {"validated": True}
+	snapshot = {"players": [{"displayName": "Olivia Miles"}]}
+	written = []
+
+	def validate(value: dict) -> dict:
+		assert value is candidate_file
+		return validated_file
+
+	def build(value: dict, cutoff: int) -> tuple[dict, dict]:
+		assert value is validated_file
+		assert cutoff == 300
+		return snapshot, {"twoSeasonPoolSize": 1}
+
+	def write(path: pathlib.Path, payload: dict) -> None:
+		written.append((path, payload))
+
+	monkeypatch.setattr(wnba_harvester.data_fetcher.wnba_roster,
+		"validate_candidate_envelope", validate)
+	monkeypatch.setattr(wnba_harvester.data_fetcher.wnba_roster, "build_snapshot", build)
+	monkeypatch.setattr(wnba_harvester.data_fetcher.wnba_roster, "write_json", write)
+	output_path = tmp_path / "roster.json"
+	updated = wnba_harvester.update_public_roster(candidate_file, output_path)
+	assert updated is True
+	assert written == [(output_path, snapshot)]
+
+
+#============================================
+
+@pytest.mark.parametrize("scope", ["incomplete", "test-limit"])
+def test_partial_pull_keeps_the_tracked_public_roster_unchanged(
+		scope: str, tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Preserve the last complete Pages roster when a tolerant or limited pull has gaps."""
+	written = []
+	monkeypatch.setattr(wnba_harvester.data_fetcher.wnba_roster, "write_json",
+		lambda path, payload: written.append((path, payload)))
+	updated = wnba_harvester.update_public_roster(
+		{"validation": {"scope": scope}}, tmp_path / "roster.json"
+	)
+	assert updated is False
+	assert written == []
 
 
 #============================================
@@ -431,6 +496,108 @@ def test_expired_profile_cache_falls_back_when_refresh_fails(
 	assert candidates[0]["playerId"] == wnba_harvester.stable_decimal_id(
 		"player", "stale001w"
 	)
+	assert failed_entries == []
+
+
+#============================================
+
+def test_fast_mode_uses_an_expired_profile_without_requesting_player_page(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Refresh roster and totals fields while fast mode reuses any matching biography."""
+	entry = {
+		"teamId": "1", "teamCode": "MIN", "name": "Fast Player",
+		"playerUrl": "https://www.basketball-reference.com/wnba/players/f/fastpl01w.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/MIN/2026.html",
+		"slug": "fastpl01w", "number": "5", "position": "G", "height": "5-10",
+		"weight": "168", "experience": "R", "college": "Test University",
+	}
+	metadata = {
+		"birthDate": "2003-01-29", "country": "US", "position": "Guard",
+		"height": "5-10", "college": "Test University",
+		"draft": {"status": "drafted", "year": "2026", "round": "1", "overall": "2"},
+	}
+	cache_path = tmp_path / "wnba_player_profiles.json"
+	wnba_harvester.write_profile_cache(cache_path, {"fastpl01w": {
+		"playerPageSourceUrl": entry["playerUrl"], "time": 0, "metadata": metadata,
+	}})
+
+	def unexpected_fetch(_entry: dict[str, str]) -> dict[str, object]:
+		raise AssertionError("fast mode must not request a player page")
+
+	monkeypatch.setattr(wnba_harvester, "fetch_player_metadata", unexpected_fetch)
+	candidates, failed_entries = wnba_harvester.harvest_player_candidates(
+		[entry], "2026", {"fastpl01w": 1032.4}, {}, profile_cache_path=cache_path,
+		player_refresh_mode="cache-only"
+	)
+	assert candidates[0]["fantasyPointsCurrentSeason"] == pytest.approx(1032.4)
+	assert failed_entries == []
+
+
+#============================================
+
+def test_fast_mode_skips_an_uncached_player_without_requesting_player_page(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Report a cache miss as incomplete while keeping fast mode network-free for profiles."""
+	entry = {
+		"teamId": "1", "teamCode": "MIN", "name": "New Player",
+		"playerUrl": "https://www.basketball-reference.com/wnba/players/n/newpla01w.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/MIN/2026.html",
+		"slug": "newpla01w", "number": "8", "position": "G", "height": "5-10",
+		"weight": "168", "experience": "R", "college": "Test University",
+	}
+
+	def unexpected_fetch(_entry: dict[str, str]) -> dict[str, object]:
+		raise AssertionError("fast mode must not request a player page")
+
+	monkeypatch.setattr(wnba_harvester, "fetch_player_metadata", unexpected_fetch)
+	candidates, failed_entries = wnba_harvester.harvest_player_candidates(
+		[entry], "2026", {"newpla01w": 10.0}, {},
+		profile_cache_path=tmp_path / "wnba_player_profiles.json",
+		player_refresh_mode="cache-only"
+	)
+	assert candidates == []
+	assert failed_entries == [entry]
+
+
+#============================================
+
+def test_refresh_mode_requests_a_fresh_profile_even_when_cache_is_fresh(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Force biography refreshes while retaining the normal cache update path."""
+	entry = {
+		"teamId": "1", "teamCode": "MIN", "name": "Refresh Player",
+		"playerUrl": "https://www.basketball-reference.com/wnba/players/r/refres01w.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/MIN/2026.html",
+		"slug": "refres01w", "number": "5", "position": "G", "height": "5-10",
+		"weight": "168", "experience": "R", "college": "Test University",
+	}
+	old_metadata = {
+		"birthDate": "2003-01-29", "country": "US", "position": "Guard",
+		"height": "5-10", "college": "Old University",
+		"draft": {"status": "drafted", "year": "2026", "round": "1", "overall": "2"},
+	}
+	new_metadata = dict(old_metadata)
+	new_metadata["college"] = "New University"
+	cache_path = tmp_path / "wnba_player_profiles.json"
+	wnba_harvester.write_profile_cache(cache_path, {"refres01w": {
+		"playerPageSourceUrl": entry["playerUrl"], "time": int(wnba_harvester.time.time()),
+		"metadata": old_metadata,
+	}})
+	fetched_slugs = []
+
+	def fetch_updated_profile(player_entry: dict[str, str]) -> dict[str, object]:
+		fetched_slugs.append(player_entry["slug"])
+		return new_metadata
+
+	monkeypatch.setattr(wnba_harvester, "fetch_player_metadata", fetch_updated_profile)
+	candidates, failed_entries = wnba_harvester.harvest_player_candidates(
+		[entry], "2026", {"refres01w": 20.0}, {}, profile_cache_path=cache_path,
+		player_refresh_mode="refresh"
+	)
+	cache_payload = json.loads(cache_path.read_text(encoding="utf-8"))
+	assert fetched_slugs == ["refres01w"]
+	assert candidates[0]["profile"]["SCHOOL"] == "New University"
+	assert cache_payload["profiles"]["refres01w"]["metadata"] == new_metadata
 	assert failed_entries == []
 
 

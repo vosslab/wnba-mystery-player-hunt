@@ -32,6 +32,19 @@
 - Cache stable player biography fields individually for 14 days while refreshing totals and current
   rosters every run. Seed the cache from existing candidate files or checkpoints, save every five
   profile requests, and use stale biographies when a refresh temporarily fails.
+- Add `--fast`/`-F` to refresh totals and rosters without player-page requests, plus
+  `--refresh-players`/`-R` to force every player biography to refresh. Keep cache misses tolerant and
+  mark fast pulls incomplete until new players receive biography data.
+- Make root `fetch_wnba_player_data.py` complete the refresh by rebuilding the tracked GitHub Pages
+  roster at the approved 300-point max-two-season cutoff. Preserve the last complete public roster
+  when a tolerant pull has failures or `--max` deliberately limits the candidates.
+- Complete the country override table for the real 206-player pull, including U.S. Virgin Islands,
+  Austria, Egypt, Italy, Kenya, South Korea, Lithuania, and New Zealand, so the game-safe roster
+  promotion validates every selected player.
+- Promote the completed pull into the committed GitHub Pages roster with the selected 300-point
+  two-season cutoff: 136 players across 15 teams, including 29 players admitted by prior-season
+  recognizability and current-season rookie Olivia Miles. Keep fantasy totals, cache timestamps,
+  and source URLs private.
 - Tighten the game shell, collapse secondary theme controls, let the desktop clue grid use the
   available viewport, and keep 800x1280 as the minimum layout acceptance gate. Keep System as the
   default theme with light and dark as explicit overrides.
@@ -86,17 +99,16 @@
 - Use current-roster membership as the eligibility gate and `WNBA_FANTASY_PTS` as the
   working-file-only recognizability cutoff metric; compare 200 and 300 using the maximum of
   current and preceding-season totals, with the user-supplied 2026 count cross-checks.
-- Prioritize a fun, clear win/loss guess loop over exact Pickle or pixel parity. The game is
-  buildable and playable with its static valid roster; a future full derived-data refresh and
-  cutoff calibration remain separate maintenance work.
+- Prioritize a fun, clear win/loss guess loop over exact Pickle or pixel parity. The game ships a
+  verified 136-player derived roster selected at the approved 300-point two-season cutoff.
 - Keep all future roster and statistics gathering in the separate Python pipeline. Browser
   runtime and Playwright use only static development or committed snapshot data.
 - Keep six guesses as the development-fixture default. It is a provisional fun choice, not a
   release calibration result for the real derived-data pool.
 - Preserve the WNBA Stats player-page and throttled `commonplayerinfo` observations as rejected
   route evidence only; they are not inputs to the active Basketball-Reference acquisition path.
-- Keep a full no-limit refresh and cutoff decision unverified rather than claim a current public
-  roster. The independent game remains playable with its committed snapshot.
+- Keep the complete 206-player candidate pull private and ship only the validated 136-player game
+  snapshot, which contains clue identity fields but no performance totals or source URLs.
 - Preserve the WNBA traditional-page experiment as rejected evidence: it is a JavaScript-populated
   Angular shell without server-rendered player rows, so the harvester never uses its JSON/API
   requests or a browser fallback.

@@ -1,237 +1,2450 @@
 {
   "schemaVersion": 1,
-  "asOfDateUtc": "2026-08-02",
-  "dataKind": "development",
-  "dataStatus": "development",
-  "sourceNote": "Bundled hand-maintained development player pool for gameplay work. It is not generated from an official current-roster refresh and is not an official current WNBA roster.",
+  "asOfDateUtc": "2026-08-03",
+  "dataKind": "derived",
+  "dataStatus": "verified",
+  "sourceNote": "Server-rendered Basketball-Reference WNBA roster, totals, and player-profile HTML snapshot selected offline using the documented two-season WNBA fantasy total formula.",
   "selectionRule": {
-    "kind": "development-fixture",
-    "description": "Bundled hand-maintained recognizable-player pool for interface and gameplay development, not an official current-roster selection."
+    "kind": "derived",
+    "eligibilityGate": "current-roster",
+    "recognizabilityMetric": "WNBA_FANTASY_PTS",
+    "seasons": [
+      "2026",
+      "2025"
+    ],
+    "cutoff": 300,
+    "selectedPoolSize": 136
   },
   "players": [
     {
-      "playerId": "1628932",
-      "displayName": "A'ja Wilson",
-      "searchName": "aja wilson",
-      "teamCode": "LVA",
-      "conference": "West",
-      "heightInches": 76,
-      "birthDateUtc": "1996-08-08T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2018, "overallPick": 1 },
-      "country": "United States",
-      "college": "South Carolina",
-      "positionPrimary": "C",
-      "positionAlternates": ["F"]
-    },
-    {
-      "playerId": "1642286",
-      "displayName": "Caitlin Clark",
-      "searchName": "caitlin clark",
-      "teamCode": "IND",
-      "conference": "East",
-      "heightInches": 72,
-      "birthDateUtc": "2002-01-22T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2024, "overallPick": 1 },
-      "country": "United States",
-      "college": "Iowa",
-      "positionPrimary": "G",
-      "positionAlternates": []
-    },
-    {
-      "playerId": "1627668",
-      "displayName": "Breanna Stewart",
-      "searchName": "breanna stewart",
-      "teamCode": "NYL",
-      "conference": "East",
-      "heightInches": 76,
-      "birthDateUtc": "1994-08-27T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2016, "overallPick": 1 },
-      "country": "United States",
-      "college": "Connecticut",
-      "positionPrimary": "F",
-      "positionAlternates": ["C"]
-    },
-    {
-      "playerId": "1628276",
-      "displayName": "Sabrina Ionescu",
-      "searchName": "sabrina ionescu",
-      "teamCode": "NYL",
-      "conference": "East",
-      "heightInches": 71,
-      "birthDateUtc": "1997-12-06T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2020, "overallPick": 1 },
-      "country": "United States",
-      "college": "Oregon",
-      "positionPrimary": "G",
-      "positionAlternates": []
-    },
-    {
-      "playerId": "1628911",
-      "displayName": "Napheesa Collier",
-      "searchName": "napheesa collier",
-      "teamCode": "MIN",
-      "conference": "West",
-      "heightInches": 73,
-      "birthDateUtc": "1996-09-23T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2019, "overallPick": 6 },
-      "country": "United States",
-      "college": "Connecticut",
-      "positionPrimary": "F",
-      "positionAlternates": ["C"]
-    },
-    {
-      "playerId": "1642281",
-      "displayName": "Aliyah Boston",
-      "searchName": "aliyah boston",
-      "teamCode": "IND",
-      "conference": "East",
-      "heightInches": 76,
-      "birthDateUtc": "2001-12-11T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2023, "overallPick": 1 },
-      "country": "United States",
-      "college": "South Carolina",
-      "positionPrimary": "C",
-      "positionAlternates": ["F"]
-    },
-    {
-      "playerId": "1642298",
-      "displayName": "Angel Reese",
-      "searchName": "angel reese",
-      "teamCode": "CHI",
+      "playerId": "8001455315890898",
+      "displayName": "Aaliyah Edwards",
+      "searchName": "aaliyah edwards",
+      "teamCode": "CON",
       "conference": "East",
       "heightInches": 75,
-      "birthDateUtc": "2002-05-06T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2024, "overallPick": 7 },
-      "country": "United States",
-      "college": "Louisiana State",
+      "birthDateUtc": "2002-07-09T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2024,
+        "overallPick": 6
+      },
+      "country": "Canada",
+      "college": "UConn",
       "positionPrimary": "F",
-      "positionAlternates": ["C"]
+      "positionAlternates": []
     },
     {
-      "playerId": "203827",
-      "displayName": "Nneka Ogwumike",
-      "searchName": "nneka ogwumike",
-      "teamCode": "SEA",
+      "playerId": "8003221741583299",
+      "displayName": "Valeriane Ayayi",
+      "searchName": "valeriane ayayi",
+      "teamCode": "PHX",
       "conference": "West",
-      "heightInches": 74,
-      "birthDateUtc": "1990-07-02T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2012, "overallPick": 1 },
-      "country": "United States",
-      "college": "Stanford",
-      "positionPrimary": "F",
-      "positionAlternates": ["C"]
-    },
-    {
-      "playerId": "1628288",
-      "displayName": "Ezi Magbegor",
-      "searchName": "ezi magbegor",
-      "teamCode": "SEA",
-      "conference": "West",
-      "heightInches": 76,
-      "birthDateUtc": "1999-08-13T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2019, "overallPick": 12 },
-      "country": "Australia",
+      "heightInches": 73,
+      "birthDateUtc": "1994-04-29T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "France",
       "college": "No US college",
-      "positionPrimary": "C",
-      "positionAlternates": ["F"]
-    },
-    {
-      "playerId": "1628278",
-      "displayName": "Kelsey Plum",
-      "searchName": "kelsey plum",
-      "teamCode": "LAS",
-      "conference": "West",
-      "heightInches": 68,
-      "birthDateUtc": "1994-08-24T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2017, "overallPick": 1 },
-      "country": "United States",
-      "college": "Washington",
-      "positionPrimary": "G",
+      "positionPrimary": "F",
       "positionAlternates": []
     },
     {
-      "playerId": "1628909",
-      "displayName": "Kelsey Mitchell",
-      "searchName": "kelsey mitchell",
-      "teamCode": "IND",
+      "playerId": "8006212255509450",
+      "displayName": "Sonia Citron",
+      "searchName": "sonia citron",
+      "teamCode": "WAS",
       "conference": "East",
-      "heightInches": 68,
-      "birthDateUtc": "1995-11-12T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2018, "overallPick": 2 },
-      "country": "United States",
-      "college": "Ohio State",
-      "positionPrimary": "G",
-      "positionAlternates": []
-    },
-    {
-      "playerId": "1628918",
-      "displayName": "Rhyne Howard",
-      "searchName": "rhyne howard",
-      "teamCode": "ATL",
-      "conference": "East",
-      "heightInches": 74,
-      "birthDateUtc": "2000-04-29T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2022, "overallPick": 1 },
-      "country": "United States",
-      "college": "Kentucky",
-      "positionPrimary": "G",
-      "positionAlternates": ["F"]
-    },
-    {
-      "playerId": "1642300",
-      "displayName": "Paige Bueckers",
-      "searchName": "paige bueckers",
-      "teamCode": "DAL",
-      "conference": "West",
-      "heightInches": 72,
-      "birthDateUtc": "2001-10-20T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2025, "overallPick": 1 },
-      "country": "United States",
-      "college": "Connecticut",
-      "positionPrimary": "G",
-      "positionAlternates": []
-    },
-    {
-      "playerId": "203826",
-      "displayName": "Skylar Diggins",
-      "searchName": "skylar diggins",
-      "teamCode": "SEA",
-      "conference": "West",
-      "heightInches": 69,
-      "birthDateUtc": "1990-08-02T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2013, "overallPick": 3 },
+      "heightInches": 73,
+      "birthDateUtc": "2003-10-22T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 3
+      },
       "country": "United States",
       "college": "Notre Dame",
       "positionPrimary": "G",
       "positionAlternates": []
     },
     {
-      "playerId": "203833",
+      "playerId": "8011039131618903",
+      "displayName": "Natisha Hiedeman",
+      "searchName": "natisha hiedeman",
+      "teamCode": "SEA",
+      "conference": "West",
+      "heightInches": 68,
+      "birthDateUtc": "1997-02-10T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 18
+      },
+      "country": "United States",
+      "college": "Marquette",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8011913771238889",
+      "displayName": "Sami Whitcomb",
+      "searchName": "sami whitcomb",
+      "teamCode": "PHX",
+      "conference": "West",
+      "heightInches": 70,
+      "birthDateUtc": "1988-07-20T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "Washington",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8036731237948257",
+      "displayName": "Kelsey Plum",
+      "searchName": "kelsey plum",
+      "teamCode": "LAS",
+      "conference": "West",
+      "heightInches": 68,
+      "birthDateUtc": "1994-08-24T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2017,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "Washington",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8049796690628480",
+      "displayName": "Sabrina Ionescu",
+      "searchName": "sabrina ionescu",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 71,
+      "birthDateUtc": "1997-12-06T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2020,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "Oregon",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8051215913273468",
+      "displayName": "Sarah Ashlee Barker",
+      "searchName": "sarah ashlee barker",
+      "teamCode": "POR",
+      "conference": "West",
+      "heightInches": 72,
+      "birthDateUtc": "2001-09-10T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "Georgia, Alabama",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8059828155357250",
+      "displayName": "Monique Akoa Makani",
+      "searchName": "monique akoa makani",
+      "teamCode": "PHX",
+      "conference": "West",
+      "heightInches": 71,
+      "birthDateUtc": "2001-02-04T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "Cameroon",
+      "college": "No US college",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8066579013767915",
+      "displayName": "Maria Conde",
+      "searchName": "maria conde",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 75,
+      "birthDateUtc": "1997-01-14T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "Spain",
+      "college": "Florida State",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8068050079536849",
+      "displayName": "Maddy Siegrist",
+      "searchName": "maddy siegrist",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "2000-05-22T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2023,
+        "overallPick": 3
+      },
+      "country": "United States",
+      "college": "Villanova",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8070783602170974",
+      "displayName": "Gabriela Jaquez",
+      "searchName": "gabriela jaquez",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 72,
+      "birthDateUtc": "2003-11-19T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2026,
+        "overallPick": 5
+      },
+      "country": "United States",
+      "college": "UCLA",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8086294043756597",
+      "displayName": "Bridget Carleton",
+      "searchName": "bridget carleton",
+      "teamCode": "POR",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "1997-05-22T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 21
+      },
+      "country": "Canada",
+      "college": "Iowa State",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8086489082328098",
+      "displayName": "Caitlin Clark",
+      "searchName": "caitlin clark",
+      "teamCode": "IND",
+      "conference": "East",
+      "heightInches": 72,
+      "birthDateUtc": "2002-01-22T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2024,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "Iowa",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8093905745000729",
+      "displayName": "Lexi Held",
+      "searchName": "lexi held",
+      "teamCode": "PHX",
+      "conference": "West",
+      "heightInches": 70,
+      "birthDateUtc": "1999-12-28T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "DePaul",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8104048046750490",
+      "displayName": "Lexie Hull",
+      "searchName": "lexie hull",
+      "teamCode": "IND",
+      "conference": "East",
+      "heightInches": 74,
+      "birthDateUtc": "1999-09-13T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 6
+      },
+      "country": "United States",
+      "college": "Stanford",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8120107188010952",
+      "displayName": "Sophie Cunningham",
+      "searchName": "sophie cunningham",
+      "teamCode": "IND",
+      "conference": "East",
+      "heightInches": 73,
+      "birthDateUtc": "1996-08-16T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 13
+      },
+      "country": "United States",
+      "college": "Missouri",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8126513977675194",
+      "displayName": "Satou Sabally",
+      "searchName": "satou sabally",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 76,
+      "birthDateUtc": "1998-04-25T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2020,
+        "overallPick": 2
+      },
+      "country": "United States",
+      "college": "Oregon",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8133515099658437",
+      "displayName": "Marina Mabrey",
+      "searchName": "marina mabrey",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 73,
+      "birthDateUtc": "1996-09-14T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 19
+      },
+      "country": "United States",
+      "college": "Notre Dame",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8137031716866683",
+      "displayName": "Jessica Shepard",
+      "searchName": "jessica shepard",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "1996-09-11T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 16
+      },
+      "country": "United States",
+      "college": "Notre Dame",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8148246140483901",
+      "displayName": "Rickea Jackson",
+      "searchName": "rickea jackson",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 74,
+      "birthDateUtc": "2001-03-16T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2024,
+        "overallPick": 4
+      },
+      "country": "United States",
+      "college": "Mississippi State, Tennessee",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8163808825682260",
+      "displayName": "Gabby Williams",
+      "searchName": "gabby williams",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 71,
+      "birthDateUtc": "1996-09-09T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2018,
+        "overallPick": 4
+      },
+      "country": "United States",
+      "college": "UConn",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8163827095556745",
+      "displayName": "Kaitlyn Chen",
+      "searchName": "kaitlyn chen",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 69,
+      "birthDateUtc": "2002-02-22T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 30
+      },
+      "country": "United States",
+      "college": "Princeton, UConn",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8166726784087829",
+      "displayName": "Skylar Diggins",
+      "searchName": "skylar diggins",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 69,
+      "birthDateUtc": "1990-08-02T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2013,
+        "overallPick": 3
+      },
+      "country": "United States",
+      "college": "Notre Dame",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8168049712560417",
+      "displayName": "Awak Kuier",
+      "searchName": "awak kuier",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 78,
+      "birthDateUtc": "2001-08-19T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2021,
+        "overallPick": 2
+      },
+      "country": "Egypt",
+      "college": "No US college",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8178083151515986",
+      "displayName": "Olivia Nelson-Ododa",
+      "searchName": "olivia nelson ododa",
+      "teamCode": "CON",
+      "conference": "East",
+      "heightInches": 77,
+      "birthDateUtc": "2000-08-17T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 19
+      },
+      "country": "United States",
+      "college": "UConn",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8180695646559662",
+      "displayName": "Kennedy Burke",
+      "searchName": "kennedy burke",
+      "teamCode": "CON",
+      "conference": "East",
+      "heightInches": 73,
+      "birthDateUtc": "1997-02-14T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 22
+      },
+      "country": "United States",
+      "college": "UCLA",
+      "positionPrimary": "G",
+      "positionAlternates": [
+        "F"
+      ]
+    },
+    {
+      "playerId": "8183987956750553",
+      "displayName": "Saniya Rivers",
+      "searchName": "saniya rivers",
+      "teamCode": "CON",
+      "conference": "East",
+      "heightInches": 73,
+      "birthDateUtc": "2003-03-04T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 8
+      },
+      "country": "United States",
+      "college": "South Carolina, NC State",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8186023558505537",
+      "displayName": "Te-Hina PaoPao",
+      "searchName": "te hina paopao",
+      "teamCode": "ATL",
+      "conference": "East",
+      "heightInches": 69,
+      "birthDateUtc": "2002-08-21T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 18
+      },
+      "country": "United States",
+      "college": "Oregon, South Carolina",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8198850963905897",
+      "displayName": "Aziaha James",
+      "searchName": "aziaha james",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 70,
+      "birthDateUtc": "2002-11-19T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 12
+      },
+      "country": "United States",
+      "college": "NC State",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8224386909907810",
+      "displayName": "Leonie Fiebich",
+      "searchName": "leonie fiebich",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 76,
+      "birthDateUtc": "2000-01-10T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2020,
+        "overallPick": 22
+      },
+      "country": "Germany",
+      "college": "No US college",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8233871920864034",
+      "displayName": "Stephanie Talbot",
+      "searchName": "stephanie talbot",
+      "teamCode": "LVA",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "1994-06-15T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "Australia",
+      "college": "No US college",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8235616246307165",
+      "displayName": "Rebekah Gardner",
+      "searchName": "rebekah gardner",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 73,
+      "birthDateUtc": "1990-07-09T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "UCLA",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8238369916339682",
+      "displayName": "Ezi Magbegor",
+      "searchName": "ezi magbegor",
+      "teamCode": "SEA",
+      "conference": "West",
+      "heightInches": 78,
+      "birthDateUtc": "1999-08-13T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 12
+      },
+      "country": "New Zealand",
+      "college": "No US college",
+      "positionPrimary": "F",
+      "positionAlternates": [
+        "C"
+      ]
+    },
+    {
+      "playerId": "8259036390175831",
+      "displayName": "Erica Wheeler",
+      "searchName": "erica wheeler",
+      "teamCode": "LAS",
+      "conference": "West",
+      "heightInches": 67,
+      "birthDateUtc": "1991-05-02T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "Rutgers University",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8259518429868840",
+      "displayName": "Angel Reese",
+      "searchName": "angel reese",
+      "teamCode": "ATL",
+      "conference": "East",
+      "heightInches": 76,
+      "birthDateUtc": "2002-05-06T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2024,
+        "overallPick": 7
+      },
+      "country": "United States",
+      "college": "Maryland, LSU",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8261586676141957",
+      "displayName": "Shakira Austin",
+      "searchName": "shakira austin",
+      "teamCode": "WAS",
+      "conference": "East",
+      "heightInches": 77,
+      "birthDateUtc": "2000-07-25T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 3
+      },
+      "country": "United States",
+      "college": "Maryland, Ole Miss",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8262165514824186",
+      "displayName": "Odyssey Sims",
+      "searchName": "odyssey sims",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 68,
+      "birthDateUtc": "1992-07-13T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2014,
+        "overallPick": 2
+      },
+      "country": "United States",
+      "college": "Baylor",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8266931630421956",
+      "displayName": "Laura Ju\u0161kait\u0117",
+      "searchName": "laura juskaite",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 76,
+      "birthDateUtc": "1997-09-22T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "Lithuania",
+      "college": "No US college",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8270421108720842",
+      "displayName": "Ariel Atkins",
+      "searchName": "ariel atkins",
+      "teamCode": "LAS",
+      "conference": "West",
+      "heightInches": 70,
+      "birthDateUtc": "1996-07-30T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2018,
+        "overallPick": 7
+      },
+      "country": "United States",
+      "college": "Texas",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8275681133639983",
+      "displayName": "A'ja Wilson",
+      "searchName": "a ja wilson",
+      "teamCode": "LVA",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "1996-08-08T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2018,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "South Carolina",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8290279312263959",
+      "displayName": "Jonquel Jones",
+      "searchName": "jonquel jones",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 78,
+      "birthDateUtc": "1994-01-05T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2016,
+        "overallPick": 6
+      },
+      "country": "Bahamas",
+      "college": "Clemson, George Washington",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8304832436821228",
+      "displayName": "Aliyah Boston",
+      "searchName": "aliyah boston",
+      "teamCode": "IND",
+      "conference": "East",
+      "heightInches": 77,
+      "birthDateUtc": "2001-12-11T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2023,
+        "overallPick": 1
+      },
+      "country": "U.S. Virgin Islands",
+      "college": "South Carolina",
+      "positionPrimary": "C",
+      "positionAlternates": [
+        "F"
+      ]
+    },
+    {
+      "playerId": "8310439929908269",
+      "displayName": "Alysha Clark",
+      "searchName": "alysha clark",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 71,
+      "birthDateUtc": "1987-07-07T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2010,
+        "overallPick": 17
+      },
+      "country": "United States",
+      "college": "Middle Tennessee",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8313798238697713",
+      "displayName": "Aaliyah Nye",
+      "searchName": "aaliyah nye",
+      "teamCode": "ATL",
+      "conference": "East",
+      "heightInches": 72,
+      "birthDateUtc": "2002-08-14T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "Illinois, Alabama",
+      "positionPrimary": "G",
+      "positionAlternates": [
+        "F"
+      ]
+    },
+    {
+      "playerId": "8314694619890815",
+      "displayName": "Stefanie Dolson",
+      "searchName": "stefanie dolson",
+      "teamCode": "SEA",
+      "conference": "West",
+      "heightInches": 77,
+      "birthDateUtc": "1992-01-08T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2014,
+        "overallPick": 6
+      },
+      "country": "United States",
+      "college": "UConn",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8337745737078641",
+      "displayName": "Temi Fagbenle",
+      "searchName": "temi fagbenle",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 77,
+      "birthDateUtc": "1992-09-08T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2016,
+        "overallPick": 35
+      },
+      "country": "United States",
+      "college": "Harvard University, USC",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8338024539083250",
+      "displayName": "Michaela Onyenwere",
+      "searchName": "michaela onyenwere",
+      "teamCode": "WAS",
+      "conference": "East",
+      "heightInches": 72,
+      "birthDateUtc": "1999-08-10T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2021,
+        "overallPick": 6
+      },
+      "country": "United States",
+      "college": "UCLA",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8347139352920876",
+      "displayName": "Chelsea Gray",
+      "searchName": "chelsea gray",
+      "teamCode": "LVA",
+      "conference": "West",
+      "heightInches": 71,
+      "birthDateUtc": "1992-10-08T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2014,
+        "overallPick": 11
+      },
+      "country": "United States",
+      "college": "Duke",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8353677768489045",
+      "displayName": "Jewell Loyd",
+      "searchName": "jewell loyd",
+      "teamCode": "LVA",
+      "conference": "West",
+      "heightInches": 71,
+      "birthDateUtc": "1993-10-05T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2015,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "Notre Dame",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8374259554395356",
+      "displayName": "Allisha Gray",
+      "searchName": "allisha gray",
+      "teamCode": "ATL",
+      "conference": "East",
+      "heightInches": 72,
+      "birthDateUtc": "1995-01-12T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2017,
+        "overallPick": 4
+      },
+      "country": "United States",
+      "college": "UNC, South Carolina",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8379361113308641",
+      "displayName": "Julie Allemand",
+      "searchName": "julie allemand",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 70,
+      "birthDateUtc": "1996-07-07T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2016,
+        "overallPick": 33
+      },
+      "country": "Belgium",
+      "college": "No US college",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8383321672147667",
+      "displayName": "Cotie McMahon",
+      "searchName": "cotie mcmahon",
+      "teamCode": "WAS",
+      "conference": "East",
+      "heightInches": 72,
+      "birthDateUtc": "2004-05-04T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2026,
+        "overallPick": 11
+      },
+      "country": "United States",
+      "college": "Ohio State, Ole Miss",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8388905988880009",
+      "displayName": "Kia Nurse",
+      "searchName": "kia nurse",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 72,
+      "birthDateUtc": "1996-02-22T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2018,
+        "overallPick": 10
+      },
+      "country": "Canada",
+      "college": "UConn",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8393875944875803",
+      "displayName": "Breanna Stewart",
+      "searchName": "breanna stewart",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 76,
+      "birthDateUtc": "1994-08-27T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2016,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "UConn",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8394605069799930",
+      "displayName": "Lucy Olsen",
+      "searchName": "lucy olsen",
+      "teamCode": "WAS",
+      "conference": "East",
+      "heightInches": 70,
+      "birthDateUtc": "2003-05-26T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 23
+      },
+      "country": "United States",
+      "college": "Villanova, Iowa",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8398096668361088",
+      "displayName": "Damiris Dantas",
+      "searchName": "damiris dantas",
+      "teamCode": "IND",
+      "conference": "East",
+      "heightInches": 76,
+      "birthDateUtc": "1992-11-17T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2012,
+        "overallPick": 12
+      },
+      "country": "Brazil",
+      "college": "No US college",
+      "positionPrimary": "C",
+      "positionAlternates": [
+        "F"
+      ]
+    },
+    {
+      "playerId": "8413297103506177",
+      "displayName": "Rachel Banham",
+      "searchName": "rachel banham",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 70,
+      "birthDateUtc": "1993-07-15T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2016,
+        "overallPick": 4
+      },
+      "country": "United States",
+      "college": "Minnesota",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8422504069099361",
+      "displayName": "Cameron Brink",
+      "searchName": "cameron brink",
+      "teamCode": "LAS",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "2001-12-31T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2024,
+        "overallPick": 2
+      },
+      "country": "United States",
+      "college": "Stanford",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8440889008753134",
+      "displayName": "Lauren Betts",
+      "searchName": "lauren betts",
+      "teamCode": "WAS",
+      "conference": "East",
+      "heightInches": 79,
+      "birthDateUtc": "2003-10-15T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2026,
+        "overallPick": 4
+      },
+      "country": "Spain",
+      "college": "Stanford, UCLA",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8453905698484406",
+      "displayName": "Madina Okot",
+      "searchName": "madina okot",
+      "teamCode": "ATL",
+      "conference": "East",
+      "heightInches": 78,
+      "birthDateUtc": "2004-08-23T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2026,
+        "overallPick": 13
+      },
+      "country": "Kenya",
+      "college": "Zetech University, Mississippi State, South Carolina",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8456594076959621",
+      "displayName": "Isabelle Harrison",
+      "searchName": "isabelle harrison",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 77,
+      "birthDateUtc": "1993-09-27T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2015,
+        "overallPick": 12
+      },
+      "country": "United States",
+      "college": "Tennessee",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8457388588902288",
+      "displayName": "Sydney Taylor",
+      "searchName": "sydney taylor",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 69,
+      "birthDateUtc": "2001-06-21T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "UMass, Louisville",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8460878129510641",
+      "displayName": "Kiah Stokes",
+      "searchName": "kiah stokes",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 75,
+      "birthDateUtc": "1993-03-30T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2015,
+        "overallPick": 11
+      },
+      "country": "United States",
+      "college": "UConn",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8463854835892710",
+      "displayName": "DeWanna Bonner",
+      "searchName": "dewanna bonner",
+      "teamCode": "PHX",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "1987-08-21T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2009,
+        "overallPick": 5
+      },
+      "country": "United States",
+      "college": "Auburn",
+      "positionPrimary": "F",
+      "positionAlternates": [
+        "G"
+      ]
+    },
+    {
+      "playerId": "8466098218814741",
+      "displayName": "Carla Leite",
+      "searchName": "carla leite",
+      "teamCode": "POR",
+      "conference": "West",
+      "heightInches": 69,
+      "birthDateUtc": "2004-04-16T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2024,
+        "overallPick": 9
+      },
+      "country": "France",
+      "college": "No US college",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8480511108253279",
+      "displayName": "Brionna Jones",
+      "searchName": "brionna jones",
+      "teamCode": "ATL",
+      "conference": "East",
+      "heightInches": 75,
+      "birthDateUtc": "1995-12-18T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2017,
+        "overallPick": 8
+      },
+      "country": "United States",
+      "college": "Maryland",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8482596684868813",
+      "displayName": "Nneka Ogwumike",
+      "searchName": "nneka ogwumike",
+      "teamCode": "LAS",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "1990-07-02T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2012,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "Stanford",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8486100345417320",
+      "displayName": "Megan Gustafson",
+      "searchName": "megan gustafson",
+      "teamCode": "POR",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "1996-12-13T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 17
+      },
+      "country": "United States",
+      "college": "Iowa",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8488083236589969",
+      "displayName": "Elizabeth Williams",
+      "searchName": "elizabeth williams",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 75,
+      "birthDateUtc": "1993-06-23T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2015,
+        "overallPick": 4
+      },
+      "country": "United Kingdom",
+      "college": "Duke",
+      "positionPrimary": "C",
+      "positionAlternates": [
+        "F"
+      ]
+    },
+    {
+      "playerId": "8494967135419156",
+      "displayName": "Han Xu",
+      "searchName": "han xu",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 83,
+      "birthDateUtc": "1999-10-31T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 14
+      },
+      "country": "China",
+      "college": "No US college",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8496484978325688",
+      "displayName": "Kaila Charles",
+      "searchName": "kaila charles",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 73,
+      "birthDateUtc": "1998-03-23T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2020,
+        "overallPick": 23
+      },
+      "country": "United States",
+      "college": "Maryland",
+      "positionPrimary": "G",
+      "positionAlternates": [
+        "F"
+      ]
+    },
+    {
+      "playerId": "8516152497625248",
+      "displayName": "Marine Johannes",
+      "searchName": "marine johannes",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 70,
+      "birthDateUtc": "1995-01-21T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "France",
+      "college": "No US college",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8517812647219407",
+      "displayName": "Olivia Miles",
+      "searchName": "olivia miles",
+      "teamCode": "MIN",
+      "conference": "West",
+      "heightInches": 70,
+      "birthDateUtc": "2003-01-29T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2026,
+        "overallPick": 2
+      },
+      "country": "United States",
+      "college": "Notre Dame, TCU",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8526773516671264",
+      "displayName": "Napheesa Collier",
+      "searchName": "napheesa collier",
+      "teamCode": "MIN",
+      "conference": "West",
+      "heightInches": 73,
+      "birthDateUtc": "1996-09-23T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 6
+      },
+      "country": "United States",
+      "college": "UConn",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8538078082336112",
+      "displayName": "Azura Stevens",
+      "searchName": "azura stevens",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 78,
+      "birthDateUtc": "1996-02-01T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2018,
+        "overallPick": 6
+      },
+      "country": "United States",
+      "college": "Duke, Duke, UConn, UConn",
+      "positionPrimary": "F",
+      "positionAlternates": [
+        "C"
+      ]
+    },
+    {
+      "playerId": "8545995463287869",
+      "displayName": "Dana Evans",
+      "searchName": "dana evans",
+      "teamCode": "LVA",
+      "conference": "West",
+      "heightInches": 66,
+      "birthDateUtc": "1998-08-01T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2021,
+        "overallPick": 13
+      },
+      "country": "United States",
+      "college": "Louisville",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8551252746913004",
+      "displayName": "Natasha Mack",
+      "searchName": "natasha mack",
+      "teamCode": "PHX",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "1997-11-03T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2021,
+        "overallPick": 16
+      },
+      "country": "United States",
+      "college": "Angelina College, Oklahoma State",
+      "positionPrimary": "F",
+      "positionAlternates": [
+        "C"
+      ]
+    },
+    {
+      "playerId": "8559209368177669",
+      "displayName": "Sug Sutton",
+      "searchName": "sug sutton",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 68,
+      "birthDateUtc": "1998-12-17T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2020,
+        "overallPick": 36
+      },
+      "country": "United States",
+      "college": "Texas",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8563279319097266",
+      "displayName": "Jordan Horston",
+      "searchName": "jordan horston",
+      "teamCode": "SEA",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "2001-05-21T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2023,
+        "overallPick": 9
+      },
+      "country": "United States",
+      "college": "Tennessee",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8568520682394304",
+      "displayName": "Brittney Sykes",
+      "searchName": "brittney sykes",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 71,
+      "birthDateUtc": "1994-02-07T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2017,
+        "overallPick": 7
+      },
+      "country": "United States",
+      "college": "Syracuse",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8569134133484351",
+      "displayName": "Rebecca Allen",
+      "searchName": "rebecca allen",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 74,
+      "birthDateUtc": "1992-11-06T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "Australia",
+      "college": "No US college",
+      "positionPrimary": "F",
+      "positionAlternates": [
+        "G"
+      ]
+    },
+    {
+      "playerId": "8571791757705420",
+      "displayName": "Naz Hillmon",
+      "searchName": "naz hillmon",
+      "teamCode": "ATL",
+      "conference": "East",
+      "heightInches": 74,
+      "birthDateUtc": "2000-04-05T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 15
+      },
+      "country": "United States",
+      "college": "Michigan",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8584353614388349",
+      "displayName": "Monique Billings",
+      "searchName": "monique billings",
+      "teamCode": "IND",
+      "conference": "East",
+      "heightInches": 76,
+      "birthDateUtc": "1996-05-02T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "UCLA",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8602550168157035",
+      "displayName": "Natasha Howard",
+      "searchName": "natasha howard",
+      "teamCode": "MIN",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "1991-09-02T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2014,
+        "overallPick": 5
+      },
+      "country": "United States",
+      "college": "Florida State",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8605875766231758",
+      "displayName": "Kahleah Copper",
+      "searchName": "kahleah copper",
+      "teamCode": "PHX",
+      "conference": "West",
+      "heightInches": 73,
+      "birthDateUtc": "1994-08-28T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2016,
+        "overallPick": 7
+      },
+      "country": "United States",
+      "college": "Rutgers University",
+      "positionPrimary": "G",
+      "positionAlternates": [
+        "F"
+      ]
+    },
+    {
+      "playerId": "8610941681833309",
+      "displayName": "Charlisse Leger-Walker",
+      "searchName": "charlisse leger walker",
+      "teamCode": "CON",
+      "conference": "East",
+      "heightInches": 70,
+      "birthDateUtc": "2001-09-15T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2026,
+        "overallPick": 18
+      },
+      "country": "New Zealand",
+      "college": "Washington State, UCLA",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8611168493526208",
+      "displayName": "Tiffany Hayes",
+      "searchName": "tiffany hayes",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 70,
+      "birthDateUtc": "1989-09-20T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2012,
+        "overallPick": 14
+      },
+      "country": "United States",
+      "college": "UConn",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8612972917863456",
+      "displayName": "Kate Martin",
+      "searchName": "kate martin",
+      "teamCode": "LAS",
+      "conference": "West",
+      "heightInches": 72,
+      "birthDateUtc": "2000-06-05T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "Iowa",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8615208174485703",
+      "displayName": "Awa Fam",
+      "searchName": "awa fam",
+      "teamCode": "SEA",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "2006-06-17T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2026,
+        "overallPick": 3
+      },
+      "country": "Spain",
+      "college": "No US college",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8624297680672925",
+      "displayName": "Arike Ogunbowale",
+      "searchName": "arike ogunbowale",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 68,
+      "birthDateUtc": "1997-03-02T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 5
+      },
+      "country": "United States",
+      "college": "Notre Dame",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8625733091302364",
+      "displayName": "Kiki Iriafen",
+      "searchName": "kiki iriafen",
+      "teamCode": "WAS",
+      "conference": "East",
+      "heightInches": 75,
+      "birthDateUtc": "2003-08-26T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 4
+      },
+      "country": "United States",
+      "college": "Stanford, USC",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8628668374013350",
+      "displayName": "Georgia Amoore",
+      "searchName": "georgia amoore",
+      "teamCode": "WAS",
+      "conference": "East",
+      "heightInches": 66,
+      "birthDateUtc": "2001-04-03T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 6
+      },
+      "country": "Australia",
+      "college": "Virginia Tech, Kentucky",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8634335380765856",
+      "displayName": "Kamilla Cardoso",
+      "searchName": "kamilla cardoso",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 79,
+      "birthDateUtc": "2001-04-30T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2024,
+        "overallPick": 3
+      },
+      "country": "Brazil",
+      "college": "Syracuse, South Carolina",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8634393296932019",
+      "displayName": "Makayla Timpson",
+      "searchName": "makayla timpson",
+      "teamCode": "IND",
+      "conference": "East",
+      "heightInches": 74,
+      "birthDateUtc": "2002-09-20T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 19
+      },
+      "country": "United States",
+      "college": "Florida State",
+      "positionPrimary": "F",
+      "positionAlternates": [
+        "C"
+      ]
+    },
+    {
+      "playerId": "8635175178117611",
+      "displayName": "Maya Caldwell",
+      "searchName": "maya caldwell",
+      "teamCode": "MIN",
+      "conference": "West",
+      "heightInches": 71,
+      "birthDateUtc": "1998-12-15T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "Georgia",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8652730553824948",
+      "displayName": "Courtney Williams",
+      "searchName": "courtney williams",
+      "teamCode": "MIN",
+      "conference": "West",
+      "heightInches": 68,
+      "birthDateUtc": "1994-05-11T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2016,
+        "overallPick": 8
+      },
+      "country": "United States",
+      "college": "South Florida",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8668577934144621",
+      "displayName": "Janelle Sala\u00fcn",
+      "searchName": "janelle salaun",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "2001-09-05T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "France",
+      "college": "No US college",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8686066175992578",
+      "displayName": "Diamond Miller",
+      "searchName": "diamond miller",
+      "teamCode": "CON",
+      "conference": "East",
+      "heightInches": 73,
+      "birthDateUtc": "2001-02-11T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2023,
+        "overallPick": 2
+      },
+      "country": "United States",
+      "college": "Maryland",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8688391594337163",
+      "displayName": "Jade Melbourne",
+      "searchName": "jade melbourne",
+      "teamCode": "SEA",
+      "conference": "West",
+      "heightInches": 70,
+      "birthDateUtc": "2002-08-18T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 33
+      },
+      "country": "Australia",
+      "college": "No US college",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8737114898618296",
+      "displayName": "Pauline Astier",
+      "searchName": "pauline astier",
+      "teamCode": "NYL",
+      "conference": "East",
+      "heightInches": 71,
+      "birthDateUtc": "2002-02-15T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "France",
+      "college": "No US college",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8742216007512983",
+      "displayName": "DiJonai Carrington",
+      "searchName": "dijonai carrington",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 71,
+      "birthDateUtc": "1998-01-08T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2021,
+        "overallPick": 20
+      },
+      "country": "United States",
+      "college": "Stanford, Stanford, Baylor, Baylor",
+      "positionPrimary": "G",
+      "positionAlternates": [
+        "F"
+      ]
+    },
+    {
+      "playerId": "8747206232261661",
+      "displayName": "Cecilia Zandalasini",
+      "searchName": "cecilia zandalasini",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "1996-03-16T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "Italy",
+      "college": "No US college",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8747882030554644",
+      "displayName": "Jackie Young",
+      "searchName": "jackie young",
+      "teamCode": "LVA",
+      "conference": "West",
+      "heightInches": 72,
+      "birthDateUtc": "1997-09-16T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "Notre Dame",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8748004023829766",
       "displayName": "Dearica Hamby",
       "searchName": "dearica hamby",
       "teamCode": "LAS",
       "conference": "West",
       "heightInches": 75,
       "birthDateUtc": "1993-11-06T00:00:00Z",
-      "draft": { "kind": "undrafted" },
+      "draft": {
+        "kind": "drafted",
+        "year": 2015,
+        "overallPick": 6
+      },
       "country": "United States",
       "college": "Wake Forest",
       "positionPrimary": "F",
-      "positionAlternates": ["C"]
+      "positionAlternates": []
     },
     {
-      "playerId": "1628798",
-      "displayName": "Satou Sabally",
-      "searchName": "satou sabally",
-      "teamCode": "PHX",
+      "playerId": "8750670284480287",
+      "displayName": "Li Yueru",
+      "searchName": "li yueru",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 79,
+      "birthDateUtc": "1999-03-28T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 35
+      },
+      "country": "China",
+      "college": "No US college",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8758460209833869",
+      "displayName": "Le\u00efla Lacan",
+      "searchName": "leila lacan",
+      "teamCode": "CON",
+      "conference": "East",
+      "heightInches": 71,
+      "birthDateUtc": "2004-06-02T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2024,
+        "overallPick": 10
+      },
+      "country": "France",
+      "college": "No US college",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8760886380516039",
+      "displayName": "Myisha Hines-Allen",
+      "searchName": "myisha hines allen",
+      "teamCode": "IND",
+      "conference": "East",
+      "heightInches": 74,
+      "birthDateUtc": "1995-05-30T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2018,
+        "overallPick": 19
+      },
+      "country": "United States",
+      "college": "Louisville",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8768490268104531",
+      "displayName": "Rhyne Howard",
+      "searchName": "rhyne howard",
+      "teamCode": "ATL",
+      "conference": "East",
+      "heightInches": 74,
+      "birthDateUtc": "2000-04-29T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "Kentucky",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8790732214906053",
+      "displayName": "Jordin Canada",
+      "searchName": "jordin canada",
+      "teamCode": "ATL",
+      "conference": "East",
+      "heightInches": 66,
+      "birthDateUtc": "1995-08-11T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2018,
+        "overallPick": 5
+      },
+      "country": "United States",
+      "college": "UCLA",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8792957924241043",
+      "displayName": "Haley Jones (DC)",
+      "searchName": "haley jones dc",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 73,
+      "birthDateUtc": "2001-05-23T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "Stanford",
+      "positionPrimary": "F",
+      "positionAlternates": [
+        "G"
+      ]
+    },
+    {
+      "playerId": "8793008758303188",
+      "displayName": "Paige Bueckers",
+      "searchName": "paige bueckers",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 72,
+      "birthDateUtc": "2001-10-20T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "UConn",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8811216831330328",
+      "displayName": "Rae Burrell",
+      "searchName": "rae burrell",
+      "teamCode": "LAS",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "2000-06-21T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 9
+      },
+      "country": "United States",
+      "college": "Tennessee",
+      "positionPrimary": "G",
+      "positionAlternates": [
+        "F"
+      ]
+    },
+    {
+      "playerId": "8825802295414683",
+      "displayName": "Laeticia Amihere",
+      "searchName": "laeticia amihere",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 75,
+      "birthDateUtc": "2001-07-10T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2023,
+        "overallPick": 8
+      },
+      "country": "Canada",
+      "college": "South Carolina",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8832294624774587",
+      "displayName": "Veronica Burton",
+      "searchName": "veronica burton",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 69,
+      "birthDateUtc": "2000-07-12T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 7
+      },
+      "country": "United States",
+      "college": "Northwestern",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8851796875423322",
+      "displayName": "Dominique Malonga",
+      "searchName": "dominique malonga",
+      "teamCode": "SEA",
+      "conference": "West",
+      "heightInches": 78,
+      "birthDateUtc": "2005-11-16T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 2
+      },
+      "country": "Cameroon",
+      "college": "No US college",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8856455978733781",
+      "displayName": "Emily Engstler",
+      "searchName": "emily engstler",
+      "teamCode": "POR",
+      "conference": "West",
+      "heightInches": 73,
+      "birthDateUtc": "2000-05-01T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 4
+      },
+      "country": "United States",
+      "college": "Syracuse, Louisville",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8862367516523161",
+      "displayName": "Zia Cooke",
+      "searchName": "zia cooke",
+      "teamCode": "SEA",
+      "conference": "West",
+      "heightInches": 69,
+      "birthDateUtc": "2001-01-09T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2023,
+        "overallPick": 10
+      },
+      "country": "United States",
+      "college": "South Carolina",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8863556546902036",
+      "displayName": "Kayla McBride",
+      "searchName": "kayla mcbride",
+      "teamCode": "MIN",
+      "conference": "West",
+      "heightInches": 71,
+      "birthDateUtc": "1992-06-25T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2014,
+        "overallPick": 3
+      },
+      "country": "United States",
+      "college": "Notre Dame",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8869450292213912",
+      "displayName": "Kelsey Mitchell",
+      "searchName": "kelsey mitchell",
+      "teamCode": "IND",
+      "conference": "East",
+      "heightInches": 68,
+      "birthDateUtc": "1995-11-12T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2018,
+        "overallPick": 2
+      },
+      "country": "United States",
+      "college": "Ohio State",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8884763602478463",
+      "displayName": "Luisa Geisels\u00f6der",
+      "searchName": "luisa geiselsoder",
+      "teamCode": "POR",
       "conference": "West",
       "heightInches": 76,
-      "birthDateUtc": "1998-04-25T00:00:00Z",
-      "draft": { "kind": "drafted", "year": 2020, "overallPick": 2 },
+      "birthDateUtc": "2000-02-10T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
       "country": "Germany",
+      "college": "No US college",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8885122931042418",
+      "displayName": "Jacy Sheldon",
+      "searchName": "jacy sheldon",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 70,
+      "birthDateUtc": "2000-08-23T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2024,
+        "overallPick": 5
+      },
+      "country": "United States",
+      "college": "Ohio State",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8893191020815079",
+      "displayName": "Kayla Thornton",
+      "searchName": "kayla thornton",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 73,
+      "birthDateUtc": "1992-10-20T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
+      "college": "Texas-El Paso",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8896277393954568",
+      "displayName": "Aneesah Morrow",
+      "searchName": "aneesah morrow",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 73,
+      "birthDateUtc": "2003-02-02T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2025,
+        "overallPick": 7
+      },
+      "country": "United States",
+      "college": "DePaul, LSU",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8906975798804497",
+      "displayName": "Nyara Sabally",
+      "searchName": "nyara sabally",
+      "teamCode": "TOR",
+      "conference": "East",
+      "heightInches": 77,
+      "birthDateUtc": "2000-02-26T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "United States",
       "college": "Oregon",
       "positionPrimary": "F",
-      "positionAlternates": ["G"]
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8908000743677145",
+      "displayName": "Natasha Cloud",
+      "searchName": "natasha cloud",
+      "teamCode": "CHI",
+      "conference": "East",
+      "heightInches": 70,
+      "birthDateUtc": "1992-02-22T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2015,
+        "overallPick": 15
+      },
+      "country": "United States",
+      "college": "Maryland, Saint Joseph's",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8910373878848446",
+      "displayName": "Brittney Griner",
+      "searchName": "brittney griner",
+      "teamCode": "CON",
+      "conference": "East",
+      "heightInches": 81,
+      "birthDateUtc": "1990-10-18T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2013,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "Baylor",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8933665771887184",
+      "displayName": "Alanna Smith",
+      "searchName": "alanna smith",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "1996-09-10T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2019,
+        "overallPick": 8
+      },
+      "country": "Australia",
+      "college": "Stanford",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8949531676579333",
+      "displayName": "No\u00e9mie Brochant",
+      "searchName": "noemie brochant",
+      "teamCode": "PHX",
+      "conference": "West",
+      "heightInches": 71,
+      "birthDateUtc": "1999-10-25T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "France",
+      "college": "No US college",
+      "positionPrimary": "F",
+      "positionAlternates": [
+        "G"
+      ]
+    },
+    {
+      "playerId": "8950777316206773",
+      "displayName": "Flau'jae Johnson",
+      "searchName": "flau jae johnson",
+      "teamCode": "SEA",
+      "conference": "West",
+      "heightInches": 70,
+      "birthDateUtc": "2003-11-03T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2026,
+        "overallPick": 8
+      },
+      "country": "United States",
+      "college": "LSU",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8957622641659658",
+      "displayName": "Alyssa Thomas",
+      "searchName": "alyssa thomas",
+      "teamCode": "PHX",
+      "conference": "West",
+      "heightInches": 74,
+      "birthDateUtc": "1992-04-12T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2014,
+        "overallPick": 4
+      },
+      "country": "United States",
+      "college": "Maryland",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8960118600538127",
+      "displayName": "NaLyssa Smith",
+      "searchName": "nalyssa smith",
+      "teamCode": "LVA",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "2000-08-08T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 2
+      },
+      "country": "United States",
+      "college": "Baylor",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8963626921465634",
+      "displayName": "Iliana Rupert",
+      "searchName": "iliana rupert",
+      "teamCode": "GSV",
+      "conference": "West",
+      "heightInches": 76,
+      "birthDateUtc": "2001-07-12T00:00:00Z",
+      "draft": {
+        "kind": "undrafted"
+      },
+      "country": "France",
+      "college": "No US college",
+      "positionPrimary": "C",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8985556489441292",
+      "displayName": "Azzi Fudd",
+      "searchName": "azzi fudd",
+      "teamCode": "DAL",
+      "conference": "West",
+      "heightInches": 71,
+      "birthDateUtc": "2002-11-11T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2026,
+        "overallPick": 1
+      },
+      "country": "United States",
+      "college": "UConn",
+      "positionPrimary": "G",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8988696977171122",
+      "displayName": "Kierstan Bell",
+      "searchName": "kierstan bell",
+      "teamCode": "LVA",
+      "conference": "West",
+      "heightInches": 73,
+      "birthDateUtc": "2000-03-16T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2022,
+        "overallPick": 11
+      },
+      "country": "United States",
+      "college": "Ohio State, Florida Gulf Coast",
+      "positionPrimary": "F",
+      "positionAlternates": []
+    },
+    {
+      "playerId": "8997545530710789",
+      "displayName": "Nia Coffey",
+      "searchName": "nia coffey",
+      "teamCode": "MIN",
+      "conference": "West",
+      "heightInches": 73,
+      "birthDateUtc": "1995-06-11T00:00:00Z",
+      "draft": {
+        "kind": "drafted",
+        "year": 2017,
+        "overallPick": 5
+      },
+      "country": "United States",
+      "college": "Northwestern",
+      "positionPrimary": "F",
+      "positionAlternates": []
     }
   ]
 }

@@ -1,37 +1,43 @@
 # Fantasy-points cutoff comparison
 
-## 2026-08-02 official-input status
+## 2026-08-03 derived-input result
 
-No cutoff comparison is available yet. An earlier Python REST attempt timed out and did not
-establish complete official roster or traditional-stat inputs. The live path has been removed
-rather than described as a working refresh, so this report deliberately contains no substituted
-counts, player names, or inferred boundary examples.
+The completed Basketball-Reference HTML pull contains 206 players across 15 current team rosters.
+The offline generator applies `max(2026 WNBA_FANTASY_PTS, 2025 WNBA_FANTASY_PTS)` after current
+roster membership and removes all fantasy totals from the generated game snapshot.
 
-Known page behavior is not the blocker: `https://stats.wnba.com/player/1628932/` loads
-immediately and provides player-page biography evidence. The team and traditional HTML pages
-also load, but do not provide the complete roster or fantasy-point records needed here. A
-page-primed exact `commonteamroster` REST request timed out. The direct stats routes therefore
-remain unresolved for a complete refresh.
+| Cutoff | Current season | Two-season union | Prior-season additions |
+| --- | ---: | ---: | ---: |
+| 200 | 131 | 155 | 24 |
+| 300 | 107 | 136 | 29 |
 
-## Next input needed
+The 200-point pool exceeds the requested 120-150-player range. The 300-point pool contains 136
+players and matches the corrected target of roughly 8-10 players across each of 15 teams.
 
-Provide a locally saved, Python-produced official-response manifest at
-`data/private/official_exports/manifest.json`, with the unmodified official team list, all 2026
-team rosters, 2026 and 2025 traditional-stat responses, and player-page HTML for every rostered
-player. Run:
+## Team coverage
 
-```bash
-source source_me.sh && python3 tools/fetch_wnba_candidates.py \
-  --input-manifest data/private/official_exports/manifest.json
-```
+| Team | 200 cutoff | 300 cutoff |
+| --- | ---: | ---: |
+| ATL | 10 | 9 |
+| CHI | 13 | 11 |
+| CON | 10 | 8 |
+| DAL | 13 | 13 |
+| GSV | 11 | 11 |
+| IND | 11 | 9 |
+| LAS | 8 | 8 |
+| LVA | 9 | 8 |
+| MIN | 9 | 7 |
+| NYL | 10 | 10 |
+| PHX | 9 | 9 |
+| POR | 10 | 6 |
+| SEA | 11 | 9 |
+| TOR | 11 | 10 |
+| WAS | 10 | 8 |
 
-Once that succeeds, the generator can produce separate, non-game-facing `--cutoff 200` and
-`--cutoff 300` files. The eventual comparison will report (1) 2026 all-page counts against the
-user's provisional 131/102 figures, (2) current-roster intersections, (3) players admitted by
-the 2025 season, and (4) named examples around each boundary. It will not choose a cutoff.
+## Decision
 
-## Game delivery status
-
-The static TypeScript game is playable and buildable without this refresh. This unresolved
-official-data comparison affects only a future official snapshot and cutoff decision; it is not a
-runtime or delivery dependency for the existing development fixture.
+Use the 300-point two-season cutoff. It produces the requested overall scale while preserving the
+preceding-season path for established players returning from a season off and the current-season
+path for strong rookies. The resulting verified 136-player snapshot includes Olivia Miles and is
+committed at `src/data/roster.json`; the private candidate file and its performance totals remain
+outside git.

@@ -3,8 +3,11 @@ USA,United States
 US,United States
 United States,United States
 U.S.A.,United States
+VI,U.S. Virgin Islands
 Australia,Australia
 AU,Australia
+Austria,Austria
+AT,Austria
 Bahamas,Bahamas
 BS,Bahamas
 Belgium,Belgium
@@ -23,18 +26,28 @@ Croatia,Croatia
 HR,Croatia
 Czech Republic,Czechia
 CZ,Czechia
+Egypt,Egypt
+EG,Egypt
 France,France
 FR,France
 Germany,Germany
 DE,Germany
 Hungary,Hungary
 HU,Hungary
+Italy,Italy
+IT,Italy
 Jamaica,Jamaica
 JM,Jamaica
 Japan,Japan
 JP,Japan
+Kenya,Kenya
+KE,Kenya
+South Korea,South Korea
+KR,South Korea
 Latvia,Latvia
 LV,Latvia
+Lithuania,Lithuania
+LT,Lithuania
 Mali,Mali
 ML,Mali
 Montenegro,Montenegro
@@ -43,6 +56,8 @@ Mozambique,Mozambique
 MZ,Mozambique
 Nigeria,Nigeria
 NG,Nigeria
+New Zealand,New Zealand
+NZ,New Zealand
 Poland,Poland
 PL,Poland
 Puerto Rico,Puerto Rico
