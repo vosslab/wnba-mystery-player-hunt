@@ -159,6 +159,17 @@ def test_test_limit_candidate_file_cannot_generate_a_roster() -> None:
 
 #============================================
 
+def test_candidate_file_with_skipped_players_cannot_generate_a_roster() -> None:
+	"""Block a tolerant harvest from promotion until failed players are retried."""
+	candidate_file = candidate_envelope([candidate("11", 200, 0)])
+	candidate_file["validation"]["scope"] = "incomplete"
+
+	with pytest.raises(ValueError, match="skipped failed players"):
+		roster_builder.validate_candidate_envelope(candidate_file)
+
+
+#============================================
+
 def test_complete_candidate_file_validates() -> None:
 	"""Accept a complete envelope before roster selection begins."""
 	validated = roster_builder.validate_candidate_envelope(

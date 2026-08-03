@@ -357,17 +357,27 @@ def labeled_value(paragraphs: list[str], label: str) -> str | None:
 #============================================
 
 def parse_draft(paragraphs: list[str]) -> dict[str, int | str | None]:
-	"""Normalize Basketball-Reference draft prose into drafted or undrafted data.
+	"""Normalize Basketball-Reference entry- and expansion-draft prose.
 
 	Args:
 		paragraphs: Whitespace-normalized biography paragraphs.
 
 	Returns:
-		A status mapping with drafted year, round, and overall pick when applicable.
+		A status mapping with draft type, year, round, and overall pick when applicable.
 	"""
 	draft_text = labeled_value(paragraphs, "Draft:")
 	if draft_text is None or "undrafted" in draft_text.casefold():
 		return {"status": "undrafted", "year": None, "round": None, "overall": None}
+	if "Expansion Draft" in draft_text:
+		year_match = re.search(r"\b([0-9]{4})\s+Expansion Draft\b", draft_text)
+		overall_match = re.search(r"\b([0-9]+)(?:st|nd|rd|th) overall\b", draft_text)
+		if year_match is None or overall_match is None:
+			raise ValueError(f"Unrecognized Basketball-Reference expansion draft text: {draft_text}")
+		draft = {
+			"status": "expansion", "year": int(year_match.group(1)),
+			"round": None, "overall": int(overall_match.group(1)),
+		}
+		return draft
 	# Real profiles use both "2014 WNBA Draft" and the shorter "2014 Draft".
 	year_match = re.search(r"\b([0-9]{4})(?:\s+WNBA)?\s+Draft\b", draft_text)
 	round_match = re.search(r"\b([0-9]+)(?:st|nd|rd|th) round\b", draft_text)

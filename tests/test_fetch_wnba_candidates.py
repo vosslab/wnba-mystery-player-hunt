@@ -270,14 +270,180 @@ def test_totals_rows_are_transformed_into_derived_fantasy_points() -> None:
 
 #============================================
 
+def test_expansion_selection_does_not_become_an_entry_draft_clue() -> None:
+	"""Represent an expansion-selected player with no entry draft as undrafted."""
+	entry = {
+		"teamId": "1", "teamCode": "GSV", "name": "Test Player",
+		"playerUrl": "https://www.basketball-reference.com/wnba/players/t/testpl01w.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/GSV/2026.html",
+		"slug": "testpl01w", "number": "5", "position": "F", "height": "6-1",
+		"weight": "190", "experience": "10", "college": "Test University",
+	}
+	profile_html = """<p><strong>Position:</strong> Forward</p><p>6-1, 190lb</p>
+	<p><span data-birth='1992-10-20'></span><span class='f-us'></span></p>
+	<p><strong>Draft:</strong> Golden State Valkyries, 9th overall,
+	2025 Expansion Draft</p>"""
+	candidate = wnba_harvester.candidate_from_entry(
+		entry, profile_html, "2026", {"testpl01w": 100.0}, {"testpl01w": 100.0}
+	)
+	assert (
+		candidate["profile"]["DRAFT_YEAR"], candidate["profile"]["DRAFT_NUMBER"]
+	) == ("Undrafted", "Undrafted")
+
+
+#============================================
+
+def test_established_player_can_have_no_previous_season_totals() -> None:
+	"""Use zero when a current veteran took the preceding WNBA season off."""
+	entry = {
+		"teamId": "1", "teamCode": "DAL", "name": "Returning Player",
+		"playerUrl": "https://www.basketball-reference.com/wnba/players/r/return01w.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/DAL/2026.html",
+		"slug": "return01w", "number": "12", "position": "F", "height": "6-1",
+		"weight": "175", "experience": "4", "college": "Test University",
+	}
+	metadata = {
+		"birthDate": "1998-01-02", "country": "US", "position": "Forward",
+		"height": "6-1", "college": "Test University",
+		"draft": {"status": "undrafted", "year": None, "round": None, "overall": None},
+	}
+	candidate = wnba_harvester.candidate_from_metadata(
+		entry, metadata, "2026", {"return01w": 50.0}, {}
+	)
+	assert candidate["fantasyPointsPreviousSeason"] == 0.0
+
+
+#============================================
+
+def test_profile_cache_reuses_biography_while_refreshing_current_data(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Reuse a fresh biography while rebuilding team membership and season totals."""
+	entry = {
+		"teamId": "1", "teamCode": "DAL", "name": "Cached Player",
+		"playerUrl": "https://www.basketball-reference.com/wnba/players/c/cached01w.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/DAL/2026.html",
+		"slug": "cached01w", "number": "12", "position": "F", "height": "6-1",
+		"weight": "175", "experience": "4", "college": "Test University",
+	}
+	metadata = {
+		"birthDate": "1998-01-02", "country": "US", "position": "Forward",
+		"height": "6-1", "college": "Test University",
+		"draft": {"status": "undrafted", "year": None, "round": None, "overall": None},
+	}
+	fetched_slugs = []
+
+	def fake_fetch_profile(player_entry: dict[str, str]) -> dict[str, object]:
+		fetched_slugs.append(player_entry["slug"])
+		return metadata
+
+	monkeypatch.setattr(wnba_harvester, "fetch_player_metadata", fake_fetch_profile)
+	cache_path = tmp_path / "wnba_player_profiles.json"
+	wnba_harvester.harvest_player_candidates(
+		[entry], "2026", {"cached01w": 10.0}, {"cached01w": 5.0},
+		profile_cache_path=cache_path
+	)
+	traded_entry = dict(entry)
+	traded_entry.update({
+		"teamId": "2", "teamCode": "LVA", "number": "22",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/LVA/2026.html",
+	})
+	candidates, failed_entries = wnba_harvester.harvest_player_candidates(
+		[traded_entry], "2026", {"cached01w": 20.0}, {},
+		profile_cache_path=cache_path
+	)
+	assert fetched_slugs == ["cached01w"]
+	assert (
+		candidates[0]["roster"]["TEAM_ABBREVIATION"],
+		candidates[0]["fantasyPointsCurrentSeason"],
+		candidates[0]["fantasyPointsPreviousSeason"],
+	) == ("LVA", 20.0, 0.0)
+	assert failed_entries == []
+
+
+#============================================
+
+def test_existing_candidate_file_seeds_profile_cache(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Convert completed candidates without fetching their profile pages again."""
+	entry = {
+		"teamId": "1", "teamCode": "DAL", "name": "Checkpoint Player",
+		"playerUrl": "https://www.basketball-reference.com/wnba/players/c/checkp01w.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/DAL/2026.html",
+		"slug": "checkp01w", "number": "12", "position": "F", "height": "6-1",
+		"weight": "175", "experience": "4", "college": "Test University",
+	}
+	metadata = {
+		"birthDate": "1998-01-02", "country": "US", "position": "Forward",
+		"height": "6-1", "college": "Test University",
+		"draft": {"status": "undrafted", "year": None, "round": None, "overall": None},
+	}
+	seed_candidate = wnba_harvester.candidate_from_metadata(
+		entry, metadata, "2026", {"checkp01w": 10.0}, {"checkp01w": 5.0}
+	)
+	candidate_path = tmp_path / "wnba_candidates.json"
+	cache_path = tmp_path / "wnba_player_profiles.json"
+	candidate_payload = {"schemaVersion": 1, "candidates": [seed_candidate]}
+	fetcher.write_json(candidate_path, candidate_payload)
+
+	def unexpected_fetch(_entry: dict[str, str]) -> dict[str, object]:
+		raise AssertionError("checkpointed profile should seed the cache")
+
+	monkeypatch.setattr(wnba_harvester, "fetch_player_metadata", unexpected_fetch)
+	candidates, failed_entries = wnba_harvester.harvest_player_candidates(
+		[entry], "2026", {"checkp01w": 20.0}, {}, profile_cache_path=cache_path,
+		candidate_seed_path=candidate_path
+	)
+	assert candidates[0]["fantasyPointsCurrentSeason"] == 20.0
+	assert failed_entries == []
+	cache_payload = json.loads(cache_path.read_text(encoding="utf-8"))
+	assert cache_payload["profiles"]["checkp01w"]["playerPageSourceUrl"] == entry["playerUrl"]
+
+
+#============================================
+
+def test_expired_profile_cache_falls_back_when_refresh_fails(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Keep a player usable when an expired biography cannot be refreshed."""
+	entry = {
+		"teamId": "1", "teamCode": "DAL", "name": "Stale Player",
+		"playerUrl": "https://www.basketball-reference.com/wnba/players/s/stale001w.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/DAL/2026.html",
+		"slug": "stale001w", "number": "12", "position": "F", "height": "6-1",
+		"weight": "175", "experience": "4", "college": "Test University",
+	}
+	metadata = {
+		"birthDate": "1998-01-02", "country": "US", "position": "Forward",
+		"height": "6-1", "college": "Test University",
+		"draft": {"status": "undrafted", "year": None, "round": None, "overall": None},
+	}
+	cache_path = tmp_path / "wnba_player_profiles.json"
+	wnba_harvester.write_profile_cache(cache_path, {"stale001w": {
+		"playerPageSourceUrl": entry["playerUrl"], "time": 0, "metadata": metadata,
+	}})
+
+	def failed_refresh(_entry: dict[str, str]) -> dict[str, object]:
+		raise OSError("temporary profile failure")
+
+	monkeypatch.setattr(wnba_harvester, "fetch_player_metadata", failed_refresh)
+	candidates, failed_entries = wnba_harvester.harvest_player_candidates(
+		[entry], "2026", {"stale001w": 20.0}, {}, profile_cache_path=cache_path
+	)
+	assert candidates[0]["playerId"] == wnba_harvester.stable_decimal_id(
+		"player", "stale001w"
+	)
+	assert failed_entries == []
+
+
+#============================================
+
 def test_player_harvest_checkpoints_each_completed_group_before_a_later_failure(
 		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
-	"""Retain completed profile work when the next source profile cannot be parsed."""
+	"""Retain successes while a bad player is skipped and later players continue."""
 	entries = [{
 		"name": f"Player {number}", "slug": f"player{number}",
 		"playerUrl": f"https://www.basketball-reference.com/wnba/players/p/player{number}.html",
 		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/TST/2026.html",
-	} for number in range(1, 7)]
+	} for number in range(1, 8)]
 	checkpoint_path = tmp_path / "players.checkpoint.json"
 
 	def fake_get_page(_url: str, _referer: str) -> str:
@@ -295,14 +461,17 @@ def test_player_harvest_checkpoints_each_completed_group_before_a_later_failure(
 
 	monkeypatch.setattr(wnba_harvester, "get_page", fake_get_page)
 	monkeypatch.setattr(wnba_harvester, "candidate_from_entry", fake_candidate)
-	with pytest.raises(ValueError, match="malformed sixth profile"):
-		wnba_harvester.harvest_player_candidates(
-			entries, "2026", {}, {}, checkpoint_path
-		)
+	candidates, failed_entries = wnba_harvester.harvest_player_candidates(
+		entries, "2026", {}, {}, checkpoint_path
+	)
 	payload = json.loads(checkpoint_path.read_text(encoding="utf-8"))
 	assert [candidate["playerId"] for candidate in payload["candidates"]] == [
-		"player1", "player2", "player3", "player4", "player5",
+		"player1", "player2", "player3", "player4", "player5", "player7",
 	]
+	assert [candidate["playerId"] for candidate in candidates] == [
+		"player1", "player2", "player3", "player4", "player5", "player7",
+	]
+	assert [entry["slug"] for entry in failed_entries] == ["player6"]
 
 
 #============================================
@@ -340,10 +509,54 @@ def test_player_harvest_resumes_after_the_checkpointed_prefix(
 
 	monkeypatch.setattr(wnba_harvester, "get_page", fake_get_page)
 	monkeypatch.setattr(wnba_harvester, "candidate_from_entry", fake_candidate)
-	candidates = wnba_harvester.harvest_player_candidates(
+	candidates, failed_entries = wnba_harvester.harvest_player_candidates(
 		entries, "2026", {}, {}, checkpoint_path
 	)
 	assert fetched_urls == [entries[-1]["playerUrl"]]
 	assert [candidate["playerId"] for candidate in candidates] == [
 		"player1", "player2", "player3", "player4", "player5", "player6",
 	]
+	assert failed_entries == []
+
+
+#============================================
+
+def test_player_harvest_retries_a_gap_without_refetching_later_successes(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Retry a formerly failed player while reusing successes on both sides of it."""
+	entries = [{
+		"name": f"Player {number}", "slug": f"player{number}",
+		"playerUrl": f"https://www.basketball-reference.com/wnba/players/p/player{number}.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/TST/2026.html",
+	} for number in range(1, 4)]
+	cached_candidates = [{
+		"playerId": entry["slug"], "playerPageSourceUrl": entry["playerUrl"],
+		"rosterSourceUrl": entry["rosterUrl"],
+	} for entry in (entries[0], entries[2])]
+	checkpoint_path = tmp_path / "players.checkpoint.json"
+	fingerprint = wnba_harvester.harvest_source_fingerprint(entries, "2026", {}, {})
+	wnba_harvester.write_harvest_checkpoint(checkpoint_path, fingerprint, cached_candidates)
+	fetched_urls = []
+
+	def fake_get_page(url: str, _referer: str) -> str:
+		fetched_urls.append(url)
+		return "<html></html>"
+
+	def fake_candidate(entry: dict[str, str], _html: str, _season: str,
+			_current: dict[str, float], _previous: dict[str, float]) -> dict:
+		candidate = {
+			"playerId": entry["slug"], "playerPageSourceUrl": entry["playerUrl"],
+			"rosterSourceUrl": entry["rosterUrl"],
+		}
+		return candidate
+
+	monkeypatch.setattr(wnba_harvester, "get_page", fake_get_page)
+	monkeypatch.setattr(wnba_harvester, "candidate_from_entry", fake_candidate)
+	candidates, failed_entries = wnba_harvester.harvest_player_candidates(
+		entries, "2026", {}, {}, checkpoint_path
+	)
+	assert fetched_urls == [entries[1]["playerUrl"]]
+	assert [candidate["playerId"] for candidate in candidates] == [
+		"player1", "player2", "player3",
+	]
+	assert failed_entries == []

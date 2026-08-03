@@ -466,8 +466,14 @@ def validate_candidate_envelope(value: object) -> dict:
 		raise ValueError(
 			"candidate file was produced with --max and cannot generate a roster snapshot"
 		)
+	if scope == "incomplete":
+		raise ValueError(
+			"candidate file skipped failed players and cannot generate a roster snapshot"
+		)
 	if scope != "complete":
-		raise ValueError("candidate file.validation.scope must be complete or test-limit")
+		raise ValueError(
+			"candidate file.validation.scope must be complete, incomplete, or test-limit"
+		)
 	for key in (
 		"teamCount",
 		"rosterResponseCount",

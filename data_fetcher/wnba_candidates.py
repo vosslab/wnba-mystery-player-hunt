@@ -494,9 +494,9 @@ def build_candidates(sources: dict) -> dict:
 	current_season = str(sources.get("currentSeason", CURRENT_SEASON))
 	previous_season = str(sources.get("previousSeason", PREVIOUS_SEASON))
 	validation_scope = sources.get("validationScope", "complete")
-	if validation_scope not in {"complete", "test-limit"}:
+	if validation_scope not in {"complete", "incomplete", "test-limit"}:
 		raise ValueError(
-			"Candidate validation scope must be complete or test-limit: "
+			"Candidate validation scope must be complete, incomplete, or test-limit: "
 			f"{validation_scope}"
 		)
 	team_ids = extract_team_ids(sources["teamPayload"])

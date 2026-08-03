@@ -159,3 +159,17 @@ def test_parse_profile_metadata_marks_undrafted_player() -> None:
 	assert metadata["draft"] == {
 		"status": "undrafted", "year": None, "round": None, "overall": None,
 	}
+
+
+#============================================
+
+def test_parse_profile_metadata_distinguishes_an_expansion_draft() -> None:
+	"""Keep an expansion selection separate from an original WNBA entry-draft pick."""
+	html = """<p><strong>Position:</strong> Forward</p><p><strong>6-1</strong>, 190lb</p>
+	<p><span data-birth='1992-10-20'></span><span class='flag f-us'></span></p>
+	<p><strong>Draft:</strong> Golden State Valkyries, 9th overall,
+	2025 Expansion Draft</p>"""
+	metadata = basketball_reference.parse_player_profile_metadata(html)
+	assert metadata["draft"] == {
+		"status": "expansion", "year": 2025, "round": None, "overall": 9,
+	}

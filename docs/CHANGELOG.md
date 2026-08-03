@@ -21,9 +21,17 @@
 
 ### Fixes and Maintenance
 
+- Keep Basketball-Reference Expansion Draft selections separate from original WNBA entry-draft
+  clues, so an expansion-selected player documented as undrafted remains Undrafted in the game.
 - Recover malformed Basketball-Reference player profiles that start a new paragraph before closing
   Position, name the active source in progress output, and resume long harvests from private
   five-player checkpoints instead of repeating every completed player request after a crash.
+- Treat an absent previous-season total as a valid zero for rookies and players returning from a
+  season off. Continue after individual player source failures, retain all successful profiles,
+  retry only failed players on a matching rerun, and block incomplete pulls from snapshot promotion.
+- Cache stable player biography fields individually for 14 days while refreshing totals and current
+  rosters every run. Seed the cache from existing candidate files or checkpoints, save every five
+  profile requests, and use stale biographies when a refresh temporarily fails.
 - Tighten the game shell, collapse secondary theme controls, let the desktop clue grid use the
   available viewport, and keep 800x1280 as the minimum layout acceptance gate. Keep System as the
   default theme with light and dark as explicit overrides.
@@ -57,9 +65,8 @@
 - Document the all-player manual harvester's progress output, randomized per-request pacing, and
   `-m` / `--max` plumbing limit. Only a limit that actually truncates the roster writes the
   separately named `test-limit` private file; stage two rejects that scope.
-- Supersede the rejected WNBA-profile `FROM_YEAR` route: the active Basketball-Reference
-  harvester treats a missing prior-season total as zero only for a current-roster entrant marked
-  `R`; an established player's gap remains a data error.
+- Supersede the rejected WNBA-profile `FROM_YEAR` route: the active Basketball-Reference harvester
+  treats a missing prior-season total as zero for both rookies and returning veterans.
 - Record the existing GitHub Pages workflow and WNBA Mystery Player Hunt repository and Pages
   addresses without treating the unverified full derived-data refresh or cutoff as complete.
 - Keep the game wholly independent from refresh timing: no snapshot-age gate, data tracking, or

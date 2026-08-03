@@ -27,11 +27,23 @@ The no-limit command fetches every player listed on current roster pages and wri
 `data/private/wnba_candidates.json`. It has not yet been run to completion, so do not treat this
 document as evidence of a complete refresh or a selected cutoff.
 
-The command checkpoints each completed group of five player profiles to ignored
-`data/private/wnba_candidates.checkpoint.json`. Re-run the same command after a failure to resume
-from that completed prefix. The harvester verifies that the ordered rosters and season totals still
-match the checkpoint before reusing it, and removes the checkpoint after the final candidate file
-is written successfully.
+The command stores stable biography fields per player in ignored
+`data/private/wnba_player_profiles.json`. Each entry remains fresh for 14 days. Totals and roster
+pages are never served from this cache, so every run still reflects current stats, trades, cuts,
+numbers, and roster membership. Expired profiles refresh individually; a failed refresh uses the
+stale biography instead of dropping the player.
+
+New and refreshed profiles are saved atomically every five successful requests. Existing
+`data/private/wnba_candidates.json` and `data/private/wnba_candidates.checkpoint.json` files
+automatically seed the profile cache, preserving completed work from runs created before this cache
+existed. The checkpoint still records successful candidates during a pull and is removed after a
+complete candidate file is written.
+
+A malformed or unreachable player with no cached biography produces a warning while the remaining
+profiles continue. The resulting candidate file has `validation.scope` set to `incomplete` until
+every current player succeeds, so stage two cannot promote a partial roster. Re-running retries the
+missing player. Missing previous-season totals are recorded as zero; this is valid for rookies and
+established players who took that season off.
 
 Use a short, explicitly incomplete plumbing run first:
 

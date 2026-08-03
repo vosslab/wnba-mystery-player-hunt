@@ -4,6 +4,7 @@
 import argparse
 import datetime
 import hashlib
+import http.client
 import json
 import pathlib
 import random
@@ -21,6 +22,9 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_OUTPUT = pathlib.Path("data/private/wnba_candidates.json")
 CHECKPOINT_INTERVAL = 5
 CHECKPOINT_SCHEMA_VERSION = 1
+PROFILE_CACHE_FILE = "wnba_player_profiles.json"
+PROFILE_CACHE_SCHEMA_VERSION = 1
+PROFILE_CACHE_MAX_AGE_SECONDS = 14 * 24 * 3600
 TIMEOUT_SECONDS = 30
 BREF_HOST = "www.basketball-reference.com"
 BREF_ROOT = f"https://{BREF_HOST}"
@@ -92,6 +96,14 @@ def checkpoint_path_for_output(output_path: pathlib.Path) -> pathlib.Path:
 	"""Place a resumable harvest checkpoint beside its private output file."""
 	checkpoint_path = output_path.with_suffix(".checkpoint.json")
 	return checkpoint_path
+
+
+#============================================
+
+def profile_cache_path_for_output(output_path: pathlib.Path) -> pathlib.Path:
+	"""Place the shared stable-profile cache beside private candidate outputs."""
+	cache_path = output_path.parent / PROFILE_CACHE_FILE
+	return cache_path
 
 
 #============================================
@@ -324,15 +336,11 @@ def entrant_from_experience(experience: str, current_season: str) -> int:
 
 #============================================
 
-def candidate_from_entry(entry: dict[str, str], profile_html: str, current_season: str,
-		current_points: dict[str, float], previous_points: dict[str, float]) -> dict:
-	"""Join membership, biography, and two season totals into one candidate."""
+def candidate_from_metadata(entry: dict[str, str], metadata: dict[str, object],
+		current_season: str, current_points: dict[str, float],
+		previous_points: dict[str, float]) -> dict:
+	"""Join current membership and totals with parsed biography metadata."""
 	slug = entry["slug"]
-	if slug not in previous_points and entry["experience"].casefold() != "r":
-		raise ValueError(
-			f"Previous-season fantasy points missing established current player {slug}"
-		)
-	metadata = data_fetcher.wnba_basketball_reference.parse_player_profile_metadata(profile_html)
 	player_id = stable_decimal_id("player", slug)
 	draft = metadata["draft"]
 	if not isinstance(draft, dict):
@@ -341,10 +349,13 @@ def candidate_from_entry(entry: dict[str, str], profile_html: str, current_seaso
 		draft_year = str(draft["year"])
 		draft_round = str(draft["round"])
 		draft_number = str(draft["overall"])
-	else:
+	elif draft["status"] in {"undrafted", "expansion"}:
+		# An expansion selection is not evidence of an original WNBA entry-draft pick.
 		draft_year = "Undrafted"
 		draft_round = "Undrafted"
 		draft_number = "Undrafted"
+	else:
+		raise ValueError(f"Player {slug} has unsupported draft status {draft['status']}")
 	from_year = entrant_from_experience(entry["experience"], current_season)
 	birth_date = str(metadata["birthDate"])
 	college = str(metadata["college"]) or entry["college"] or "None"
@@ -368,8 +379,21 @@ def candidate_from_entry(entry: dict[str, str], profile_html: str, current_seaso
 		"playerId": player_id, "rosterSourceUrl": entry["rosterUrl"],
 		"playerPageSourceUrl": entry["playerUrl"], "roster": roster, "profile": profile,
 		"fantasyPointsCurrentSeason": current_points.get(slug, 0.0),
+		# A current veteran can legitimately be absent after taking the prior season off.
 		"fantasyPointsPreviousSeason": previous_points.get(slug, 0.0),
 	}
+	return candidate
+
+
+#============================================
+
+def candidate_from_entry(entry: dict[str, str], profile_html: str, current_season: str,
+		current_points: dict[str, float], previous_points: dict[str, float]) -> dict:
+	"""Parse one player profile and join it to current membership and totals."""
+	metadata = data_fetcher.wnba_basketball_reference.parse_player_profile_metadata(profile_html)
+	candidate = candidate_from_metadata(
+		entry, metadata, current_season, current_points, previous_points
+	)
 	return candidate
 
 
@@ -381,6 +405,147 @@ def recognizability_score(entry: dict[str, str], current_points: dict[str, float
 	slug = entry["slug"]
 	score = max(current_points.get(slug, 0.0), previous_points.get(slug, 0.0))
 	return score
+
+
+#============================================
+
+def profile_metadata_from_candidate(candidate: dict, context: str) -> dict[str, object]:
+	"""Recover stable biography metadata from a completed candidate checkpoint."""
+	profile = candidate["profile"]
+	if not isinstance(profile, dict):
+		raise ValueError(f"{context}.profile must be an object")
+	draft_year = str(profile["DRAFT_YEAR"])
+	draft_round = str(profile["DRAFT_ROUND"])
+	draft_number = str(profile["DRAFT_NUMBER"])
+	undrafted_values = {draft_year.casefold(), draft_round.casefold(), draft_number.casefold()}
+	if undrafted_values == {"undrafted"}:
+		draft = {"status": "undrafted", "year": None, "round": None, "overall": None}
+	elif draft_year.isdecimal() and draft_round.isdecimal() and draft_number.isdecimal():
+		draft = {
+			"status": "drafted", "year": int(draft_year),
+			"round": int(draft_round), "overall": int(draft_number),
+		}
+	else:
+		raise ValueError(f"{context} has invalid draft fields")
+	metadata = {
+		"birthDate": str(profile["BIRTHDATE"]).split("T", maxsplit=1)[0],
+		"country": str(profile["COUNTRY"]), "position": str(profile["POSITION"]),
+		"height": str(profile["HEIGHT"]), "college": str(profile["SCHOOL"]),
+		"draft": draft,
+	}
+	return metadata
+
+
+#============================================
+
+def validate_profile_cache_entry(slug: str, value: object, context: str) -> dict:
+	"""Validate one timestamped stable-profile cache entry."""
+	if not isinstance(value, dict):
+		raise ValueError(f"{context} must be an object")
+	player_url = value["playerPageSourceUrl"]
+	if not isinstance(player_url, str) or player_slug_from_url(player_url) != slug:
+		raise ValueError(f"{context} URL must identify player {slug}")
+	fetched_time = value["time"]
+	if isinstance(fetched_time, bool) or not isinstance(fetched_time, int):
+		raise ValueError(f"{context}.time must be an integer Unix timestamp")
+	metadata = value["metadata"]
+	if not isinstance(metadata, dict):
+		raise ValueError(f"{context}.metadata must be an object")
+	required_fields = {"birthDate", "country", "position", "height", "college", "draft"}
+	if set(metadata) != required_fields or not isinstance(metadata["draft"], dict):
+		raise ValueError(f"{context}.metadata fields do not match the cache schema")
+	return value
+
+
+#============================================
+
+def load_profile_cache(path: pathlib.Path) -> dict[str, dict]:
+	"""Load and validate the persistent player-profile cache."""
+	if not path.exists():
+		return {}
+	with path.open("r", encoding="utf-8") as input_file:
+		payload = json.load(input_file)
+	if not isinstance(payload, dict):
+		raise ValueError(f"Player profile cache must contain an object: {path}")
+	if payload["schemaVersion"] != PROFILE_CACHE_SCHEMA_VERSION:
+		raise ValueError(f"Unsupported player profile cache schema: {path}")
+	profiles = payload["profiles"]
+	if not isinstance(profiles, dict):
+		raise ValueError(f"Player profile cache profiles must be an object: {path}")
+	validated_profiles = {}
+	for slug, value in profiles.items():
+		if not isinstance(slug, str):
+			raise ValueError(f"Player profile cache key must be text: {path}")
+		validated_profiles[slug] = validate_profile_cache_entry(
+			slug, value, f"player profile cache {slug}"
+		)
+	return validated_profiles
+
+
+#============================================
+
+def write_profile_cache(path: pathlib.Path, profiles: dict[str, dict]) -> None:
+	"""Atomically persist timestamped stable player biographies."""
+	payload = {"schemaVersion": PROFILE_CACHE_SCHEMA_VERSION, "profiles": profiles}
+	data_fetcher.wnba_candidates.write_json(path, payload)
+
+
+#============================================
+
+def candidate_file_profile_cache(path: pathlib.Path) -> dict[str, dict]:
+	"""Convert an existing candidate or checkpoint file into profile cache entries."""
+	if not path.exists():
+		return {}
+	with path.open("r", encoding="utf-8") as input_file:
+		payload = json.load(input_file)
+	if not isinstance(payload, dict) or payload["schemaVersion"] != CHECKPOINT_SCHEMA_VERSION:
+		raise ValueError(f"Unsupported candidate seed schema: {path}")
+	candidates = payload["candidates"]
+	if not isinstance(candidates, list):
+		raise ValueError(f"Candidate seed records must be a list: {path}")
+	fetched_time = int(path.stat().st_mtime)
+	profiles = {}
+	for index, candidate in enumerate(candidates, start=1):
+		if not isinstance(candidate, dict):
+			raise ValueError(f"Candidate seed record {index} must be an object")
+		player_url = candidate["playerPageSourceUrl"]
+		if not isinstance(player_url, str):
+			raise ValueError(f"Candidate seed record {index} URL must be text")
+		slug = player_slug_from_url(player_url)
+		if slug in profiles:
+			raise ValueError(f"Candidate seed repeats player {slug}")
+		profiles[slug] = {
+			"playerPageSourceUrl": player_url, "time": fetched_time,
+			"metadata": profile_metadata_from_candidate(candidate, f"checkpoint player {slug}"),
+		}
+	return profiles
+
+
+#============================================
+
+def merge_candidate_profiles(profiles: dict[str, dict], path: pathlib.Path | None) -> int:
+	"""Seed missing stable profiles from a previous candidate or checkpoint file."""
+	if path is None:
+		return 0
+	seed_profiles = candidate_file_profile_cache(path)
+	imported_count = 0
+	for slug, value in seed_profiles.items():
+		if slug not in profiles:
+			profiles[slug] = value
+			imported_count += 1
+	return imported_count
+
+
+#============================================
+
+def profile_cache_entry_is_fresh(cache_entry: dict, player_url: str,
+		current_time: int) -> bool:
+	"""Return whether a cache entry matches the player and remains within its lifetime."""
+	if cache_entry["playerPageSourceUrl"] != player_url:
+		return False
+	age_seconds = current_time - cache_entry["time"]
+	is_fresh = 0 <= age_seconds <= PROFILE_CACHE_MAX_AGE_SECONDS
+	return is_fresh
 
 
 #============================================
@@ -405,7 +570,7 @@ def harvest_source_fingerprint(entries: list[dict[str, str]], current_season: st
 
 def write_harvest_checkpoint(path: pathlib.Path, source_fingerprint: str,
 		candidates: list[dict]) -> None:
-	"""Atomically save the completed prefix of a player-profile harvest."""
+	"""Atomically save every successfully completed player in the current pull."""
 	payload = {
 		"schemaVersion": CHECKPOINT_SCHEMA_VERSION,
 		"sourceFingerprint": source_fingerprint,
@@ -418,7 +583,7 @@ def write_harvest_checkpoint(path: pathlib.Path, source_fingerprint: str,
 
 def load_harvest_checkpoint(path: pathlib.Path, source_fingerprint: str,
 		entries: list[dict[str, str]]) -> list[dict]:
-	"""Load a checkpoint only when it is a valid prefix for the current source run."""
+	"""Load successful players only when the current source pull still matches."""
 	if not path.exists():
 		return []
 	with path.open("r", encoding="utf-8") as input_file:
@@ -432,65 +597,182 @@ def load_harvest_checkpoint(path: pathlib.Path, source_fingerprint: str,
 		return []
 	candidates = payload["candidates"]
 	if not isinstance(candidates, list) or len(candidates) > len(entries):
-		raise ValueError(f"Harvest checkpoint has an invalid candidate prefix: {path}")
+		raise ValueError(f"Harvest checkpoint has invalid candidates: {path}")
+	entries_by_url = {entry["playerUrl"]: entry for entry in entries}
 	seen_ids = set()
-	for index, candidate in enumerate(candidates):
+	seen_urls = set()
+	for index, candidate in enumerate(candidates, start=1):
 		if not isinstance(candidate, dict):
-			raise ValueError(f"Harvest checkpoint candidate {index + 1} must be an object")
-		entry = entries[index]
-		if candidate["playerPageSourceUrl"] != entry["playerUrl"]:
-			raise ValueError(f"Harvest checkpoint candidate {index + 1} is out of order")
+			raise ValueError(f"Harvest checkpoint candidate {index} must be an object")
+		player_url = candidate["playerPageSourceUrl"]
+		if player_url not in entries_by_url:
+			raise ValueError(f"Harvest checkpoint candidate {index} is not on the roster")
+		entry = entries_by_url[player_url]
 		if candidate["rosterSourceUrl"] != entry["rosterUrl"]:
-			raise ValueError(f"Harvest checkpoint candidate {index + 1} changed teams")
+			raise ValueError(f"Harvest checkpoint candidate {index} changed teams")
 		player_id = candidate["playerId"]
-		if player_id in seen_ids:
-			raise ValueError(f"Harvest checkpoint repeats player identifier {player_id}")
+		if player_id in seen_ids or player_url in seen_urls:
+			raise ValueError(f"Harvest checkpoint repeats candidate {index}")
 		seen_ids.add(player_id)
+		seen_urls.add(player_url)
 	return candidates
+
+
+#============================================
+
+def fetch_player_candidate(entry: dict[str, str], current_season: str,
+		current_points: dict[str, float], previous_points: dict[str, float]) -> dict:
+	"""Fetch and transform one player so the caller can isolate source failures."""
+	profile_html = get_page(entry["playerUrl"], entry["rosterUrl"])
+	candidate = candidate_from_entry(
+		entry, profile_html, current_season, current_points, previous_points
+	)
+	return candidate
+
+
+#============================================
+
+def fetch_player_metadata(entry: dict[str, str]) -> dict[str, object]:
+	"""Fetch and parse only the stable biography fields for one player."""
+	profile_html = get_page(entry["playerUrl"], entry["rosterUrl"])
+	metadata = data_fetcher.wnba_basketball_reference.parse_player_profile_metadata(profile_html)
+	return metadata
 
 
 #============================================
 
 def harvest_player_candidates(entries: list[dict[str, str]], current_season: str,
 		current_points: dict[str, float], previous_points: dict[str, float],
-		checkpoint_path: pathlib.Path | None = None) -> list[dict]:
-	"""Fetch player profiles, resuming from an ordered private checkpoint."""
+		checkpoint_path: pathlib.Path | None = None,
+		profile_cache_path: pathlib.Path | None = None,
+		candidate_seed_path: pathlib.Path | None = None) -> tuple[list[dict], list[dict[str, str]]]:
+	"""Fetch profiles, retaining successes and retrying failed players on a rerun."""
 	source_fingerprint = harvest_source_fingerprint(
 		entries, current_season, current_points, previous_points
 	)
-	candidates = []
-	if checkpoint_path is not None:
-		candidates = load_harvest_checkpoint(checkpoint_path, source_fingerprint, entries)
-		if candidates:
-			print(
-				f"Resuming from {checkpoint_path} with {len(candidates)} players.", flush=True
-			)
-		else:
-			write_harvest_checkpoint(checkpoint_path, source_fingerprint, candidates)
-	seen_ids = {candidate["playerId"] for candidate in candidates}
-	remaining_entries = entries[len(candidates):]
-	for index, entry in enumerate(remaining_entries, start=len(candidates) + 1):
-		print(f"Pulling Basketball-Reference player page {index} of {len(entries)} "
-			f"({entry['name']}); found {len(candidates)} players...", flush=True)
-		profile_html = get_page(entry["playerUrl"], entry["rosterUrl"])
-		candidate = candidate_from_entry(
-			entry, profile_html, current_season, current_points, previous_points
+	current_time = int(time.time())
+	profile_cache = {}
+	if profile_cache_path is not None:
+		profile_cache = load_profile_cache(profile_cache_path)
+		imported_count = merge_candidate_profiles(profile_cache, candidate_seed_path)
+		imported_count += merge_candidate_profiles(profile_cache, checkpoint_path)
+		if imported_count:
+			write_profile_cache(profile_cache_path, profile_cache)
+			print(f"Imported {imported_count} player profiles from existing candidate data.",
+				flush=True)
+		print(f"Loaded {len(profile_cache)} cached player profiles from "
+			f"{profile_cache_path}.", flush=True)
+	cached_candidates = []
+	if checkpoint_path is not None and profile_cache_path is None:
+		cached_candidates = load_harvest_checkpoint(
+			checkpoint_path, source_fingerprint, entries
 		)
+		if cached_candidates:
+			print(f"Resuming from {checkpoint_path} with "
+				f"{len(cached_candidates)} players.", flush=True)
+		else:
+			write_harvest_checkpoint(checkpoint_path, source_fingerprint, [])
+	cached_by_url = {
+		candidate["playerPageSourceUrl"]: candidate for candidate in cached_candidates
+	}
+	candidates = []
+	failed_entries = []
+	seen_ids = set()
+	new_since_checkpoint = 0
+	cache_updates_since_write = 0
+	profile_cache_hits = 0
+	stale_fallbacks = 0
+	for index, entry in enumerate(entries, start=1):
+		player_url = entry["playerUrl"]
+		candidate = cached_by_url.get(player_url)
+		if candidate is None and profile_cache_path is None:
+			print(f"Pulling Basketball-Reference player page {index} of {len(entries)} "
+				f"({entry['name']}); found {len(candidates)} players...", flush=True)
+			try:
+				candidate = fetch_player_candidate(
+					entry, current_season, current_points, previous_points
+				)
+			except (http.client.HTTPException, OSError, UnicodeError, ValueError) as error:
+				failed_entries.append(entry)
+				print(f"WARNING: Skipping {entry['name']} ({entry['slug']}): "
+					f"{type(error).__name__}: {error}", flush=True)
+				continue
+			new_since_checkpoint += 1
+		elif candidate is None:
+			cache_entry = profile_cache.get(entry["slug"])
+			cache_is_fresh = cache_entry is not None and profile_cache_entry_is_fresh(
+				cache_entry, player_url, current_time
+			)
+			if cache_is_fresh:
+				metadata = cache_entry["metadata"]
+				profile_cache_hits += 1
+			else:
+				print(f"Pulling Basketball-Reference player page {index} of {len(entries)} "
+					f"({entry['name']}); found {len(candidates)} players...", flush=True)
+				try:
+					metadata = fetch_player_metadata(entry)
+				except (http.client.HTTPException, OSError, UnicodeError, ValueError) as error:
+					stale_cache_usable = (
+						cache_entry is not None
+						and cache_entry["playerPageSourceUrl"] == player_url
+					)
+					if stale_cache_usable:
+						metadata = cache_entry["metadata"]
+						stale_fallbacks += 1
+						print(f"WARNING: Using stale profile for {entry['name']} "
+							f"({entry['slug']}): {type(error).__name__}: {error}", flush=True)
+					else:
+						failed_entries.append(entry)
+						print(f"WARNING: Skipping {entry['name']} ({entry['slug']}): "
+							f"{type(error).__name__}: {error}", flush=True)
+						continue
+				else:
+					profile_cache[entry["slug"]] = {
+						"playerPageSourceUrl": player_url, "time": current_time,
+						"metadata": metadata,
+					}
+					cache_updates_since_write += 1
+					cache_write_due = cache_updates_since_write == CHECKPOINT_INTERVAL
+					if profile_cache_path is not None and cache_write_due:
+						write_profile_cache(profile_cache_path, profile_cache)
+						print(f"Cached {len(profile_cache)} player profiles to "
+							f"{profile_cache_path}.", flush=True)
+						cache_updates_since_write = 0
+			try:
+				candidate = candidate_from_metadata(
+					entry, metadata, current_season, current_points, previous_points
+				)
+			except ValueError as error:
+				failed_entries.append(entry)
+				print(f"WARNING: Skipping {entry['name']} ({entry['slug']}): "
+					f"ValueError: {error}", flush=True)
+				continue
+			new_since_checkpoint += 1
 		if candidate["playerId"] in seen_ids:
 			raise ValueError(f"Stable identifier collision for player {entry['slug']}")
 		seen_ids.add(candidate["playerId"])
 		candidates.append(candidate)
-		checkpoint_due = len(candidates) % CHECKPOINT_INTERVAL == 0
-		if checkpoint_path is not None and (checkpoint_due or len(candidates) == len(entries)):
+		checkpoint_due = new_since_checkpoint == CHECKPOINT_INTERVAL
+		if checkpoint_path is not None and checkpoint_due:
 			write_harvest_checkpoint(checkpoint_path, source_fingerprint, candidates)
 			print(f"Checkpointed {len(candidates)} players to {checkpoint_path}.", flush=True)
-	return candidates
+			new_since_checkpoint = 0
+	if checkpoint_path is not None and (new_since_checkpoint or failed_entries):
+		write_harvest_checkpoint(checkpoint_path, source_fingerprint, candidates)
+		print(f"Checkpointed {len(candidates)} players to {checkpoint_path}.", flush=True)
+	if profile_cache_path is not None and cache_updates_since_write:
+		write_profile_cache(profile_cache_path, profile_cache)
+	print(f"Used {profile_cache_hits} fresh cached profiles and "
+		f"{stale_fallbacks} stale fallbacks.", flush=True)
+	return candidates, failed_entries
 
 
 #============================================
 
 def harvest_candidates(current_season: str, max_players: int | None = None,
-		checkpoint_path: pathlib.Path | None = None) -> dict:
+		checkpoint_path: pathlib.Path | None = None,
+		profile_cache_path: pathlib.Path | None = None,
+		candidate_seed_path: pathlib.Path | None = None) -> dict:
 	"""Harvest the complete current roster through server-rendered HTML only."""
 	previous_season = str(int(current_season) - 1)
 	current_url = season_totals_url(current_season)
@@ -531,12 +813,22 @@ def harvest_candidates(current_season: str, max_players: int | None = None,
 	truncated = max_players is not None and len(entries) > max_players
 	if max_players is not None:
 		entries = entries[:max_players]
-	candidates = harvest_player_candidates(
-		entries, current_season, current_points, previous_points, checkpoint_path
+	candidates, failed_entries = harvest_player_candidates(
+		entries, current_season, current_points, previous_points, checkpoint_path,
+		profile_cache_path, candidate_seed_path
 	)
 	print(f"Found {len(candidates)} players.", flush=True)
+	if failed_entries:
+		print(f"WARNING: {len(failed_entries)} players were skipped; rerun to retry them.",
+			flush=True)
 	if not candidates:
 		raise ValueError("Current WNBA rosters contained no players")
+	if failed_entries:
+		validation_scope = "incomplete"
+	elif truncated:
+		validation_scope = "test-limit"
+	else:
+		validation_scope = "complete"
 	payload = {
 		"schemaVersion": 1,
 		"asOfDateUtc": datetime.datetime.now(datetime.timezone.utc).date().isoformat(),
@@ -547,7 +839,7 @@ def harvest_candidates(current_season: str, max_players: int | None = None,
 				"traditionalStatsUrls": {current_season: current_url, previous_season: previous_url}},
 		},
 		"validation": {
-			"scope": "test-limit" if truncated else "complete", "teamCount": len(team_links),
+			"scope": validation_scope, "teamCount": len(team_links),
 			"rosterResponseCount": len(team_links),
 			"currentTraditionalRowCount": len(current_points),
 			"previousTraditionalRowCount": len(previous_points), "candidateCount": len(candidates),
@@ -566,11 +858,13 @@ def main() -> None:
 	selected_output = output_path_for_run(args.output, args.max_players)
 	output_file = data_fetcher.wnba_candidates.validate_private_output_path(selected_output)
 	checkpoint_file = checkpoint_path_for_output(output_file)
+	profile_cache_file = profile_cache_path_for_output(output_file)
 	candidates = harvest_candidates(
-		current_season, max_players=args.max_players, checkpoint_path=checkpoint_file
+		current_season, max_players=args.max_players, checkpoint_path=checkpoint_file,
+		profile_cache_path=profile_cache_file, candidate_seed_path=output_file
 	)
 	data_fetcher.wnba_candidates.write_json(output_file, candidates)
-	if checkpoint_file.exists():
+	if checkpoint_file.exists() and candidates["validation"]["scope"] != "incomplete":
 		checkpoint_file.unlink()
 	count = candidates["validation"]["candidateCount"]
 	print(f"Saved {count} players to {output_file}", flush=True)
