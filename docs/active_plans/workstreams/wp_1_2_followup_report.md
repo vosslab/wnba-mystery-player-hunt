@@ -29,7 +29,7 @@ league-wide response bodies needed for a production roster snapshot or fantasy-c
 
 The manager's explicit priority override after this single approved browser run prohibits more
 probe/retry work in this slice. Product work may continue with data visibly labeled as a
-development fixture. Production daily-player selection, roster eligibility, and the 200/300
+prototype roster. Production daily-player selection, roster eligibility, and the 200/300
 fantasy-point calibration remain release-data dependencies until a complete official capture or
 user-provided official export is available.
 

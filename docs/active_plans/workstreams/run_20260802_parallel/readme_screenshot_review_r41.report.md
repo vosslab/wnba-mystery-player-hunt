@@ -3,7 +3,7 @@
 ## Outcome: NEEDS_FIX
 
 The existing PNG is a useful, readable 1600 x 1000 (16:10) desktop capture. It visibly shows the
-development-fixture disclosure, an accepted wrong guess, remaining attempts, and the comparison
+prototype-roster disclosure, an accepted wrong guess, remaining attempts, and the comparison
 grid. Its 112,206-byte size is comfortably within the documentation budget. The README has one
 exact managed-block begin sentinel, one exact end sentinel, and one descriptive relative image
 embed between them. The capture harness is syntactically valid and its source is Prettier-clean;

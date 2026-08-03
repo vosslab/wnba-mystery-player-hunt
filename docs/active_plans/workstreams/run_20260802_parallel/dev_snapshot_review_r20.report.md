@@ -4,7 +4,7 @@
 
 ACCEPT.
 
-This is a useful, deliberately modest development fixture for making the game
+This is a useful, deliberately modest prototype roster for making the game
 playable now. It is not being represented as an authoritative, current WNBA
 roster, and it does not need exhaustive coverage before the interaction slice
 can be evaluated for fun.
@@ -28,7 +28,7 @@ pipeline work, not blockers for this development gameplay slice.
 
 | Command | Result |
 | --- | --- |
-| `npx tsx --eval '<parse roster and summarize coverage>'` | PASS: development fixture parsed; 16 players, 16 unique IDs, East and West, one undrafted and one no-US-college player. |
+| `npx tsx --eval '<parse roster and summarize coverage>'` | PASS: prototype roster parsed; 16 players, 16 unique IDs, East and West, one undrafted and one no-US-college player. |
 | `npx tsx --eval '<compare normalized supplied samples>'` | PASS: all three supplied player records match. |
 | `npx tsc --noEmit -p tsconfig.json` | PASS, exit 0. |
 | `git diff --check` | PASS, exit 0. |

@@ -24,7 +24,7 @@ not apply pixel, timing, or reference-parity gates.
   `ROSTERSTATUS`) in the shipped snapshot. The browser suite likewise exercises only bundled
   data and records no WNBA network request.
 - The visible page states: "Development build: this bundled player pool is incomplete and is not
-  a current official WNBA roster." The bundled provenance is `development` / `development-fixture`.
+  a current official WNBA roster." The bundled provenance was the retired prototype form.
 - Direct source and artifact inspection found no logos, headshots, image assets, SVG branding, or
   runtime backend/data-acquisition path. The Python-only acquisition boundary is documented in
   `docs/DATA_REFRESH.md`.

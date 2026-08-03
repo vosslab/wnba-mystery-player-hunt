@@ -16,5 +16,5 @@
 
 - `npx tsc --noEmit -p tsconfig.json` passed.
 - A focused `npx tsx --eval` parse through `parseRosterSnapshot` passed:
-  `development fixture: 16 players`.
+  `prototype roster: 16 players`.
 - `git diff --check -- src/data/roster.json` passed.

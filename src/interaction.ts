@@ -95,9 +95,14 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
       state.dailySaveData = { ...state.dailySaveData, themePreference: preference };
       persistDailyState();
     },
+    onMatchLabelsVisibilityChange(visible: boolean): void {
+      state.dailySaveData = { ...state.dailySaveData, matchLabelsVisible: visible };
+      persistDailyState();
+    },
   });
 
   controls.setThemePreference(state.dailySaveData.themePreference);
+  controls.setMatchLabelsVisible(state.dailySaveData.matchLabelsVisible);
   controls.setPlayerPoolSummary(`Player pool: ${state.snapshot.players.length}.`);
   persistDailyState();
   renderState(state.dailySaveData.puzzle?.status !== "active");
@@ -177,7 +182,7 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
       throw new Error("The active puzzle was not initialized.");
     }
     gameRoot.dataset.mode = state.mode;
-    renderGrid(grid, puzzle.guesses);
+    renderGrid(grid, puzzle.guesses, guessLimit);
     controls?.setGameMode(state.mode);
     controls?.setRoundSummary(formatRoundSummary(puzzle, guessLimit));
     controls?.setStatisticsSummary(formatStatistics(state.dailySaveData));

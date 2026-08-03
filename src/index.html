@@ -91,12 +91,20 @@
       <section class="comparison-section" aria-labelledby="comparison-title">
         <div class="section-heading comparison-heading">
           <h2 id="comparison-title">Clues</h2>
+          <label class="match-label-toggle" for="match-labels">
+            <input id="match-labels" type="checkbox" aria-describedby="match-labels-help" />
+            Match labels
+          </label>
+          <p id="match-labels-help" class="visually-hidden">
+            Show Exact, Close, or No match below each clue value. Screen readers always announce
+            each match.
+          </p>
         </div>
         <div class="grid-frame">
-          <div id="comparison-grid" class="comparison-grid" aria-live="polite">
+          <div id="comparison-grid" class="comparison-grid" data-match-labels="hidden">
             <table class="comparison-table" data-grid="comparison">
               <caption>
-                Comparison grid. Each row is one player guess; every clue says Exact, Close, or No
+                Comparison grid with all guess slots. Filled clues announce Exact, Close, or No
                 match.
               </caption>
               <thead>

@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
-import rosterFixture from "../../src/data/roster.json" with { type: "json" };
+import rosterData from "../../src/data/roster.json" with { type: "json" };
+import { evaluateGuess } from "../../src/clue_engine";
+import { DEFAULT_GUESS_LIMIT } from "../../src/constants";
 import { selectDailyPlayer } from "../../src/daily_puzzle";
 import { CLUE_DEFINITIONS } from "../../src/types/puzzle";
 import {
@@ -12,16 +14,16 @@ import {
  * Selector contract:
  * - src/index.html: mode controls, player-search, player-suggestions, guess-button,
  *   pick-player, and game-status.
- * - src/ui_grid.ts: [data-grid="comparison"] contains one tbody row per accepted guess;
- *   each row contains one [data-feedback] cell for every configured clue.
+ * - src/ui_grid.ts: [data-grid="comparison"] contains one row per guess slot; filled rows carry
+ *   data-guess-state="filled" and one [data-feedback] cell for every configured clue.
  * - src/result_dialog.ts: the native dialog exposes its outcome heading, answer, and share control.
  * Tests import the deterministic selector and bundled roster only to choose a known target;
  * that is test control, never a player-facing shortcut.
  */
 
-const parsedSnapshot = parseRosterSnapshot(rosterFixture);
+const parsedSnapshot = parseRosterSnapshot(rosterData);
 if (!parsedSnapshot.ok) {
-  throw new Error(`Development fixture is invalid: ${parsedSnapshot.issues.join(" ")}`);
+  throw new Error(`Bundled roster is invalid: ${parsedSnapshot.issues.join(" ")}`);
 }
 const snapshot: RosterSnapshotV1 = parsedSnapshot.snapshot;
 
@@ -91,21 +93,23 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   expect(overflow).toBeLessThanOrEqual(0);
 }
 
-async function expectEmptyClueGrid(page: Page): Promise<void> {
+async function expectFreshClueGrid(page: Page): Promise<void> {
   const grid = page.locator('[data-grid="comparison"]');
   await expect(grid).toBeVisible();
   await expect(grid.locator("thead th")).toHaveText([
     "Player",
     ...CLUE_DEFINITIONS.map((definition) => definition.label),
   ]);
-  await expect(grid.locator("tbody tr")).toHaveCount(0);
+  await expect(grid.locator('tbody tr[data-guess-state="filled"]')).toHaveCount(0);
+  await expect(grid.locator('tbody tr[data-guess-state="empty"]')).toHaveCount(DEFAULT_GUESS_LIMIT);
+  await expect(grid.getByRole("rowheader", { name: "Guess 1, empty" })).toHaveCount(1);
 }
 
 test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pick for me work as expected", async ({
   page,
 }) => {
   const assertNoDiagnostics = await openCleanGame(page);
-  await expectEmptyClueGrid(page);
+  await expectFreshClueGrid(page);
   const input = page.getByLabel("Search by player or team");
   const goldenStatePlayers = snapshot.players.filter((player) => player.teamCode === "GSV");
   expect(goldenStatePlayers.length).toBeGreaterThan(0);
@@ -124,14 +128,18 @@ test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pic
     `No matching player or team in the ${snapshot.players.length}-player pool`,
   );
   const target = targetForFixedPuzzleDate();
-  const firstGuess = nonTargetPlayers(target)[0];
+  const firstGuess = nonTargetPlayers(target).find(
+    (player) =>
+      player.country === "United States" &&
+      evaluateGuess(player, target, PUZZLE_DATE_UTC).cells.some((cell) => cell.match === "partial"),
+  );
   expect(firstGuess).toBeDefined();
   if (firstGuess === undefined) {
     throw new Error("The bundled roster needs a non-target player for feedback coverage.");
   }
 
   await submitKeyboardGuess(page, firstGuess);
-  const firstRow = page.locator('[data-grid="comparison"] tbody tr').first();
+  const firstRow = page.locator('[data-grid="comparison"] [data-guess-state="filled"]').first();
   await expect(firstRow).toBeVisible();
   await expect(firstRow.locator("[data-feedback]")).toHaveCount(CLUE_DEFINITIONS.length);
   const feedbackBadges = firstRow.locator(".feedback-badge");
@@ -139,17 +147,25 @@ test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pic
   await expect(feedbackBadges).toHaveText(
     Array(CLUE_DEFINITIONS.length).fill(/Exact|Close|No match/),
   );
+  await expect(feedbackBadges.first()).toBeHidden();
+  const countryCell = firstRow.locator('[data-clue-label="Country"]');
+  await expect(countryCell.locator(".feedback-value")).toHaveText("USA");
+  await expect(countryCell).toHaveAttribute("aria-label", /Country: USA\./);
+  await expect(firstRow.locator(".feedback-partial").first()).toHaveCSS(
+    "background-color",
+    "rgb(49, 84, 166)",
+  );
   await expect(page.locator(".guess-count")).toHaveText("8 left | 90 pts available");
 
   await input.fill(firstGuess.displayName);
   await page.getByRole("button", { name: "Guess" }).click();
   await expect(page.getByRole("status")).toContainText("already guessed");
   await expect(input).toHaveValue(firstGuess.displayName);
-  await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
+  await expect(page.locator('[data-grid="comparison"] [data-guess-state="filled"]')).toHaveCount(1);
   await expect(page.locator(".guess-count")).toHaveText("8 left | 90 pts available");
 
   await page.getByRole("button", { name: "Pick for me" }).click();
-  await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
+  await expect(page.locator('[data-grid="comparison"] [data-guess-state="filled"]')).toHaveCount(1);
   await expect(input).not.toHaveValue("");
   await expect(page.getByRole("status")).toContainText("Press Guess when you are ready");
   await expect(page.locator(".guess-count")).toHaveText("8 left | 90 pts available");
@@ -157,6 +173,13 @@ test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pic
     path: "test-results/playable_walkthrough/01_feedback_and_recovery.png",
     fullPage: true,
   });
+
+  const matchLabels = page.getByLabel("Match labels");
+  await matchLabels.check();
+  await expect(feedbackBadges.first()).toBeVisible();
+  await page.reload();
+  await expect(matchLabels).toBeChecked();
+  await expect(page.locator('[data-guess-state="filled"] .feedback-badge').first()).toBeVisible();
   assertNoDiagnostics();
 });
 
@@ -257,17 +280,17 @@ test("gameplay: practice offers fresh rounds without changing the saved daily ga
     throw new Error("The bundled roster needs a player for practice coverage.");
   }
   await submitVisibleGuess(page, practiceGuess);
-  await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
+  await expect(page.locator('[data-grid="comparison"] [data-guess-state="filled"]')).toHaveCount(1);
   const dialog = page.getByRole("dialog");
   if (await dialog.isVisible()) {
     await dialog.getByRole("button", { name: "Close" }).click();
   }
 
   await page.getByRole("button", { name: "New player" }).click();
-  await expectEmptyClueGrid(page);
+  await expectFreshClueGrid(page);
   await dailyButton.click();
   await expect(dailyButton).toHaveAttribute("aria-pressed", "true");
-  await expectEmptyClueGrid(page);
+  await expectFreshClueGrid(page);
   await expect(page.locator("#statistics-summary")).toContainText("0 played");
   assertNoDiagnostics();
 });
@@ -303,13 +326,27 @@ for (const viewport of responsiveViewports) {
       await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 
       const target = targetForFixedPuzzleDate();
-      const firstGuess = nonTargetPlayers(target)[0];
+      const firstGuess = nonTargetPlayers(target).find((player) =>
+        evaluateGuess(player, target, PUZZLE_DATE_UTC).cells.some(
+          (cell) => cell.match === "partial",
+        ),
+      );
       if (firstGuess === undefined) {
-        throw new Error("The bundled roster needs a non-target player for responsive coverage.");
+        throw new Error("The bundled roster needs close feedback for responsive coverage.");
       }
       await submitVisibleGuess(page, firstGuess);
-      await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
+      await expect(
+        page.locator('[data-grid="comparison"] [data-guess-state="filled"]'),
+      ).toHaveCount(1);
       await expectNoHorizontalOverflow(page);
+
+      await darkTheme.check();
+      const closeCell = page.locator('[data-guess-state="filled"] .feedback-partial').first();
+      await expect(closeCell).toHaveCSS("background-color", "rgb(154, 186, 255)");
+      await page.screenshot({
+        path: "test-results/playable_walkthrough/07_desktop_dark_feedback.png",
+        fullPage: true,
+      });
 
       const input = page.getByLabel("Search by player or team");
       const guessButton = page.getByRole("button", { name: "Guess" });

@@ -4,6 +4,8 @@
   --neutral-dark-gray: #4c4c4d;
   --balm: #efe3c6;
   --orange-passion: #f57b20;
+  --close-fill: #3154a6;
+  --close-ink: var(--balm);
   --page: var(--balm);
   --surface: var(--balm);
   --surface-strong: var(--balm);
@@ -25,6 +27,8 @@
     --border: var(--balm);
     --control-border: var(--balm);
     --focus: var(--balm);
+    --close-fill: #9abaff;
+    --close-ink: var(--ultra-black);
   }
 }
 
@@ -38,6 +42,8 @@
   --border: var(--neutral-dark-gray);
   --control-border: var(--neutral-dark-gray);
   --focus: var(--ultra-black);
+  --close-fill: #3154a6;
+  --close-ink: var(--balm);
 }
 
 :root[data-theme="dark"] {
@@ -50,6 +56,8 @@
   --border: var(--balm);
   --control-border: var(--balm);
   --focus: var(--balm);
+  --close-fill: #9abaff;
+  --close-ink: var(--ultra-black);
 }
 
 * {
@@ -193,6 +201,22 @@ h2 {
   align-items: start;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.match-label-toggle {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.55rem 0;
+  padding: 0 0.15rem;
+  color: var(--muted-ink);
+  font-size: 0.76rem;
+}
+
+.match-label-toggle input {
+  min-height: auto;
+  accent-color: var(--ink);
 }
 
 .guess-count {
@@ -352,6 +376,8 @@ input::placeholder {
 .feedback-partial {
   border-style: dashed;
   border-color: var(--ink);
+  background: var(--close-fill);
+  color: var(--close-ink);
 }
 
 .feedback-miss {
@@ -359,13 +385,20 @@ input::placeholder {
   border-color: var(--control-border);
 }
 
-.feedback-value,
-.feedback-badge {
+.feedback-value {
   display: block;
 }
 
 .feedback-exact .feedback-badge {
   color: var(--ultra-black);
+}
+
+.feedback-partial .feedback-badge {
+  color: var(--close-ink);
+}
+
+.feedback-empty {
+  height: 2.25rem;
 }
 
 .feedback-value {
@@ -375,12 +408,17 @@ input::placeholder {
 }
 
 .feedback-badge {
+  display: none;
   margin-top: 0.08rem;
   color: var(--muted-ink);
   font-size: clamp(0.58rem, 0.72vw, 0.68rem);
   font-weight: 800;
   letter-spacing: 0.025em;
   text-transform: uppercase;
+}
+
+.comparison-grid[data-match-labels="visible"] .feedback-badge {
+  display: block;
 }
 
 .player-suggestions {
@@ -588,6 +626,17 @@ input::placeholder {
 
   .feedback-badge {
     font-size: 0.59rem;
+  }
+
+  .guess-slot-empty .feedback-cell {
+    min-height: 0.8rem;
+    height: 0.8rem;
+    border-width: 1px;
+    padding: 0;
+  }
+
+  .guess-slot-empty .feedback-cell::before {
+    display: none;
   }
 
   .game-tools {

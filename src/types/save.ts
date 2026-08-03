@@ -19,6 +19,8 @@ export type SaveDataV1 = {
   readonly statistics: GameStatistics;
   /** Missing on pre-theme v1 saves; loadSaveData migrates those to "system". */
   readonly themePreference: ThemePreference;
+  /** Missing on earlier v1 saves; loadSaveData keeps repeated match labels hidden. */
+  readonly matchLabelsVisible: boolean;
 };
 
 export interface KeyValueStore {

@@ -29,13 +29,8 @@ export type PlayerRecord = {
   readonly positionAlternates: readonly PositionCode[];
 };
 
-export type SnapshotDataKind = "development" | "derived" | "official";
-export type SnapshotDataStatus = "development" | "verified";
-
-export type DevelopmentSelectionRule = {
-  readonly kind: "development-fixture";
-  readonly description: string;
-};
+export type SnapshotDataKind = "derived" | "official";
+export type SnapshotDataStatus = "verified";
 
 type RecognizabilitySelectionRule = {
   readonly eligibilityGate: "current-roster";
@@ -54,20 +49,13 @@ export type OfficialSelectionRule = RecognizabilitySelectionRule & {
   readonly kind: "official";
 };
 
-export type SnapshotSelectionRule =
-  DerivedSelectionRule | DevelopmentSelectionRule | OfficialSelectionRule;
+export type SnapshotSelectionRule = DerivedSelectionRule | OfficialSelectionRule;
 
 type RosterSnapshotEnvelopeV1 = {
   readonly schemaVersion: 1;
   readonly asOfDateUtc: string;
   readonly sourceNote: string;
   readonly players: readonly PlayerRecord[];
-};
-
-export type DevelopmentRosterSnapshotV1 = RosterSnapshotEnvelopeV1 & {
-  readonly dataKind: "development";
-  readonly dataStatus: "development";
-  readonly selectionRule: DevelopmentSelectionRule;
 };
 
 export type OfficialRosterSnapshotV1 = RosterSnapshotEnvelopeV1 & {
@@ -83,11 +71,10 @@ export type DerivedRosterSnapshotV1 = RosterSnapshotEnvelopeV1 & {
 };
 
 /**
- * Provenance is a discriminated union so development and derived snapshots
- * cannot be presented to the game as official WNBA data.
+ * Provenance is a discriminated union so a derived snapshot cannot be
+ * presented to the game as official WNBA data.
  */
-export type RosterSnapshotV1 =
-  DerivedRosterSnapshotV1 | DevelopmentRosterSnapshotV1 | OfficialRosterSnapshotV1;
+export type RosterSnapshotV1 = DerivedRosterSnapshotV1 | OfficialRosterSnapshotV1;
 
 export type RosterSnapshotParseResult =
   | { readonly ok: true; readonly snapshot: RosterSnapshotV1 }
@@ -215,11 +202,11 @@ function parseSnapshotDataStatus(
   path: string,
   issues: string[],
 ): SnapshotDataStatus | undefined {
-  if (value === "development" || value === "verified") {
+  if (value === "verified") {
     return value;
   }
 
-  issues.push(`${path} must be development or verified.`);
+  issues.push(`${path} must be verified.`);
   return undefined;
 }
 
@@ -356,12 +343,6 @@ function parsePlayer(value: unknown, path: string, issues: string[]): PlayerReco
 
 function parseSelectionRule(
   value: unknown,
-  dataKind: "development",
-  path: string,
-  issues: string[],
-): DevelopmentSelectionRule | undefined;
-function parseSelectionRule(
-  value: unknown,
   dataKind: "official",
   path: string,
   issues: string[],
@@ -387,20 +368,6 @@ function parseSelectionRule(
   const record = asRecord(value, path, issues);
   if (record === undefined) {
     return undefined;
-  }
-
-  if (dataKind === "development") {
-    rejectUnexpectedKeys(record, ["kind", "description"], path, issues);
-    const description = requiredString(record, "description", path, issues);
-    if (record.kind !== "development-fixture") {
-      issues.push(`${path}.kind must be development-fixture.`);
-      return undefined;
-    }
-    if (description === undefined) {
-      return undefined;
-    }
-
-    return { kind: "development-fixture", description };
   }
 
   rejectUnexpectedKeys(
@@ -487,11 +454,8 @@ export function parseRosterSnapshot(value: unknown): RosterSnapshotParseResult {
   if (asOfDateUtc !== undefined && !isUtcDate(asOfDateUtc)) {
     issues.push("snapshot.asOfDateUtc must be a UTC date.");
   }
-  if (dataKind !== "development" && dataKind !== "derived" && dataKind !== "official") {
-    issues.push("snapshot.dataKind must be development, derived, or official.");
-  }
-  if (dataKind === "development" && dataStatus !== "development") {
-    issues.push("Development snapshots must have development status.");
+  if (dataKind !== "derived" && dataKind !== "official") {
+    issues.push("snapshot.dataKind must be derived or official.");
   }
   if (dataKind === "official" && dataStatus !== "verified") {
     issues.push("Official snapshots must have verified status.");
@@ -501,9 +465,7 @@ export function parseRosterSnapshot(value: unknown): RosterSnapshotParseResult {
   }
 
   const validDataKind: SnapshotDataKind | undefined =
-    dataKind === "development" || dataKind === "derived" || dataKind === "official"
-      ? dataKind
-      : undefined;
+    dataKind === "derived" || dataKind === "official" ? dataKind : undefined;
   const selectionRule =
     validDataKind === undefined
       ? undefined
@@ -553,28 +515,10 @@ export function parseRosterSnapshot(value: unknown): RosterSnapshotParseResult {
     validDataKind === undefined ||
     dataStatus === undefined ||
     selectionRule === undefined ||
-    (dataKind === "development" && dataStatus !== "development") ||
     (dataKind === "derived" && dataStatus !== "verified") ||
     (dataKind === "official" && dataStatus !== "verified")
   ) {
     return { ok: false, issues };
-  }
-
-  if (validDataKind === "development") {
-    if (dataStatus !== "development" || selectionRule.kind !== "development-fixture") {
-      return { ok: false, issues: ["Development snapshot provenance was not validated."] };
-    }
-
-    const snapshot: DevelopmentRosterSnapshotV1 = {
-      schemaVersion: 1,
-      asOfDateUtc,
-      dataKind: "development",
-      dataStatus: "development",
-      sourceNote,
-      selectionRule,
-      players,
-    };
-    return { ok: true, snapshot };
   }
 
   if (validDataKind === "derived") {

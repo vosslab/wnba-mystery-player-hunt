@@ -15,6 +15,7 @@ export type ControlsCallbacks = {
   readonly onGameModeChange?: (mode: GameMode) => void;
   readonly onNewPracticePlayer?: () => void;
   readonly onThemePreferenceChange?: (preference: ThemePreference) => void;
+  readonly onMatchLabelsVisibilityChange?: (visible: boolean) => void;
 };
 
 export type ControlsController = {
@@ -28,6 +29,7 @@ export type ControlsController = {
   readonly setGameMode: (mode: GameMode) => void;
   readonly setStatisticsSummary: (summary: string) => void;
   readonly setThemePreference: (preference: ThemePreference) => void;
+  readonly setMatchLabelsVisible: (visible: boolean) => void;
 };
 
 /**
@@ -50,6 +52,8 @@ export function renderControls(
   const practiceModeButton = requireElement<HTMLButtonElement>(root, "#practice-mode");
   const newPracticeButton = requireElement<HTMLButtonElement>(root, "#new-practice-player");
   const statistics = requireElement<HTMLElement>(root, "#statistics-summary");
+  const comparisonGrid = requireElement<HTMLElement>(root, "#comparison-grid");
+  const matchLabelsControl = requireElement<HTMLInputElement>(root, "#match-labels");
   const themeControls = root.querySelectorAll<HTMLInputElement>('input[name="theme"]');
   let suggestions: readonly SearchSuggestion[] = [];
   let activeIndex = -1;
@@ -61,6 +65,7 @@ export function renderControls(
   dailyModeButton.addEventListener("click", handleDailyMode);
   practiceModeButton.addEventListener("click", handlePracticeMode);
   newPracticeButton.addEventListener("click", handleNewPracticePlayer);
+  matchLabelsControl.addEventListener("change", handleMatchLabelsVisibilityChange);
   for (const control of themeControls) {
     control.addEventListener("change", handleThemeChange);
   }
@@ -128,6 +133,11 @@ export function renderControls(
     callbacks.onThemePreferenceChange?.(preference);
   }
 
+  function handleMatchLabelsVisibilityChange(): void {
+    setMatchLabelsVisible(matchLabelsControl.checked);
+    callbacks.onMatchLabelsVisibilityChange?.(matchLabelsControl.checked);
+  }
+
   function setReady(ready: boolean): void {
     searchInput.disabled = !ready;
     guessButton.disabled = !ready;
@@ -187,6 +197,11 @@ export function renderControls(
     if (control !== null) {
       control.checked = true;
     }
+  }
+
+  function setMatchLabelsVisible(visible: boolean): void {
+    matchLabelsControl.checked = visible;
+    comparisonGrid.dataset.matchLabels = visible ? "visible" : "hidden";
   }
 
   function setActiveIndex(nextIndex: number): void {
@@ -265,6 +280,7 @@ export function renderControls(
     setGameMode,
     setStatisticsSummary,
     setThemePreference,
+    setMatchLabelsVisible,
   };
 }
 

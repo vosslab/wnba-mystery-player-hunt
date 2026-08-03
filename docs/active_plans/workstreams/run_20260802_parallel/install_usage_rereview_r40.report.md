@@ -20,7 +20,7 @@ recovery path is unavailable when it is already present.
   characters, select with keyboard or mouse, submit, read the nine clues, and
   use `Pick for me` when wanted.
 - Both documents correctly and prominently identify the bundled roster as an
-  incomplete development fixture rather than a verified current official
+  incomplete prototype roster rather than a verified current official
   roster.
 - The browser boundary is correct: the game imports bundled JSON and makes no
   runtime roster/statistics request. Current roster/statistics gathering is

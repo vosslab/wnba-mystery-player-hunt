@@ -9,7 +9,7 @@ unresolved official-data release work.
 
 - The game, persistence, result flow, browser coverage, contrast work, documentation, and
   the separate Python pipeline are implemented.
-- Six guesses remains the provisional development-fixture value because the fun loop works;
+- Six guesses remains the provisional prototype-roster value because the fun loop works;
   it is not a real-pool calibration decision.
 - Browser runtime and Playwright consume static bundled data only. Further WNBA roster and
   statistics gathering is Python-only.

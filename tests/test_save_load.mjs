@@ -51,12 +51,12 @@ test("saving and loading preserve valid save data while failed writes remain non
   assert.equal(saveSaveData(brokenStore, original), false);
 });
 
-test("theme preference round-trips in the existing save record and legacy v1 saves migrate safely", () => {
+test("presentation preferences round-trip and legacy v1 saves migrate safely", () => {
   const store = memoryStore();
   const original = loadSaveData(store, 4);
-  const themed = { ...original, themePreference: "dark" };
-  assert.equal(saveSaveData(store, themed), true);
-  assert.deepEqual(loadSaveData(store, 4), themed);
+  const personalized = { ...original, themePreference: "dark", matchLabelsVisible: true };
+  assert.equal(saveSaveData(store, personalized), true);
+  assert.deepEqual(loadSaveData(store, 4), personalized);
 
   const legacyStatistics = {
     gamesPlayed: 3,
@@ -75,10 +75,11 @@ test("theme preference round-trips in the existing save record and legacy v1 sav
   );
   const migrated = loadSaveData(legacyStore, 4);
   assert.equal(migrated.themePreference, "system");
+  assert.equal(migrated.matchLabelsVisible, false);
   assert.deepEqual(migrated.statistics, legacyStatistics);
 });
 
-test("invalid theme values normalize to system without discarding valid progress", () => {
+test("invalid presentation values normalize without discarding valid progress", () => {
   const puzzle = {
     puzzleDateUtc: "2026-03-06",
     snapshotId: "legacy-file-identity",
@@ -106,10 +107,12 @@ test("invalid theme values normalize to system without discarding valid progress
       puzzle,
       statistics,
       themePreference: "sepia",
+      matchLabelsVisible: "yes",
     }),
   );
   const recovered = loadSaveData(store, 4);
   assert.equal(recovered.themePreference, "system");
+  assert.equal(recovered.matchLabelsVisible, false);
   assert.deepEqual(recovered.puzzle, {
     puzzleDateUtc: "2026-03-06",
     targetPlayerId: "1628932",

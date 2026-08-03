@@ -23,23 +23,31 @@ function player(playerId) {
 }
 
 function snapshot() {
+  const players = [
+    player("1"),
+    player("2"),
+    player("3"),
+    player("4"),
+    player("5"),
+    player("6"),
+    player("7"),
+    player("8"),
+  ];
   return {
     schemaVersion: 1,
     asOfDateUtc: "2026-01-01",
-    dataKind: "development",
-    dataStatus: "development",
-    sourceNote: "test fixture",
-    selectionRule: { kind: "development-fixture", description: "test fixture" },
-    players: [
-      player("1"),
-      player("2"),
-      player("3"),
-      player("4"),
-      player("5"),
-      player("6"),
-      player("7"),
-      player("8"),
-    ],
+    dataKind: "derived",
+    dataStatus: "verified",
+    sourceNote: "inline test roster",
+    selectionRule: {
+      kind: "derived",
+      eligibilityGate: "current-roster",
+      recognizabilityMetric: "WNBA_FANTASY_PTS",
+      seasons: ["2026", "2025"],
+      cutoff: 0,
+      selectedPoolSize: players.length,
+    },
+    players,
   };
 }
 

@@ -22,7 +22,7 @@ and recover from mistakes, rather than on image or timing equivalence.
   clue table is intentionally horizontally scrollable when it exceeds the available width.
 
 The browser diagnostic guards saw no console errors, page errors, or WNBA-domain requests. The
-test imports the bundled development fixture and public deterministic selector only to choose a
+test imports the bundled prototype roster and public deterministic selector only to choose a
 known answer for win/loss control; the browser itself loads only the built bundle and bundled JSON.
 
 ## Evidence
@@ -57,5 +57,5 @@ pixel-comparison baseline.
 ## Follow-up
 
 No browser-level correctness blocker was found. The only data caveat remains intentional: this
-is a clearly labelled development fixture until the separate Python data pipeline publishes a
+is a clearly labelled prototype roster until the separate Python data pipeline publishes a
 verified official snapshot.

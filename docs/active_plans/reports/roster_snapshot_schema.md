@@ -10,13 +10,17 @@ freshness tracking.
 ```json
 {
   "schemaVersion": 1,
-  "asOfDateUtc": "2026-08-02",
-  "dataKind": "development",
-  "dataStatus": "development",
-  "sourceNote": "Development fixture only; not an official current roster.",
+  "asOfDateUtc": "2026-08-03",
+  "dataKind": "derived",
+  "dataStatus": "verified",
+  "sourceNote": "Server-rendered Basketball-Reference WNBA roster and player data selected offline.",
   "selectionRule": {
-    "kind": "development-fixture",
-    "description": "Hand-built data for interface and gameplay development."
+    "kind": "derived",
+    "eligibilityGate": "current-roster",
+    "recognizabilityMetric": "WNBA_FANTASY_PTS",
+    "seasons": ["2026", "2025"],
+    "cutoff": 300,
+    "selectedPoolSize": 1
   },
   "players": [
     {
@@ -39,15 +43,14 @@ freshness tracking.
 
 - `schemaVersion` is the literal number `1`.
 - `asOfDateUtc` is a `YYYY-MM-DD` UTC date.
-- Development fixtures use the inseparable provenance combination `dataKind: "development"`,
-  `dataStatus: "development"`, and `selectionRule.kind: "development-fixture"`; `sourceNote`
-  plainly identifies them as development data.
 - A verified snapshot derived from Basketball-Reference's server-rendered WNBA roster and
   totals pages uses the inseparable combination `dataKind: "derived"`,
   `dataStatus: "verified"`, and `selectionRule.kind: "derived"`. Its `sourceNote` identifies
   that derived provenance rather than presenting it as an official WNBA source.
 - A verified snapshot from an official WNBA source uses the inseparable combination
   `dataKind: "official"`, `dataStatus: "verified"`, and `selectionRule.kind: "official"`.
+- The game accepts only verified derived or official snapshots. Temporary roster provenance is
+  outside the game-facing schema.
 - Derived and official recognizability rules both record `eligibilityGate: "current-roster"`,
   `recognizabilityMetric: "WNBA_FANTASY_PTS"`, exactly two distinct adjacent four-digit seasons
   in current-season-first order, the selected cutoff, and `selectedPoolSize`. The validator

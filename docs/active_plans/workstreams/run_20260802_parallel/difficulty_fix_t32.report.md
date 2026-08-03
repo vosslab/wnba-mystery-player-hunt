@@ -26,7 +26,7 @@ npx tsc --noEmit -p tsconfig.json
 git diff --check
 ```
 
-All commands passed. The development-fixture numeric results did not change:
+All commands passed. The prototype-roster numeric results did not change:
 all 16 fixture targets are solved within five guesses by both solvers. This is
 still provisional offline development evidence only; it neither selects the
 200/300 fantasy-point cutoff nor calibrates release difficulty.

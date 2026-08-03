@@ -23,7 +23,10 @@ the command running while playing; stop it with `Ctrl-C` when finished.
 - Select a player, or use `Pick for me` to fill an unused bundled-pool player, then submit.
 - Check the pool count beside the introduction. A no-match message reports that same pool size so
   an absent player is not mistaken for a spelling error.
-- Read the nine clue columns in the comparison grid to choose the next guess.
+- Use the nine visible guess slots to track the round, then read each filled row to choose the
+  next guess. Exact clues are orange, close clues are blue, and no-match clues stay neutral.
+- Turn on `Match labels` beside Clues to show the status words in every filled cell. The words are
+  hidden by default to reduce repetition, while screen readers always announce each status.
 - Solve within nine guesses. A first-guess win scores 100 points, and each extra guess costs 10
   points; a ninth-guess win scores 20 points and an unsolved round scores zero.
 - Switch to Practice for fresh replayable rounds that do not change daily progress or statistics.

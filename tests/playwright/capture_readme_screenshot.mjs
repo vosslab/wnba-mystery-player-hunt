@@ -5,9 +5,8 @@
  *   ./build_github_pages.sh && node tests/playwright/capture_readme_screenshot.mjs /tmp/wnba_pickle_feedback.png
  *
  * The harness intentionally serves only dist/ and fails if the page tries to reach
- * WNBA domains. It uses the bundled roster and captures one wrong,
- * accepted guess so the nine-clue comparison feedback is visible without spoiling
- * the daily answer.
+ * WNBA domains. It uses the bundled roster and captures one wrong, accepted guess
+ * with close feedback so every status color is visible without spoiling the daily answer.
  */
 
 import { readFile } from "node:fs/promises";
@@ -64,10 +63,14 @@ async function close(server) {
 const roster = JSON.parse(
   await readFile(path.join(repositoryRoot, "src/data/roster.json"), "utf8"),
 );
-const players = roster.players;
-if (!Array.isArray(players) || players.length < 2) {
+const rosterPlayers = roster.players;
+if (!Array.isArray(rosterPlayers) || rosterPlayers.length < 2) {
   throw new Error("The bundled roster needs at least two players for a feedback capture.");
 }
+const players = [
+  ...rosterPlayers.filter((player) => player.country === "United States"),
+  ...rosterPlayers.filter((player) => player.country !== "United States"),
+];
 
 const server = startStaticServer();
 await listen(server);
@@ -98,7 +101,7 @@ try {
     await page.evaluate(() => window.localStorage.clear());
     await page.reload({ waitUntil: "networkidle" });
 
-    const comparisonRows = page.locator('[data-grid="comparison"] tbody tr');
+    const comparisonRows = page.locator('[data-grid="comparison"] [data-guess-state="filled"]');
     if ((await comparisonRows.count()) !== 0)
       throw new Error("A fresh screenshot attempt unexpectedly has saved guesses.");
     if (await page.getByRole("dialog").isVisible())
@@ -106,17 +109,20 @@ try {
 
     await search.fill(player.displayName);
     await page.getByRole("button", { name: "Guess" }).click();
-    if ((await comparisonRows.count()) === 1 && !(await page.getByRole("dialog").isVisible())) {
+    const hasCloseFeedback = (await comparisonRows.locator(".feedback-partial").count()) > 0;
+    if (
+      (await comparisonRows.count()) === 1 &&
+      hasCloseFeedback &&
+      !(await page.getByRole("dialog").isVisible())
+    ) {
       accepted = true;
       break;
     }
   }
   if (!accepted)
-    throw new Error(
-      "Every development-fixture player solved today's puzzle; no feedback state is available.",
-    );
+    throw new Error("No bundled player produced a non-winning row with close feedback.");
 
-  const comparisonRows = page.locator('[data-grid="comparison"] tbody tr');
+  const comparisonRows = page.locator('[data-grid="comparison"] [data-guess-state="filled"]');
   if ((await comparisonRows.count()) !== 1)
     throw new Error("The capture must contain exactly one newly accepted guess.");
   const feedback = comparisonRows.first().locator("[data-feedback]");

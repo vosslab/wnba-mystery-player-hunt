@@ -19,8 +19,25 @@
   Pick for me, win, loss, reload behavior, supported viewport widths, and zero WNBA runtime calls.
 - Add install and usage guidance, the data-pipeline reports, and a four-token contrast audit.
 
+### Behavior or Interface Changes
+
+- Show all nine guess slots from the start so the round length remains visible before the first
+  guess. Hide repeated Exact, Close, and No match words by default while preserving complete cell
+  labels for screen readers, and add a persisted `Match labels` checkbox for visible text.
+- Shorten United States clue values to USA and give close matches a distinct blue fill: `#3154a6`
+  with cream text in light mode and `#9abaff` with near-black text in dark mode. Measured text
+  contrast is 5.59:1 and 10.43:1 respectively, and both fills exceed 3:1 against their neighboring
+  neutral surface.
+
 ### Fixes and Maintenance
 
+- Remove the retired temporary-roster provenance branch from the TypeScript contract. The game
+  now accepts only verified derived or official snapshots, test rosters use the same verified
+  derived envelope, and current schema and pipeline reports describe the shipped roster. Update
+  archived workstream notes to use prototype-roster terminology so the retired provenance label
+  no longer appears in tracked files.
+- Regenerate [PALETTE_CONTRAST_AUDIT.md](PALETTE_CONTRAST_AUDIT.md) from the six distinct color
+  tokens in `src/style.css` after adding the two theme-specific blue close-feedback fills.
 - Keep Basketball-Reference Expansion Draft selections separate from original WNBA entry-draft
   clues, so an expansion-selected player documented as undrafted remains Undrafted in the game.
 - Recover malformed Basketball-Reference player profiles that start a new paragraph before closing
@@ -60,7 +77,8 @@
 - Let the same autocomplete search accept team codes such as `GSV`, returning that team's bundled
   roster alphabetically while continuing to exclude players already guessed.
 - Refresh [screenshots/wnba_pickle_feedback.png](screenshots/wnba_pickle_feedback.png) from the
-  built site and record responsive heuristic and accessibility evidence in
+  built site with all nine guess slots, abbreviated USA, default-hidden match words, and blue
+  close feedback. Record responsive heuristic and accessibility evidence in
   [active_plans/reports/difficulty_and_fun.md](active_plans/reports/difficulty_and_fun.md).
 - Extend the offline difficulty probe and report with the new nine-guess limit while retaining the
   smaller limits as comparison evidence for later score calibration.

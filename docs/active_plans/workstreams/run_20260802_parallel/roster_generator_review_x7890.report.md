@@ -3,7 +3,7 @@
 ## Verdict
 
 ACCEPT. The generator maintains the intended data boundary and produces parser-valid snapshots
-without altering the development fixture during the offline checks.
+without altering the prototype roster during the offline checks.
 
 ## Correctness findings
 

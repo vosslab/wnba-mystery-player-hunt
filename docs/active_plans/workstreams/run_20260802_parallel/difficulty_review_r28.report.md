@@ -3,7 +3,7 @@
 ## Verdict
 
 **NEEDS_FIX.** The probe is correctly offline, deterministic, and appropriately
-honest about the 16-player development fixture. Its candidate-update algorithm,
+honest about the 16-player prototype roster. Its candidate-update algorithm,
 however, does not remove a player after that player has been guessed and shown
 not to be the answer. That can make the baseline and the weak lowest-ID
 sensitivity solver repeat an already rejected player when future official data

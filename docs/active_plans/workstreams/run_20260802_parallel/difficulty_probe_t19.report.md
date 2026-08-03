@@ -8,7 +8,7 @@ same feedback rules the game presents without acquiring data or connecting a bro
 
 The report in [difficulty_and_fun.md](../../reports/difficulty_and_fun.md) records 5/6/7 baseline
 solve distributions, loss rates, a lowest-ID sensitivity pass, and single-clue discrimination.
-It labels the 16-player development-fixture results as provisional and retains six guesses pending
+It labels the 16-player prototype-roster results as provisional and retains six guesses pending
 the official Python-generated roster.
 
 ## Verification

@@ -52,7 +52,7 @@ cutoff is a product decision, not an implementation preference.
 
 ## Public output
 
-The output is the exact official `RosterSnapshotV1` envelope described in
+The output is the exact verified `RosterSnapshotV1` envelope described in
 [roster_snapshot_schema.md](roster_snapshot_schema.md). It records only the selected cutoff and
 the seasons as selection provenance. It contains no fantasy points, minutes, or other performance
 statistics. The generator runs a Python allowlist check before its atomic write; the TypeScript
@@ -60,6 +60,7 @@ statistics. The generator runs a Python allowlist check before its atomic write;
 
 ## Current delivery state
 
-The generator is ready for a complete private candidate file and the user's cutoff approval. It
-has not overwritten `src/data/roster.json`; the current development fixture remains available for
-gameplay work until a verified official refresh is intentionally produced.
+The completed private pull and approved 300-point cutoff produced the committed verified derived
+snapshot in `src/data/roster.json`: 136 players selected from the current roster using the maximum
+of the 2026 and 2025 totals. Future refreshes preserve that file unless the full pull and promotion
+checks succeed.

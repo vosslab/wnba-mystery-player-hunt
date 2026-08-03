@@ -12,7 +12,7 @@ network or browser involvement.
 - Shows exact saved-manifest and live official acquisition commands using
   `source source_me.sh && python3`.
 - Shows explicit 200 and 300 cutoff review commands and does not select either cutoff.
-- Keeps examples on `data_review/` review outputs rather than overwriting the development fixture.
+- Keeps examples on `data_review/` review outputs rather than overwriting the prototype roster.
 - Explains complete current-roster membership, both fantasy-point seasons, valid zero versus
   missing values, and the private-to-public allowlist boundary.
 - Gives actionable recovery for incomplete rosters, player pages, traditional totals, and reviewed

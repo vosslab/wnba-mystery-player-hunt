@@ -23,7 +23,7 @@ function showSnapshotError(issues: readonly string[]): void {
     return;
   }
   const firstIssue = issues[0] ?? "The bundled player snapshot is invalid.";
-  status.textContent = `Game data could not load: ${firstIssue} Refresh after replacing the development snapshot.`;
+  status.textContent = `Game data could not load: ${firstIssue} Refresh after replacing the bundled roster.`;
 }
 
 function boot(): void {

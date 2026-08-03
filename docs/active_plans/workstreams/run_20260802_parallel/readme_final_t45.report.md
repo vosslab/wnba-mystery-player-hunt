@@ -8,7 +8,7 @@ existing image embed were left unchanged.
 
 ## Product posture
 
-The README now describes the bundled roster as a hand-built development fixture. It makes no
+The README now describes the bundled roster as a hand-built prototype roster. It makes no
 hosting claim and keeps the six-guess game loop and Python-only, no-runtime-request data boundary.
 It states that a release snapshot would use factual WNBA Stats fields with attribution only after
 the current terms and any required permission receive human approval.

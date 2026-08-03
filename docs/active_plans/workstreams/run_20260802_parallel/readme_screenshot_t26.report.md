@@ -6,7 +6,7 @@ Captured `docs/screenshots/wnba_pickle_feedback.png` from the built local static
 its descriptive embed in the README-managed screenshot block. The 1600 x 1000 PNG is 16:10,
 112 KB, and its longer edge is below the 1920-pixel limit.
 
-The view deliberately shows one accepted, non-winning development-fixture guess. It makes the
+The view deliberately shows one accepted, non-winning prototype-roster guess. It makes the
 development-data disclosure, remaining guesses, status recovery text, and clue feedback visible
 without disclosing the daily answer. The comparison grid retains its intentional horizontal-scroll
 behavior for the remaining columns; this is the product's responsive interaction, not a cropped

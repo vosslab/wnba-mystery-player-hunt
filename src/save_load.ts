@@ -179,6 +179,8 @@ function parseSaveData(value: unknown): SaveDataV1 | null {
   const themePreference = isThemePreference(value.themePreference)
     ? value.themePreference
     : "system";
+  const matchLabelsVisible =
+    typeof value.matchLabelsVisible === "boolean" ? value.matchLabelsVisible : false;
   if (puzzle === null && value.puzzle !== null) {
     return null;
   }
@@ -186,7 +188,7 @@ function parseSaveData(value: unknown): SaveDataV1 | null {
     return null;
   }
 
-  return { version: 1, puzzle, statistics, themePreference };
+  return { version: 1, puzzle, statistics, themePreference, matchLabelsVisible };
 }
 
 export function createFreshStatistics(guessLimit: number = DEFAULT_GUESS_LIMIT): GameStatistics {
@@ -207,7 +209,13 @@ export function createFreshStatistics(guessLimit: number = DEFAULT_GUESS_LIMIT):
 
 export function createFreshSaveData(guessLimit: number = DEFAULT_GUESS_LIMIT): SaveDataV1 {
   const statistics = createFreshStatistics(guessLimit);
-  return { version: 1, puzzle: null, statistics, themePreference: "system" };
+  return {
+    version: 1,
+    puzzle: null,
+    statistics,
+    themePreference: "system",
+    matchLabelsVisible: false,
+  };
 }
 
 /**

@@ -321,12 +321,12 @@ including names, team codes, heights, birth dates, schools, countries, and posit
 define active upstream keys, identifiers, or a fallback retrieval route.
 
 Roster file envelope: `schemaVersion`, `asOfDateUtc`, `dataKind`, `dataStatus`, `sourceNote`,
-`selectionRule`, `players[]`. Provenance is a strict triplet: development data uses
-`development` / `development` / `development-fixture`; a verified Basketball-Reference
-snapshot uses `derived` / `verified` / `derived`; and a verified official-source snapshot uses
-`official` / `verified` / `official` (`dataKind` / `dataStatus` / `selectionRule.kind`). The
-source-neutral recognizability rule records the current-roster gate, metric, two seasons,
-cutoff, and selected pool size, so the shipped file states the rule that produced it.
+`selectionRule`, `players[]`. The game accepts two strict verified provenance triplets: a
+Basketball-Reference snapshot uses `derived` / `verified` / `derived`, and a verified
+official-source snapshot uses `official` / `verified` / `official` (`dataKind` / `dataStatus` /
+`selectionRule.kind`). The source-neutral recognizability rule records the current-roster gate,
+metric, two seasons, cutoff, and selected pool size, so the shipped file states the rule that
+produced it.
 
 ### Stable game-facing interface
 
@@ -501,8 +501,8 @@ inside another lane's files requests it through the orchestrator.
 
 | M | Title | Summary | Goal |
 | --- | --- | --- | --- |
-| M1 | Contracts and evidence | Freeze the game-facing contracts and core clue choices; continue data evidence in parallel | Development play can begin without a completed external pull |
-| M2 | Foundation and playable shell | Booting page, constants, labeled development snapshot, scaffold hazards cleared, first smoke spec | The game builds, renders, and supports an early guess-feedback walkthrough while the data lane investigates |
+| M1 | Contracts and evidence | Freeze the game-facing contracts and core clue choices; continue data evidence in parallel | Implementation can begin without a completed external pull |
+| M2 | Foundation and playable shell | Booting page, constants, temporary seed roster, scaffold hazards cleared, first smoke spec | The game builds, renders, and supports an early guess-feedback walkthrough while the data lane investigates |
 | M3 | Infrastructure batch | Data pipeline, interface shell, persistence in parallel | A real committed snapshot, a rendered grid, working storage |
 | M4 | Core gameplay batch | Selection, clue engine, game state, interaction, tests | A complete win path and a complete loss path |
 | M5 | Calibration and release batch | Playtesting, difficulty evidence, result and share, QA, docs | Guess count and clue usefulness tuned with evidence; Pages-ready `dist/` |
@@ -529,17 +529,17 @@ inside another lane's files requests it through the orchestrator.
 
 - Depends on: WP-1.1 and WP-1.4's observed core-loop decisions. It does NOT wait on the data
   investigation: WP-1.2, WP-1.3, and WP-1.5 continue in the background while M2 proceeds
-  against the development snapshot.
+  against the temporary seed roster used during that completed milestone.
 - Deliverables: `src/main.ts`, `src/index.html`, `src/style.css` with palette custom
   properties, `src/constants.ts` with the team-to-conference table,
-  a development `src/data/roster.json`,
+  a temporary `src/data/roster.json` seed that the verified snapshot later replaced,
   `tests/playwright/smoke.spec.ts`, `pip_requirements.txt`, a working
   `tsconfig.lint.json`, and the active plan kept current at
   `docs/active_plans/wnba_game-plan.md`.
 - Entry criteria: WP-1.1 and WP-1.4 have frozen the core loop and clue definitions.
 - Exit criteria: `./check_codebase.sh` reports every step PASS or an explained SKIP;
   `./build_github_pages.sh` emits `dist/main.js`, `dist/index.html`, `dist/.nojekyll`;
-  `./run_playwright_tests.sh --build` passes the boot smoke and an early development-data
+  `./run_playwright_tests.sh --build` passes the boot smoke and an early seed-roster
   guess-feedback walkthrough with no console or page errors.
 - Done checks: command output for all three.
 - Parallel-plan ready: no. Serial foundation across three shared files.
@@ -549,12 +549,12 @@ inside another lane's files requests it through the orchestrator.
 - Depends on: M2 for WS-U and WS-P; additionally WP-1.2 and WP-1.3 for WS-D, since the
   pipeline cannot be written before enumeration and the fantasy-points source are known.
 - Deliverables: WS-D (pipeline plus the first real committed snapshot), WS-U (grid and
-  controls rendering from the development snapshot), WS-P (versioned save and statistics
+  controls rendering from the seed roster), WS-P (versioned save and statistics
   state).
 - Workstreams: WS-D, WS-U, WS-P.
 - Sequencing note: WS-U and WS-P start as soon as M2 lands and never wait on WS-D. They
-  build against the development snapshot, which is schema-identical to the real one. If the
-  data investigation runs long, this milestone's interface and storage halves still complete
+  build against the seed roster. If the data investigation runs long, this milestone's interface
+  and storage halves still complete
   and M4's pure logic can also proceed; only the M4 exit criteria, which require the real
   answer pool, actually depend on WS-D finishing.
 - Entry criteria: M2 exit criteria met for WS-U and WS-P; `src/types/` frozen for the batch.
@@ -572,14 +572,14 @@ inside another lane's files requests it through the orchestrator.
 
 - Depends on: M3's interface and storage halves. The pure logic in WS-G and the tests in
   WS-T need only the contracts and a schema-valid snapshot, so they can be built against the
-  development snapshot while WS-D finishes.
+  seed roster while WS-D finishes.
 - Deliverables: WS-G (daily selection, clue evaluation, game state and completion), WS-I
   (search, autocomplete, keyboard, "Pick for me", wiring), WS-T (unit tests).
 - Workstreams: WS-G, WS-I, WS-T.
 - Entry criteria: WS-U and WS-P complete. The real snapshot is required to satisfy the exit
   criteria, not to start the work.
 - Exit criteria: a full win path and a full loss path are playable in the browser against the
-  development snapshot; the
+  verified derived snapshot; the
   same UTC day and snapshot yield the same answer across reloads; a duplicate guess
   consumes no attempt.
 - Done checks: `./check_codebase.sh` passes; Playwright win-path and loss-path specs pass.
@@ -888,23 +888,25 @@ inside another lane's files requests it through the orchestrator.
   modules pass.
 - Evidence: the `./check_codebase.sh` summary block and the pytest summary line.
 
-### Work package: WP-2.3 seed the development snapshot
+### Work package: WP-2.3 seed a temporary roster
 
 - Owner: orchestrator.
 - Touch points: `src/data/roster.json`.
 - Depends on: WP-1.1.
-- Purpose: unblock and playtest every game lane while the data investigation continues.
+- Status: completed historical bootstrap; the verified derived snapshot replaced and removed the
+  temporary data path.
+- Purpose: unblock and playtest every game lane while the data investigation continued.
   Contracts, interface shell, storage, and pure gameplay logic need a schema-valid roster,
-  not a completed full refresh. The file is plainly labeled development data and cannot ship.
-- Acceptance criteria: a hand-built roster file, schema-valid against WP-1.1's validator,
+  not a completed full refresh.
+- Historical acceptance criteria: a hand-built roster file, schema-valid against WP-1.1's
+  then-current validator,
   carrying the three real players already in `wnba_player_samples.json` plus enough
   additional hand-entered players to exercise the interface (distinct teams, both
   conferences, a range of heights and draft years, an undrafted player, a non-US-college
-  player, a compound position); its `sourceNote` says plainly that it is development data,
-  so it cannot be mistaken for a real roster.
+  player, and a compound position).
 - Evidence: the validator accepts it; the page renders a guess row against it.
-- Obvious follow-ons: WS-D overwrites this file with the real roster in WP-3.2. The release
-  checklist confirms the shipped file is real data, not the development seed.
+- Obvious follow-ons: completed. WS-D overwrote this file with the verified derived roster in
+  WP-3.2, and the temporary provenance branch was removed from the TypeScript contract.
 
 ### Work package: WP-2.4 write the boot smoke spec
 

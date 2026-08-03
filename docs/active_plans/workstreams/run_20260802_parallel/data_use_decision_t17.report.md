@@ -13,7 +13,7 @@ validated. It makes no legal conclusion.
 - The data-access report establishes that complete official roster and 2025/2026 fantasy-point
   responses remain unavailable in this environment.
 - The typed snapshot schema and browser report establish that the current game uses a labeled
-  development fixture with no performance data and no runtime WNBA network access.
+  prototype roster with no performance data and no runtime WNBA network access.
 
 ## Product posture recorded
 
