@@ -1,5 +1,5 @@
 import { scoreForWin } from "./score";
-import type { FeedbackMatch, DailyPuzzleState } from "./types/puzzle";
+import { CLUE_DEFINITIONS, type FeedbackMatch, type DailyPuzzleState } from "./types/puzzle";
 
 export type ShareFormatOptions = {
   /** A stable, non-player identifier for the daily puzzle. */
@@ -28,7 +28,10 @@ export function formatShareText(
     puzzle.status === "won" ? `${puzzle.guesses.length}/${guessLimit}` : `X/${guessLimit}`;
   const points = puzzle.status === "won" ? scoreForWin(puzzle.guesses.length) : 0;
   const rows = puzzle.guesses.map((guess) =>
-    guess.cells.map((cell) => shareSymbol(cell.match)).join(""),
+    CLUE_DEFINITIONS.flatMap((definition) => {
+      const cell = guess.cells.find((candidate) => candidate.clueId === definition.id);
+      return cell === undefined ? [] : [shareSymbol(cell.match)];
+    }).join(""),
   );
 
   return [`${productName} ${puzzleIdentity} ${score} | ${points} pts`, ...rows].join("\n");

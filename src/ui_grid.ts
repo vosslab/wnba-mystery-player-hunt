@@ -30,10 +30,17 @@ export function renderGrid(
 function createHeaderRow(): HTMLTableSectionElement {
   const head = document.createElement("thead");
   const row = document.createElement("tr");
-  row.append(createHeaderCell("Player", "col"));
+  const playerHeader = createHeaderCell("Player", "col");
+  playerHeader.dataset.columnId = "player";
+  row.append(playerHeader);
 
   for (const definition of CLUE_DEFINITIONS) {
-    row.append(createHeaderCell(definition.label, "col"));
+    const header = createHeaderCell(definition.compactLabel ?? definition.label, "col");
+    header.dataset.clueId = definition.id;
+    if (definition.compactLabel !== undefined) {
+      header.setAttribute("aria-label", definition.label);
+    }
+    row.append(header);
   }
 
   head.append(row);
@@ -83,6 +90,7 @@ function createEmptyGuessRow(guessNumber: number): HTMLTableRowElement {
   for (const definition of CLUE_DEFINITIONS) {
     const cell = document.createElement("td");
     cell.className = "feedback-cell feedback-empty";
+    cell.dataset.clueId = definition.id;
     cell.dataset.clueLabel = definition.label;
     cell.setAttribute("aria-hidden", "true");
     row.append(cell);
@@ -106,6 +114,7 @@ function createFeedbackCell(
   const match = feedback?.match ?? "miss";
   const displayValue = formatDisplayValue(feedback);
   cell.className = `feedback-cell feedback-${match}`;
+  cell.dataset.clueId = definition.id;
   cell.dataset.feedback = match;
   cell.dataset.clueLabel = definition.label;
   cell.setAttribute("aria-label", formatFeedbackLabel(definition.label, displayValue, match));

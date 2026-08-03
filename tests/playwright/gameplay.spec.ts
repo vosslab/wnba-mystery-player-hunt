@@ -98,11 +98,48 @@ async function expectFreshClueGrid(page: Page): Promise<void> {
   await expect(grid).toBeVisible();
   await expect(grid.locator("thead th")).toHaveText([
     "Player",
-    ...CLUE_DEFINITIONS.map((definition) => definition.label),
+    ...CLUE_DEFINITIONS.map((definition) => definition.compactLabel ?? definition.label),
   ]);
+  for (const definition of CLUE_DEFINITIONS) {
+    await expect(grid.getByRole("columnheader", { name: definition.label })).toHaveCount(1);
+  }
   await expect(grid.locator('tbody tr[data-guess-state="filled"]')).toHaveCount(0);
   await expect(grid.locator('tbody tr[data-guess-state="empty"]')).toHaveCount(DEFAULT_GUESS_LIMIT);
   await expect(grid.getByRole("rowheader", { name: "Guess 1, empty" })).toHaveCount(1);
+}
+
+async function expectContentWeightedColumns(page: Page): Promise<void> {
+  const widths = new Map(
+    await page
+      .locator('[data-grid="comparison"] thead th')
+      .evaluateAll((headers) =>
+        headers.map((header) => [
+          header.dataset.columnId ?? header.dataset.clueId ?? "",
+          header.getBoundingClientRect().width,
+        ]),
+      ),
+  );
+  const width = (id: string): number => widths.get(id) ?? Number.NaN;
+
+  expect(widths.size).toBe(10);
+  expect(width("player")).toBeGreaterThan(width("team"));
+  expect(width("conference")).toBeGreaterThan(width("height"));
+  expect(width("draft-year")).toBeGreaterThan(width("draft-pick"));
+  expect(width("country")).toBeGreaterThan(width("age"));
+  expect(width("college")).toBeGreaterThan(width("position"));
+}
+
+async function expectCompactCenteredShell(page: Page): Promise<void> {
+  const shell = await page.locator(".game-shell").boundingBox();
+  const viewport = page.viewportSize();
+  expect(shell).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  if (shell === null || viewport === null) {
+    return;
+  }
+
+  expect(shell.width).toBeLessThanOrEqual(768.5);
+  expect(Math.abs(shell.x - (viewport.width - shell.width) / 2)).toBeLessThanOrEqual(0.5);
 }
 
 test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pick for me work as expected", async ({
@@ -110,6 +147,8 @@ test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pic
 }) => {
   const assertNoDiagnostics = await openCleanGame(page);
   await expectFreshClueGrid(page);
+  await expectContentWeightedColumns(page);
+  await expectCompactCenteredShell(page);
   const input = page.getByLabel("Search by player or team");
   const goldenStatePlayers = snapshot.players.filter((player) => player.teamCode === "GSV");
   expect(goldenStatePlayers.length).toBeGreaterThan(0);
@@ -222,7 +261,7 @@ test("gameplay: a selected dark theme persists through reload in the game save",
 
   await expect(systemTheme).toBeChecked();
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");
-  await page.getByText("Theme", { exact: true }).click();
+  await expect(page.getByRole("group", { name: "Color theme" })).toBeVisible();
   await darkTheme.check();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(darkTheme).toBeChecked();
@@ -306,6 +345,7 @@ for (const viewport of responsiveViewports) {
 
     test("gameplay: help, theme, and a first guess remain usable", async ({ page }) => {
       const assertNoDiagnostics = await openCleanGame(page);
+      await expectCompactCenteredShell(page);
       const instructions = page.getByText(
         "Use each row's feedback to narrow the field. You have nine guesses. A first-guess win " +
           "scores 100 points; each extra guess costs 10 points. Practice rounds do not change " +
@@ -317,9 +357,9 @@ for (const viewport of responsiveViewports) {
       await expect(page.getByRole("heading", { name: "Statistics" })).toBeVisible();
       await expect(page.locator("#statistics-summary")).toBeVisible();
 
-      await page.getByText("Theme", { exact: true }).click();
       const darkTheme = page.locator('input[name="theme"][value="dark"]');
       const lightTheme = page.locator('input[name="theme"][value="light"]');
+      await expect(page.getByRole("group", { name: "Color theme" })).toBeVisible();
       await darkTheme.check();
       await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
       await lightTheme.check();

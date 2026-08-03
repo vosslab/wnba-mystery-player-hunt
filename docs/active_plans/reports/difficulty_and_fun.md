@@ -37,8 +37,8 @@ Snapshot as of `2026-08-03`, 136 players, evaluated at `2026-08-03`:
 
 - Fixed baseline first guess: Michaela Onyenwere (`8338024539083250`).
 
-| Guesses | Solved | Losses | Loss rate | Mean solved guesses | Median solved guesses | Distribution             |
-| ------- | -----: | -----: | --------: | ------------------: | --------------------: | ------------------------ |
+| Guesses | Solved | Losses | Loss rate | Mean solved guesses | Median solved guesses | Distribution                |
+| ------- | -----: | -----: | --------: | ------------------: | --------------------: | --------------------------- |
 | 5       |    136 |      0 |      0.0% |                2.24 |                  2.00 | 1: 1, 2: 101, 3: 34, 4-5: 0 |
 | 6       |    136 |      0 |      0.0% |                2.24 |                  2.00 | 1: 1, 2: 101, 3: 34, 4-6: 0 |
 | 7       |    136 |      0 |      0.0% |                2.24 |                  2.00 | 1: 1, 2: 101, 3: 34, 4-7: 0 |
@@ -88,12 +88,17 @@ challenge; Practice supplies fresh rounds without changing daily progress or sta
 
 ### Design changes
 
-- Let the desktop clue grid use the available viewport instead of a narrow centered column.
-- Treat 800x1280 as the minimum supported viewport and let wider layouts use available space.
+- Center the game in a 48rem maximum-width canvas so wider viewports do not stretch the clue grid
+  beyond its useful scanning width.
+- Treat 800x1280 as the minimum supported viewport; larger layouts preserve the compact game width.
 - Show the full clue header grid before the first guess instead of replacing it with explanatory
   empty-state text.
-- Keep How it works and Statistics visible because their columns are always reserved; only Theme
-  remains collapsible.
+- Weight clue-column widths by their content instead of distributing the nine clue fields evenly.
+- Abbreviate dense visible headers while preserving full accessible names so the compact table
+  remains easy to scan without collisions.
+- Order the clue fields by elimination value: Conference, Team, Position, Country, Draft year,
+  Draft pick, College, Height, and Age.
+- Keep How it works, Statistics, and Theme visible because their columns are always reserved.
 - Normalize multi-position sets to conventional display order so `C/F` and `F/C` are both `F/C`
   and compare as exact.
 - Report the 136-player pool in the interface and name that pool when a search has no match.
@@ -110,18 +115,18 @@ challenge; Practice supplies fresh rounds without changing daily progress or sta
 
 Scores use 0 for a critical problem and 4 for no observed issue.
 
-| Nielsen heuristic | Before | After | Evidence |
-| --- | ---: | ---: | --- |
-| Visibility of system status | 3 | 4 | Mode, guesses, and points are visible together |
-| Match with the real world | 3 | 4 | Daily and Practice use familiar labels and scoring language |
-| User control and freedom | 2 | 4 | Players can switch modes or start a fresh practice player |
-| Consistency and standards | 3 | 4 | Buttons, pressed states, dialogs, and the Theme disclosure reuse native patterns |
-| Error prevention | 4 | 4 | Autocomplete and duplicate-guess protection remain intact |
-| Recognition over recall | 3 | 4 | The full clue header grid is visible before the first guess |
-| Flexibility and efficiency | 2 | 4 | Practice supports repeat play without waiting for another UTC day |
-| Aesthetic and minimalist design | 2 | 4 | Useful help and statistics remain visible; only Theme collapses |
-| Error recognition and recovery | 4 | 4 | Invalid and duplicate searches preserve context and name the next step |
-| Help and documentation | 3 | 4 | Compact help explains nine guesses, scoring, and Practice isolation |
+| Nielsen heuristic               | Before | After | Evidence                                                                                      |
+| ------------------------------- | -----: | ----: | --------------------------------------------------------------------------------------------- |
+| Visibility of system status     |      3 |     4 | Mode, guesses, and points are visible together                                                |
+| Match with the real world       |      3 |     4 | Daily and Practice use familiar labels and scoring language                                   |
+| User control and freedom        |      2 |     4 | Players can switch modes or start a fresh practice player                                     |
+| Consistency and standards       |      3 |     4 | Buttons, pressed states, dialogs, and always-visible Theme controls reuse native patterns     |
+| Error prevention                |      4 |     4 | Autocomplete and duplicate-guess protection remain intact                                     |
+| Recognition over recall         |      3 |     4 | The full clue header grid is visible before the first guess                                   |
+| Flexibility and efficiency      |      2 |     4 | Practice supports repeat play without waiting for another UTC day                             |
+| Aesthetic and minimalist design |      2 |     4 | The bounded canvas and weighted clue columns scan cleanly without stretching to fill the page |
+| Error recognition and recovery  |      4 |     4 | Invalid and duplicate searches preserve context and name the next step                        |
+| Help and documentation          |      3 |     4 | Compact help explains nine guesses, scoring, and Practice isolation                           |
 
 ### Accessibility evidence
 
@@ -139,9 +144,10 @@ Scores use 0 for a critical problem and 4 for no observed issue.
 ### Responsive acceptance
 
 Playwright uses 800x1280 as the minimum acceptance viewport and 1920x1080 as the wide-desktop
-check. The empty board exposes all nine clue headers before play, and both supported widths keep
-the search, submit controls, real feedback, and theme controls usable without horizontal page
-overflow. Sub-800 layouts are not a release gate.
+check. The centered game canvas remains at or below 768 pixels wide, the empty board exposes all
+nine clue headers before play, and both supported widths keep the search, submit controls, real
+feedback, and theme controls usable without horizontal page overflow. Sub-800 layouts are not a
+release gate.
 
-The refreshed 1600x1000 README capture is
+The refreshed 1000x900 README capture is
 [../../screenshots/wnba_pickle_feedback.png](../../screenshots/wnba_pickle_feedback.png).

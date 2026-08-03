@@ -21,6 +21,16 @@
 
 ### Behavior or Interface Changes
 
+- Center the game in a 48rem maximum-width canvas so clue cells stop expanding on wide screens,
+  matching Pickle's compact scanning rhythm while allowing for two extra WNBA clues. Size columns
+  by their content role: Player and College receive the most room, Conference and Country remain
+  scannable, and coded values such as Team, Position, Height, and Age stay compact. Keep the Theme
+  choices visible in their already allocated information column instead of hiding them behind a
+  disclosure. Use compact visible headings for Conference, Position, Draft year, and Draft pick
+  while retaining their full accessible names.
+- Order clues by their usefulness for narrowing the player pool: Conference, Team, Position,
+  Country, Draft year, Draft pick, College, Height, then Age. Keep Player first as the row label,
+  and normalize saved share rows to the same order.
 - Show all nine guess slots from the start so the round length remains visible before the first
   guess. Hide repeated Exact, Close, and No match words by default while preserving complete cell
   labels for screen readers, and add a persisted `Match labels` checkbox for visible text.
@@ -62,23 +72,22 @@
   two-season cutoff: 136 players across 15 teams, including 29 players admitted by prior-season
   recognizability and current-season rookie Olivia Miles. Keep fantasy totals, cache timestamps,
   and source URLs private.
-- Tighten the game shell, collapse secondary theme controls, let the desktop clue grid use the
-  available viewport, and keep 800x1280 as the minimum layout acceptance gate. Keep System as the
-  default theme with light and dark as explicit overrides.
+- Tighten the game shell, cap the desktop clue grid at its 48rem optimal width, and keep 800x1280 as
+  the minimum layout acceptance gate. Keep System as the default theme with light and dark as
+  explicit, always-visible overrides.
 - Show the complete nine-clue grid before the first guess so the game teaches its structure
   visually, and make `Pick for me` fill the search field without submitting on the player's behalf.
 - Normalize multi-position clue displays to conventional role order, so equivalent source values
   such as `C/F` and `F/C` display as `F/C` and receive exact feedback.
-- Keep How it works and Statistics visible in their permanently allocated tool columns while Theme
-  remains collapsible.
+- Keep How it works, Statistics, and Theme visible in their permanently allocated tool columns.
 - Report the live bundled player count beside the game introduction and include it in no-match
   search feedback. The promoted roster now resolves previously absent searches for Kahleah Copper,
   Cameron Brink, Kate Martin, and Rae Burrell.
 - Let the same autocomplete search accept team codes such as `GSV`, returning that team's bundled
   roster alphabetically while continuing to exclude players already guessed.
 - Refresh [screenshots/wnba_pickle_feedback.png](screenshots/wnba_pickle_feedback.png) from the
-  built site with all nine guess slots, abbreviated USA, default-hidden match words, and blue
-  close feedback. Record responsive heuristic and accessibility evidence in
+  built site in a compact 1000x900 viewport with all nine guess slots, abbreviated USA,
+  default-hidden match words, and blue close feedback. Record responsive heuristic evidence in
   [active_plans/reports/difficulty_and_fun.md](active_plans/reports/difficulty_and_fun.md).
 - Extend the offline difficulty probe and report with the new nine-guess limit while retaining the
   smaller limits as comparison evidence for later score calibration.

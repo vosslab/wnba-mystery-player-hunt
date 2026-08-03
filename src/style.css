@@ -125,6 +125,7 @@ button:not(:disabled):active {
 
 .game-shell {
   width: calc(100% - clamp(1rem, 3vw, 3rem));
+  max-width: 48rem;
   margin: 0 auto;
   padding: clamp(0.55rem, 1.5vw, 1rem) 0 max(1.5rem, env(safe-area-inset-bottom));
 }
@@ -340,16 +341,52 @@ input::placeholder {
   vertical-align: middle;
 }
 
-.comparison-table thead th:first-child {
-  width: clamp(7rem, 12vw, 10rem);
-}
-
 .comparison-table thead th {
   color: var(--muted-ink);
   font-size: clamp(0.56rem, 0.8vw, 0.74rem);
   letter-spacing: 0.025em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.comparison-table thead th[data-column-id="player"] {
+  width: 16%;
+}
+
+.comparison-table thead th[data-clue-id="conference"] {
+  width: 10%;
+}
+
+.comparison-table thead th[data-clue-id="team"] {
+  width: 8%;
+}
+
+.comparison-table thead th[data-clue-id="position"] {
+  width: 7%;
+}
+
+.comparison-table thead th[data-clue-id="country"] {
+  width: 10%;
+}
+
+.comparison-table thead th[data-clue-id="draft-year"] {
+  width: 10%;
+}
+
+.comparison-table thead th[data-clue-id="draft-pick"] {
+  width: 9%;
+}
+
+.comparison-table thead th[data-clue-id="college"] {
+  width: 15%;
+}
+
+.comparison-table thead th[data-clue-id="height"] {
+  width: 8%;
+}
+
+.comparison-table thead th[data-clue-id="age"] {
+  width: 7%;
 }
 
 .comparison-table tbody th {
@@ -461,17 +498,13 @@ input::placeholder {
 
 .how-to h2,
 .statistics-panel h2,
-.theme-panel summary {
+.theme-panel h2 {
   display: flex;
   min-height: 44px;
   align-items: center;
   margin: 0;
   font-size: 1rem;
   font-weight: 900;
-}
-
-.theme-panel summary {
-  cursor: pointer;
 }
 
 .how-to p,

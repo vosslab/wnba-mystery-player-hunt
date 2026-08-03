@@ -94,9 +94,24 @@ test("age is derived from the supplied UTC puzzle date at the birthday edge", ()
 
 test("a guess produces the configured clue cells in the declared order", () => {
   const evaluation = evaluateGuess(player(), player(), "2026-06-15");
+  const expectedOrder = [
+    "conference",
+    "team",
+    "position",
+    "country",
+    "draft-year",
+    "draft-pick",
+    "college",
+    "height",
+    "age",
+  ];
+  assert.deepEqual(
+    CLUE_DEFINITIONS.map((definition) => definition.id),
+    expectedOrder,
+  );
   assert.deepEqual(
     evaluation.cells.map((cell) => cell.clueId),
-    CLUE_DEFINITIONS.map((definition) => definition.id),
+    expectedOrder,
   );
   assert.ok(evaluation.cells.every((cell) => cell.match === "exact"));
 });

@@ -14,6 +14,7 @@ export type ClueId =
 export type ClueDefinition = {
   readonly id: ClueId;
   readonly label: string;
+  readonly compactLabel?: string;
 };
 
 /**
@@ -21,15 +22,15 @@ export type ClueDefinition = {
  * It is intentionally an array contract rather than a fixed-length tuple.
  */
 export const CLUE_DEFINITIONS: readonly ClueDefinition[] = [
+  { id: "conference", label: "Conference", compactLabel: "Conf." },
   { id: "team", label: "Team" },
-  { id: "conference", label: "Conference" },
-  { id: "height", label: "Height" },
-  { id: "draft-year", label: "Draft year" },
-  { id: "draft-pick", label: "Draft pick" },
+  { id: "position", label: "Position", compactLabel: "Pos." },
   { id: "country", label: "Country" },
+  { id: "draft-year", label: "Draft year", compactLabel: "Draft" },
+  { id: "draft-pick", label: "Draft pick", compactLabel: "Pick" },
   { id: "college", label: "College" },
+  { id: "height", label: "Height" },
   { id: "age", label: "Age" },
-  { id: "position", label: "Position" },
 ];
 
 export type FeedbackMatch = "exact" | "partial" | "miss";

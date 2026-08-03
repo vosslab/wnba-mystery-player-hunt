@@ -109,16 +109,16 @@
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Player</th>
-                  <th scope="col">Team</th>
-                  <th scope="col">Conference</th>
-                  <th scope="col">Height</th>
-                  <th scope="col">Draft year</th>
-                  <th scope="col">Draft pick</th>
-                  <th scope="col">Country</th>
-                  <th scope="col">College</th>
-                  <th scope="col">Age</th>
-                  <th scope="col">Position</th>
+                  <th scope="col" data-column-id="player">Player</th>
+                  <th scope="col" data-clue-id="conference" aria-label="Conference">Conf.</th>
+                  <th scope="col" data-clue-id="team">Team</th>
+                  <th scope="col" data-clue-id="position" aria-label="Position">Pos.</th>
+                  <th scope="col" data-clue-id="country">Country</th>
+                  <th scope="col" data-clue-id="draft-year" aria-label="Draft year">Draft</th>
+                  <th scope="col" data-clue-id="draft-pick" aria-label="Draft pick">Pick</th>
+                  <th scope="col" data-clue-id="college">College</th>
+                  <th scope="col" data-clue-id="height">Height</th>
+                  <th scope="col" data-clue-id="age">Age</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -142,8 +142,8 @@
           <p id="statistics-summary">Your play statistics will appear here.</p>
         </section>
 
-        <details class="theme-panel">
-          <summary>Theme</summary>
+        <section class="theme-panel" aria-labelledby="theme-title">
+          <h2 id="theme-title">Theme</h2>
           <fieldset class="theme-picker">
             <legend class="visually-hidden">Color theme</legend>
             <p class="helper-text">System follows your device and is the default.</p>
@@ -153,7 +153,7 @@
               <label><input name="theme" type="radio" value="dark" /> Dark</label>
             </div>
           </fieldset>
-        </details>
+        </section>
       </section>
     </main>
 

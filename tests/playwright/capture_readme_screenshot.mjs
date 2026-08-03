@@ -76,7 +76,7 @@ const server = startStaticServer();
 await listen(server);
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({
-  viewport: { width: 1600, height: 1000 },
+  viewport: { width: 1000, height: 900 },
   colorScheme: "light",
 });
 const diagnostics = [];
