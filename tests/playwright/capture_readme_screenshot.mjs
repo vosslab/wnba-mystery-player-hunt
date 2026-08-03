@@ -100,11 +100,14 @@ try {
     // round and could make a stale row look like fresh comparison feedback.
     await page.evaluate(() => window.localStorage.clear());
     await page.reload({ waitUntil: "networkidle" });
+    const howToDialog = page.getByRole("dialog", { name: "How to play" });
+    if (await howToDialog.isVisible())
+      await howToDialog.getByRole("button", { name: "Start playing" }).click();
 
     const comparisonRows = page.locator('[data-grid="comparison"] [data-guess-state="filled"]');
     if ((await comparisonRows.count()) !== 0)
       throw new Error("A fresh screenshot attempt unexpectedly has saved guesses.");
-    if (await page.getByRole("dialog").isVisible())
+    if (await page.locator("dialog.result-dialog").isVisible())
       throw new Error("A fresh screenshot attempt unexpectedly has a result dialog.");
 
     await search.fill(player.displayName);
@@ -113,7 +116,7 @@ try {
     if (
       (await comparisonRows.count()) === 1 &&
       hasCloseFeedback &&
-      !(await page.getByRole("dialog").isVisible())
+      !(await page.locator("dialog.result-dialog").isVisible())
     ) {
       accepted = true;
       break;
@@ -128,7 +131,7 @@ try {
   const feedback = comparisonRows.first().locator("[data-feedback]");
   if ((await feedback.count()) !== 9)
     throw new Error("The captured round did not render all nine clue feedback cells.");
-  if (await page.getByRole("dialog").isVisible())
+  if (await page.locator("dialog.result-dialog").isVisible())
     throw new Error("The capture must show feedback, not a completed result dialog.");
   if (diagnostics.length) throw new Error(diagnostics.join("\n"));
 

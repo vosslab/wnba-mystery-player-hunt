@@ -1,7 +1,7 @@
 import { formatShareText, type ShareFormatOptions } from "./share";
 import { scoreForWin } from "./score";
 import type { GameMode } from "./types/game";
-import type { DailyPuzzleState } from "./types/puzzle";
+import { CLUE_DEFINITIONS, type DailyPuzzleState, type FeedbackMatch } from "./types/puzzle";
 
 export type ClipboardWriter = {
   readonly writeText: (text: string) => Promise<void>;
@@ -13,6 +13,7 @@ export type ResultDialogInput = {
   readonly answerName: string;
   readonly guessLimit: number;
   readonly mode: GameMode;
+  readonly currentStreak?: number;
   readonly onNewPracticePlayer?: () => void;
   readonly shareOptions?: ShareFormatOptions;
 };
@@ -45,56 +46,62 @@ export function renderResultDialog(
   let shareText = "";
   let shareStatus: HTMLElement | null = null;
   let manualCopyField: HTMLTextAreaElement | null = null;
+  let manualCopyHost: HTMLElement | null = null;
 
   dialog.addEventListener("close", restorePreviousFocus);
 
   function open(input: ResultDialogInput): void {
     assertCompletedPuzzle(input.puzzle);
     previouslyFocused = focusedElement();
-    shareText = formatShareText(input.puzzle, input.guessLimit, input.shareOptions);
+    shareText = formatShareText(input.puzzle, input.guessLimit, {
+      ...input.shareOptions,
+      currentStreak: input.mode === "daily" ? input.currentStreak : undefined,
+    });
     shareStatus = null;
     manualCopyField = null;
+    manualCopyHost = null;
 
     const heading = document.createElement("h2");
     heading.id = "result-title";
     heading.textContent = resultHeading(input.puzzle, input.mode);
+    const titleRow = document.createElement("div");
+    titleRow.className = "dialog-title-row";
+    titleRow.append(heading, createCloseForm());
 
     const summary = document.createElement("p");
+    summary.className = "result-summary";
     summary.textContent = outcomeSummary(input.puzzle, input.guessLimit);
 
-    const answer = document.createElement("p");
-    answer.textContent =
-      input.mode === "daily"
-        ? `Today's mystery player: ${input.answerName}.`
-        : `Practice player: ${input.answerName}.`;
-
-    const closeForm = document.createElement("form");
-    closeForm.method = "dialog";
-    const closeButton = document.createElement("button");
-    closeButton.type = "submit";
-    closeButton.textContent = "Close";
-    closeForm.append(closeButton);
+    const answer = createAnswerCard(input.answerName, input.mode);
+    const metrics = createResultMetrics(input);
 
     dialog.setAttribute("aria-labelledby", heading.id);
     if (input.mode === "daily") {
       const status = createShareStatus();
       const shareButton = createShareButton();
-      dialog.replaceChildren(heading, summary, answer, status, shareButton, closeForm);
+      const sharePanel = createSharePanel(input.puzzle, status, shareButton, input.currentStreak);
+      manualCopyHost = sharePanel;
+      dialog.replaceChildren(titleRow, summary, answer, metrics, sharePanel);
+      showDialogWithFocus(shareButton);
     } else {
       const practiceButton = document.createElement("button");
       practiceButton.type = "button";
+      practiceButton.className = "dialog-primary-button";
       practiceButton.textContent = "Practice another player";
       practiceButton.addEventListener("click", function startAnotherPracticeRound(): void {
         close();
         input.onNewPracticePlayer?.();
       });
-      dialog.replaceChildren(heading, summary, answer, practiceButton, closeForm);
+      dialog.replaceChildren(titleRow, summary, answer, metrics, practiceButton);
+      showDialogWithFocus(practiceButton);
     }
-    if (!dialog.open) {
-      dialog.showModal();
+
+    function showDialogWithFocus(primaryButton: HTMLButtonElement): void {
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+      primaryButton.focus();
     }
-    const firstButton = dialog.querySelector<HTMLButtonElement>("button");
-    firstButton?.focus();
   }
 
   function createShareStatus(): HTMLElement {
@@ -109,6 +116,7 @@ export function renderResultDialog(
   function createShareButton(): HTMLButtonElement {
     const shareButton = document.createElement("button");
     shareButton.type = "button";
+    shareButton.className = "dialog-primary-button";
     shareButton.textContent = "Share result";
     shareButton.addEventListener("click", () => {
       void share();
@@ -154,7 +162,7 @@ export function renderResultDialog(
       field.rows = 4;
       field.value = shareText;
       field.setAttribute("aria-label", "Spoiler-free result text to copy");
-      dialog.append(field);
+      (manualCopyHost ?? dialog).append(field);
       manualCopyField = field;
     }
     manualCopyField.focus();
@@ -176,6 +184,99 @@ export function renderResultDialog(
   }
 
   return { open, close, share, isOpen };
+}
+
+function createCloseForm(): HTMLFormElement {
+  const form = document.createElement("form");
+  form.method = "dialog";
+  const button = document.createElement("button");
+  button.type = "submit";
+  button.className = "dialog-close-button";
+  button.textContent = "Close";
+  form.append(button);
+  return form;
+}
+
+function createAnswerCard(answerName: string, mode: GameMode): HTMLElement {
+  const card = document.createElement("section");
+  card.className = "result-answer-card";
+  const label = document.createElement("span");
+  label.className = "result-eyebrow";
+  label.textContent = mode === "daily" ? "Today's mystery player" : "Practice player";
+  const answer = document.createElement("strong");
+  answer.textContent = answerName;
+  card.append(label, answer);
+  return card;
+}
+
+function createResultMetrics(input: ResultDialogInput): HTMLDListElement {
+  const metrics = document.createElement("dl");
+  metrics.className = "result-metrics";
+  const attempts = input.puzzle.guesses.length;
+  const points = input.puzzle.status === "won" ? scoreForWin(attempts) : 0;
+  metrics.append(createMetric(String(points), "Points"));
+  metrics.append(createMetric(`${attempts}/${input.guessLimit}`, "Guesses"));
+  if (input.mode === "daily") {
+    metrics.append(createMetric(String(input.currentStreak ?? 0), "Current streak"));
+  }
+  return metrics;
+}
+
+function createMetric(value: string, label: string): HTMLDivElement {
+  const metric = document.createElement("div");
+  const term = document.createElement("dt");
+  term.textContent = label;
+  const description = document.createElement("dd");
+  description.textContent = value;
+  metric.append(description, term);
+  return metric;
+}
+
+function createSharePanel(
+  puzzle: DailyPuzzleState,
+  status: HTMLElement,
+  shareButton: HTMLButtonElement,
+  currentStreak: number | undefined,
+): HTMLElement {
+  const panel = document.createElement("section");
+  panel.className = "result-share-panel";
+  const text = document.createElement("div");
+  const heading = document.createElement("h3");
+  heading.textContent = "Share your result";
+  const description = document.createElement("p");
+  const streak = currentStreak ?? 0;
+  description.textContent = `${streak} ${streak === 1 ? "win" : "wins"} in your current streak.`;
+  text.append(heading, description, status);
+  panel.append(createFeedbackPreview(puzzle), text, shareButton);
+  return panel;
+}
+
+function createFeedbackPreview(puzzle: DailyPuzzleState): HTMLElement {
+  const preview = document.createElement("div");
+  preview.className = "result-feedback-preview";
+  preview.setAttribute("role", "img");
+  preview.setAttribute(
+    "aria-label",
+    `Share preview with ${puzzle.guesses.length} feedback ${puzzle.guesses.length === 1 ? "row" : "rows"}. Orange is exact, blue is close, and gray is no match.`,
+  );
+
+  for (const guess of puzzle.guesses) {
+    const row = document.createElement("div");
+    row.className = "result-feedback-row";
+    row.setAttribute("aria-hidden", "true");
+    for (const definition of CLUE_DEFINITIONS) {
+      const match = guess.cells.find((cell) => cell.clueId === definition.id)?.match ?? "miss";
+      row.append(createFeedbackPreviewCell(match));
+    }
+    preview.append(row);
+  }
+  return preview;
+}
+
+function createFeedbackPreviewCell(match: FeedbackMatch): HTMLSpanElement {
+  const cell = document.createElement("span");
+  cell.className = `result-feedback-cell result-feedback-${match}`;
+  return cell;
 }
 
 function requireDialog(root: ParentNode): HTMLDialogElement {

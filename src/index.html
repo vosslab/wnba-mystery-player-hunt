@@ -129,12 +129,15 @@
 
       <section class="game-tools" aria-label="Game information and settings">
         <section class="how-to" aria-labelledby="how-to-title">
-          <h2 id="how-to-title">How it works</h2>
+          <h2 id="how-to-title">How to play</h2>
           <p>
             Use each row&apos;s feedback to narrow the field. You have nine guesses. A first-guess
             win scores 100 points; each extra guess costs 10 points. Practice rounds do not change
             daily statistics.
           </p>
+          <button id="how-to-open" class="secondary-button guide-button" type="button">
+            Open guide
+          </button>
         </section>
 
         <section class="statistics-panel" aria-labelledby="statistics-title">
@@ -156,6 +159,37 @@
         </section>
       </section>
     </main>
+
+    <dialog class="how-to-dialog" aria-labelledby="how-to-dialog-title">
+      <div class="dialog-title-row">
+        <h2 id="how-to-dialog-title">How to play</h2>
+        <form method="dialog">
+          <button class="dialog-close-button" type="submit">Close</button>
+        </form>
+      </div>
+      <p>Find the mystery WNBA player within nine guesses.</p>
+      <p>Search with at least two letters of a player name or a team code.</p>
+      <div class="feedback-guide" role="list" aria-label="Clue feedback legend">
+        <div class="feedback-guide-item" role="listitem">
+          <span class="feedback-guide-swatch feedback-exact" aria-hidden="true"></span>
+          <p><strong>Orange</strong> means an exact match.</p>
+        </div>
+        <div class="feedback-guide-item" role="listitem">
+          <span class="feedback-guide-swatch feedback-partial" aria-hidden="true"></span>
+          <p><strong>Blue with a dashed edge</strong> means close.</p>
+        </div>
+        <div class="feedback-guide-item" role="listitem">
+          <span class="feedback-guide-swatch feedback-miss" aria-hidden="true"></span>
+          <p><strong>Neutral</strong> means no match.</p>
+        </div>
+      </div>
+      <p class="helper-text">
+        Close covers nearby height, age, draft year or pick, and overlapping positions.
+      </p>
+      <form method="dialog">
+        <button id="how-to-start" class="dialog-primary-button" type="submit">Start playing</button>
+      </form>
+    </dialog>
 
     <dialog class="result-dialog" aria-labelledby="result-title">
       <h2 id="result-title">Today&apos;s result</h2>

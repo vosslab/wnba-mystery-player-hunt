@@ -5,6 +5,7 @@ export type ShareFormatOptions = {
   /** A stable, non-player identifier for the daily puzzle. */
   readonly puzzleIdentity?: string;
   readonly productName?: string;
+  readonly currentStreak?: number;
 };
 
 const DEFAULT_PRODUCT_NAME = "WNBA Mystery Player Hunt";
@@ -24,6 +25,7 @@ export function formatShareText(
 
   const productName = options.productName ?? DEFAULT_PRODUCT_NAME;
   const puzzleIdentity = options.puzzleIdentity ?? puzzle.puzzleDateUtc;
+  assertCurrentStreak(options.currentStreak);
   const score =
     puzzle.status === "won" ? `${puzzle.guesses.length}/${guessLimit}` : `X/${guessLimit}`;
   const points = puzzle.status === "won" ? scoreForWin(puzzle.guesses.length) : 0;
@@ -34,7 +36,10 @@ export function formatShareText(
     }).join(""),
   );
 
-  return [`${productName} ${puzzleIdentity} ${score} | ${points} pts`, ...rows].join("\n");
+  const streak = options.currentStreak === undefined ? "" : ` | Streak: ${options.currentStreak}`;
+  return [`${productName} ${puzzleIdentity}`, `${score} | ${points} pts${streak}`, ...rows].join(
+    "\n",
+  );
 }
 
 function assertCompletedPuzzle(puzzle: DailyPuzzleState): void {
@@ -49,12 +54,18 @@ function assertGuessLimit(guessLimit: number): void {
   }
 }
 
+function assertCurrentStreak(currentStreak: number | undefined): void {
+  if (currentStreak !== undefined && (!Number.isInteger(currentStreak) || currentStreak < 0)) {
+    throw new Error("Current streak must be a non-negative integer.");
+  }
+}
+
 function shareSymbol(match: FeedbackMatch): string {
   if (match === "exact") {
-    return "\u{1F7E9}";
+    return "\u{1F7E7}";
   }
   if (match === "partial") {
-    return "\u{1F7E8}";
+    return "\u{1F7E6}";
   }
   return "\u{2B1B}";
 }

@@ -1,6 +1,7 @@
 import type { PlayerId } from "./brands";
 import { DEFAULT_GUESS_LIMIT } from "./constants";
 import { reconcileTodayPuzzle, submitGuess } from "./game_state";
+import { renderHowToDialog } from "./how_to_dialog";
 import { renderResultDialog, type ClipboardWriter } from "./result_dialog";
 import { loadSaveData, saveSaveData } from "./save_load";
 import { scoreAvailableAfter, scoreForWin } from "./score";
@@ -60,7 +61,6 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
   const storage = options.storage ?? browserStorage();
   const gameRoot = requireElement<HTMLElement>(root, ".game-shell");
   const grid = requireElement<HTMLElement>(root, "#comparison-grid");
-  const resultDialog = renderResultDialog(root, { clipboardWriter: options.clipboardWriter });
   const initialSaveData = reconcileTodayPuzzle(
     loadSaveData(storage, guessLimit),
     options.snapshot,
@@ -73,6 +73,15 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
     snapshot: options.snapshot,
     searchIndex: buildPlayerSearchIndex(options.snapshot.players),
   };
+  const resultDialog = renderResultDialog(root, { clipboardWriter: options.clipboardWriter });
+  const howToDialog = renderHowToDialog(root, {
+    onDismissed(): void {
+      if (!state.dailySaveData.hasSeenHowToPlay) {
+        state.dailySaveData = { ...state.dailySaveData, hasSeenHowToPlay: true };
+        persistDailyState();
+      }
+    },
+  });
   let controls: ControlsController | null = null;
 
   controls = renderControls(root, {
@@ -107,6 +116,9 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
   persistDailyState();
   renderState(state.dailySaveData.puzzle?.status !== "active");
   gameRoot.dataset.ready = "true";
+  if (shouldOpenFirstRunGuide(state.dailySaveData)) {
+    howToDialog.open();
+  }
 
   function submitSearchQuery(query: string): void {
     const player = findExactPlayer(query);
@@ -204,6 +216,7 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
         answerName: answer.displayName,
         guessLimit,
         mode: state.mode,
+        currentStreak: state.dailySaveData.statistics.currentStreak,
         onNewPracticePlayer: startNewPracticeRound,
       });
     }
@@ -370,6 +383,14 @@ function rejectionMessage(reason: string): string {
     return "This round is complete. Start another practice or return to Daily.";
   }
   return "That player is unavailable in today's bundled player pool. Try another match.";
+}
+
+function shouldOpenFirstRunGuide(saveData: SaveDataV1): boolean {
+  return (
+    !saveData.hasSeenHowToPlay &&
+    saveData.puzzle?.status === "active" &&
+    saveData.puzzle.guesses.length === 0
+  );
 }
 
 function formatStatistics(saveData: SaveDataV1): string {

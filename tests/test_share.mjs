@@ -28,9 +28,19 @@ test("share rows use the visible clue order even for older saved cell order", ()
     ],
   };
 
-  const expectedRow = `\u{1F7E9}\u{1F7E8}${"\u{2B1B}".repeat(7)}`;
+  const expectedRow = `\u{1F7E7}\u{1F7E6}${"\u{2B1B}".repeat(7)}`;
   assert.equal(
-    formatShareText(puzzle, 9),
-    `WNBA Mystery Player Hunt 2026-08-03 1/9 | 100 pts\n${expectedRow}`,
+    formatShareText(puzzle, 9, { currentStreak: 3 }),
+    `WNBA Mystery Player Hunt 2026-08-03\n1/9 | 100 pts | Streak: 3\n${expectedRow}`,
   );
+});
+
+test("share text rejects an impossible streak", () => {
+  const puzzle = {
+    puzzleDateUtc: "2026-08-03",
+    targetPlayerId: "target",
+    status: "lost",
+    guesses: [],
+  };
+  assert.throws(() => formatShareText(puzzle, 9, { currentStreak: -1 }), /non-negative/);
 });

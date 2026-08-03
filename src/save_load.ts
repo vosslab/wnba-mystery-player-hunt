@@ -181,6 +181,8 @@ function parseSaveData(value: unknown): SaveDataV1 | null {
     : "system";
   const matchLabelsVisible =
     typeof value.matchLabelsVisible === "boolean" ? value.matchLabelsVisible : false;
+  const hasSeenHowToPlay =
+    typeof value.hasSeenHowToPlay === "boolean" ? value.hasSeenHowToPlay : false;
   if (puzzle === null && value.puzzle !== null) {
     return null;
   }
@@ -188,7 +190,14 @@ function parseSaveData(value: unknown): SaveDataV1 | null {
     return null;
   }
 
-  return { version: 1, puzzle, statistics, themePreference, matchLabelsVisible };
+  return {
+    version: 1,
+    puzzle,
+    statistics,
+    themePreference,
+    matchLabelsVisible,
+    hasSeenHowToPlay,
+  };
 }
 
 export function createFreshStatistics(guessLimit: number = DEFAULT_GUESS_LIMIT): GameStatistics {
@@ -215,6 +224,7 @@ export function createFreshSaveData(guessLimit: number = DEFAULT_GUESS_LIMIT): S
     statistics,
     themePreference: "system",
     matchLabelsVisible: false,
+    hasSeenHowToPlay: false,
   };
 }
 

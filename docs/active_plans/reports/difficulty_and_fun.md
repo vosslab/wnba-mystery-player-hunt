@@ -98,14 +98,18 @@ challenge; Practice supplies fresh rounds without changing daily progress or sta
   remains easy to scan without collisions.
 - Order the clue fields by elimination value: Conference, Team, Position, Country, Draft year,
   Draft pick, College, Height, and Age.
-- Keep How it works, Statistics, and Theme visible because their columns are always reserved.
+- Keep How to play, Statistics, and Theme visible because their columns are always reserved.
 - Normalize multi-position sets to conventional display order so `C/F` and `F/C` are both `F/C`
   and compare as exact.
 - Report the 136-player pool in the interface and name that pool when a search has no match.
 - Let a team code such as `GSV` turn the existing autocomplete into a browsable team roster.
 - Reduce title, spacing, cell padding, and secondary-control weight while retaining 44-pixel
   interactive targets.
-- Keep How it works, Statistics, and Theme in one compact secondary row on desktop.
+- Keep How to play, Statistics, and Theme in one compact secondary row on desktop.
+- Introduce the feedback language in a concise first-run dialog only before an untouched round,
+  remember dismissal, and keep an `Open guide` action available for later review.
+- Turn the completed-round dialog into a result card that prioritizes the answer, points, guesses,
+  current streak, and a spoiler-free feedback preview before the share action.
 - Make Daily and Practice explicit modes, with a fresh-player action visible only in Practice.
 - Show the next available score beside the remaining guesses. The score starts at 100 and drops
   by 10 for each extra guess.
@@ -117,24 +121,26 @@ Scores use 0 for a critical problem and 4 for no observed issue.
 
 | Nielsen heuristic               | Before | After | Evidence                                                                                      |
 | ------------------------------- | -----: | ----: | --------------------------------------------------------------------------------------------- |
-| Visibility of system status     |      3 |     4 | Mode, guesses, and points are visible together                                                |
+| Visibility of system status     |      3 |     4 | Mode, guesses, and points are visible together; the result card summarizes the finished round |
 | Match with the real world       |      3 |     4 | Daily and Practice use familiar labels and scoring language                                   |
 | User control and freedom        |      2 |     4 | Players can switch modes or start a fresh practice player                                     |
 | Consistency and standards       |      3 |     4 | Buttons, pressed states, dialogs, and always-visible Theme controls reuse native patterns     |
 | Error prevention                |      4 |     4 | Autocomplete and duplicate-guess protection remain intact                                     |
-| Recognition over recall         |      3 |     4 | The full clue header grid is visible before the first guess                                   |
+| Recognition over recall         |      3 |     4 | The full clue grid is visible early, with a reopenable first-run feedback guide                |
 | Flexibility and efficiency      |      2 |     4 | Practice supports repeat play without waiting for another UTC day                             |
-| Aesthetic and minimalist design |      2 |     4 | The bounded canvas and weighted clue columns scan cleanly without stretching to fill the page |
+| Aesthetic and minimalist design |      2 |     4 | Weighted columns and a result hierarchy avoid equal-width and text-heavy presentation          |
 | Error recognition and recovery  |      4 |     4 | Invalid and duplicate searches preserve context and name the next step                        |
-| Help and documentation          |      3 |     4 | Compact help explains nine guesses, scoring, and Practice isolation                           |
+| Help and documentation          |      3 |     4 | First-run help explains feedback once and remains available without interrupting later rounds  |
 
 ### Accessibility evidence
 
-- Browser coverage exercises keyboard autocomplete, result-dialog focus, theme controls, and
-  visible primary actions.
+- Browser coverage exercises keyboard autocomplete, first-run and result-dialog focus, persisted
+  guide dismissal, theme controls, and visible primary actions.
 - All buttons and search controls retain a minimum 44-pixel height.
 - Every feedback cell exposes its clue, value, and match in an accessible label, and the clue
   headers remain visible at the 800x1280 minimum viewport.
+- Native dialogs support Escape and deliberate focus placement. The result preview is exposed as
+  one described image while its individual decorative color cells stay hidden from screen readers.
 - Measured text pairs remain above WCAG AA: dark gray on Balm is 6.73:1, Ultra Black on Balm is
   15.84:1, and Ultra Black on Orange Passion is approximately 7.43:1.
 - Manual critical and serious WCAG findings remain 0 before and after. The existing raw-token
@@ -147,7 +153,7 @@ Playwright uses 800x1280 as the minimum acceptance viewport and 1920x1080 as the
 check. The centered game canvas remains at or below 768 pixels wide, the empty board exposes all
 nine clue headers before play, and both supported widths keep the search, submit controls, real
 feedback, and theme controls usable without horizontal page overflow. Sub-800 layouts are not a
-release gate.
+release gate. Both dialogs constrain their height and scroll internally at the portrait viewport.
 
 The refreshed 1000x900 README capture is
 [../../screenshots/wnba_pickle_feedback.png](../../screenshots/wnba_pickle_feedback.png).

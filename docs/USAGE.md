@@ -23,6 +23,8 @@ the command running while playing; stop it with `Ctrl-C` when finished.
 - Select a player, or use `Pick for me` to fill an unused bundled-pool player, then submit.
 - Check the pool count beside the introduction. A no-match message reports that same pool size so
   an absent player is not mistaken for a spelling error.
+- Read the short How to play guide on your first visit, then reopen it from the permanent `Open
+guide` button whenever you want a reminder. Dismissing it once prevents future automatic popups.
 - Use the nine visible guess slots to track the round, then read each filled row to choose the
   next guess. Exact clues are orange, close clues are blue, and no-match clues stay neutral.
 - Turn on `Match labels` beside Clues to show the status words in every filled cell. The words are
@@ -33,6 +35,8 @@ the command running while playing; stop it with `Ctrl-C` when finished.
 - Leave the theme on its System default, or choose an explicit light or dark override; daily
   progress, statistics, and streaks persist locally.
 - At the end of the daily round, read the result and use Share result for a non-spoiling summary.
+  The result card includes points, guesses, current streak, and a compact feedback grid; copied
+  text uses the same orange, blue, and neutral states without revealing the mystery player.
 
 The site makes no runtime request for roster or statistics data. Updating the bundled roster is a
 separate Python maintenance task and does not affect the game architecture.

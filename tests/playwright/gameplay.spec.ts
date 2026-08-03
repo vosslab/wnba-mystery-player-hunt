@@ -57,7 +57,10 @@ function attachDiagnostics(page: Page): () => void {
   return () => expect(errors).toEqual([]);
 }
 
-async function openCleanGame(page: Page): Promise<() => void> {
+async function openCleanGame(
+  page: Page,
+  options: { readonly dismissHowTo?: boolean } = {},
+): Promise<() => void> {
   const assertNoDiagnostics = attachDiagnostics(page);
   await page.clock.install({ time: new Date(FIXED_CLOCK_UTC) });
   await page.goto("/");
@@ -67,6 +70,12 @@ async function openCleanGame(page: Page): Promise<() => void> {
   await expect(page.locator("#player-pool-summary")).toHaveText(
     `Player pool: ${snapshot.players.length}.`,
   );
+  const howToDialog = page.getByRole("dialog", { name: "How to play" });
+  await expect(howToDialog).toBeVisible();
+  if (options.dismissHowTo !== false) {
+    await howToDialog.getByRole("button", { name: "Start playing" }).click();
+    await expect(howToDialog).toBeHidden();
+  }
   return assertNoDiagnostics;
 }
 
@@ -141,6 +150,31 @@ async function expectCompactCenteredShell(page: Page): Promise<void> {
   expect(shell.width).toBeLessThanOrEqual(768.5);
   expect(Math.abs(shell.x - (viewport.width - shell.width) / 2)).toBeLessThanOrEqual(0.5);
 }
+
+test("gameplay: first-time guidance appears once and remains available on demand", async ({
+  page,
+}) => {
+  const assertNoDiagnostics = await openCleanGame(page, { dismissHowTo: false });
+  const dialog = page.getByRole("dialog", { name: "How to play" });
+  await expect(dialog.getByRole("button", { name: "Start playing" })).toBeFocused();
+  await expect(dialog).toContainText("within nine guesses");
+  await expect(dialog).toContainText("Orange");
+  await expect(dialog).toContainText("Blue with a dashed edge");
+  await expect(dialog).toContainText("Neutral");
+  await page.screenshot({
+    path: "test-results/playable_walkthrough/00_first_run_guide.png",
+    fullPage: true,
+  });
+  await dialog.getByRole("button", { name: "Start playing" }).click();
+  await page.reload();
+  await expect(dialog).toBeHidden();
+
+  await page.getByRole("button", { name: "Open guide" }).click();
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Close" }).click();
+  await expect(dialog).toBeHidden();
+  assertNoDiagnostics();
+});
 
 test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pick for me work as expected", async ({
   page,
@@ -229,24 +263,29 @@ test("gameplay: winning opens an explicit result, provides spoiler-free sharing,
   const target = targetForFixedPuzzleDate();
 
   await submitKeyboardGuess(page, target);
-  const dialog = page.getByRole("dialog");
+  const dialog = page.locator("dialog.result-dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "You got it!" })).toBeVisible();
   await expect(dialog).toContainText(target.displayName);
   await expect(dialog).toContainText("100 points");
+  await expect(dialog).toContainText("Current streak");
+  await expect(dialog).toContainText("1 win in your current streak");
+  await expect(dialog.locator(".result-feedback-cell")).toHaveCount(CLUE_DEFINITIONS.length);
   await dialog.getByRole("button", { name: "Share result" }).click();
   const shareField = dialog.getByLabel("Spoiler-free result text to copy");
   await expect(shareField).toBeVisible();
   const shareText = await shareField.inputValue();
   expect(shareText).not.toContain(target.displayName);
   expect(shareText).not.toContain(target.teamCode);
+  expect(shareText).toContain("Streak: 1");
+  expect(shareText).toContain("\u{1F7E7}");
   await page.screenshot({
     path: "test-results/playable_walkthrough/02_win_share.png",
     fullPage: true,
   });
 
   await page.reload();
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.locator("dialog.result-dialog")).toBeVisible();
   await expect(page.locator("#statistics-summary")).toContainText("1 played");
   await expect(page.locator("#statistics-summary")).toContainText("1 won");
   assertNoDiagnostics();
@@ -289,7 +328,7 @@ test("gameplay: nine distinct visible guesses end in an understandable loss", as
     await submitVisibleGuess(page, player);
   }
 
-  const dialog = page.getByRole("dialog");
+  const dialog = page.locator("dialog.result-dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "You didn't solve it." })).toBeVisible();
   await expect(dialog).toContainText(target.displayName);
@@ -320,7 +359,7 @@ test("gameplay: practice offers fresh rounds without changing the saved daily ga
   }
   await submitVisibleGuess(page, practiceGuess);
   await expect(page.locator('[data-grid="comparison"] [data-guess-state="filled"]')).toHaveCount(1);
-  const dialog = page.getByRole("dialog");
+  const dialog = page.locator("dialog.result-dialog");
   if (await dialog.isVisible()) {
     await dialog.getByRole("button", { name: "Close" }).click();
   }
@@ -352,7 +391,7 @@ for (const viewport of responsiveViewports) {
           "daily statistics.",
       );
 
-      await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "How to play" })).toBeVisible();
       await expect(instructions).toBeVisible();
       await expect(page.getByRole("heading", { name: "Statistics" })).toBeVisible();
       await expect(page.locator("#statistics-summary")).toBeVisible();

@@ -54,7 +54,12 @@ test("saving and loading preserve valid save data while failed writes remain non
 test("presentation preferences round-trip and legacy v1 saves migrate safely", () => {
   const store = memoryStore();
   const original = loadSaveData(store, 4);
-  const personalized = { ...original, themePreference: "dark", matchLabelsVisible: true };
+  const personalized = {
+    ...original,
+    themePreference: "dark",
+    matchLabelsVisible: true,
+    hasSeenHowToPlay: true,
+  };
   assert.equal(saveSaveData(store, personalized), true);
   assert.deepEqual(loadSaveData(store, 4), personalized);
 
@@ -76,6 +81,7 @@ test("presentation preferences round-trip and legacy v1 saves migrate safely", (
   const migrated = loadSaveData(legacyStore, 4);
   assert.equal(migrated.themePreference, "system");
   assert.equal(migrated.matchLabelsVisible, false);
+  assert.equal(migrated.hasSeenHowToPlay, false);
   assert.deepEqual(migrated.statistics, legacyStatistics);
 });
 
@@ -108,11 +114,13 @@ test("invalid presentation values normalize without discarding valid progress", 
       statistics,
       themePreference: "sepia",
       matchLabelsVisible: "yes",
+      hasSeenHowToPlay: "yes",
     }),
   );
   const recovered = loadSaveData(store, 4);
   assert.equal(recovered.themePreference, "system");
   assert.equal(recovered.matchLabelsVisible, false);
+  assert.equal(recovered.hasSeenHowToPlay, false);
   assert.deepEqual(recovered.puzzle, {
     puzzleDateUtc: "2026-03-06",
     targetPlayerId: "1628932",

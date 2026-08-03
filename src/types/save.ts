@@ -21,6 +21,8 @@ export type SaveDataV1 = {
   readonly themePreference: ThemePreference;
   /** Missing on earlier v1 saves; loadSaveData keeps repeated match labels hidden. */
   readonly matchLabelsVisible: boolean;
+  /** Missing on earlier v1 saves; first-time players receive the concise game guide once. */
+  readonly hasSeenHowToPlay: boolean;
 };
 
 export interface KeyValueStore {

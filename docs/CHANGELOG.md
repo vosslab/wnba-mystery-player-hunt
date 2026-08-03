@@ -2,6 +2,11 @@
 
 ### Additions and New Features
 
+- Add a concise first-run How to play dialog with exact, close, and no-match examples. Persist its
+  dismissal in the existing save record and keep an `Open guide` button available for later review.
+- Replace the plain completed-round dialog with an answer card, score/guess/streak metrics, and a
+  spoiler-free visual feedback grid. Include current streak in copied results and use orange/blue
+  share squares that match the game's actual feedback colors.
 - Add replayable Practice rounds that choose fresh mystery players without changing the saved
   daily puzzle, statistics, or streaks.
 - Expand the daily round to nine guesses and add a visible 100-point score that drops by 10 for
@@ -79,7 +84,7 @@
   visually, and make `Pick for me` fill the search field without submitting on the player's behalf.
 - Normalize multi-position clue displays to conventional role order, so equivalent source values
   such as `C/F` and `F/C` display as `F/C` and receive exact feedback.
-- Keep How it works, Statistics, and Theme visible in their permanently allocated tool columns.
+- Keep How to play, Statistics, and Theme visible in their permanently allocated tool columns.
 - Report the live bundled player count beside the game introduction and include it in no-match
   search feedback. The promoted roster now resolves previously absent searches for Kahleah Copper,
   Cameron Brink, Kate Martin, and Rae Burrell.
