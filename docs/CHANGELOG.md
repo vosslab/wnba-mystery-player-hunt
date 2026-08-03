@@ -54,6 +54,11 @@
   such as `C/F` and `F/C` display as `F/C` and receive exact feedback.
 - Keep How it works and Statistics visible in their permanently allocated tool columns while Theme
   remains collapsible.
+- Report the live bundled player count beside the game introduction and include it in no-match
+  search feedback. The promoted roster now resolves previously absent searches for Kahleah Copper,
+  Cameron Brink, Kate Martin, and Rae Burrell.
+- Let the same autocomplete search accept team codes such as `GSV`, returning that team's bundled
+  roster alphabetically while continuing to exclude players already guessed.
 - Refresh [screenshots/wnba_pickle_feedback.png](screenshots/wnba_pickle_feedback.png) from the
   built site and record responsive heuristic and accessibility evidence in
   [active_plans/reports/difficulty_and_fun.md](active_plans/reports/difficulty_and_fun.md).
@@ -67,8 +72,8 @@
   random jitter, below Sports Reference's published other-sites cap. Document that candidates and
   snapshots from this path are derived rather than official WNBA data and require human data-use
   review before public deployment.
-- Use neutral bundled-player-pool copy in gameplay status and document that the committed
-  hand-maintained roster is not an official current-roster refresh.
+- Use neutral bundled-player-pool copy in gameplay status; browser text does not expose the private
+  recognizability metric or claim the derived snapshot is an official WNBA feed.
 - Anchor private candidate output paths to the repository's ignored `data/private/` directory,
   independent of the caller's working directory.
 - Repair the package clean command, consolidate shared guess-limit and theme types, and remove an
@@ -103,8 +108,8 @@
   verified 136-player derived roster selected at the approved 300-point two-season cutoff.
 - Keep all future roster and statistics gathering in the separate Python pipeline. Browser
   runtime and Playwright use only static development or committed snapshot data.
-- Keep six guesses as the development-fixture default. It is a provisional fun choice, not a
-  release calibration result for the real derived-data pool.
+- Keep nine scored guesses as the human playtest decision; calibrate the score against the real
+  derived-data pool instead of shortening the round.
 - Preserve the WNBA Stats player-page and throttled `commonplayerinfo` observations as rejected
   route evidence only; they are not inputs to the active Basketball-Reference acquisition path.
 - Keep the complete 206-player candidate pull private and ship only the validated 136-player game
@@ -116,6 +121,6 @@
 ### Validation
 
 - Pass the TypeScript and Node checks through `./check_codebase.sh` and the gameplay browser
-  journeys through `./run_playwright_tests.sh --build` against the bundled development data.
+  journeys through `./run_playwright_tests.sh --build` against the bundled derived data.
 - Keep data acquisition validation in Python; no browser test is a source of roster or
   statistics evidence.

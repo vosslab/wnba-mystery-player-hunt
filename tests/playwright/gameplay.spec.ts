@@ -15,7 +15,7 @@ import {
  * - src/ui_grid.ts: [data-grid="comparison"] contains one tbody row per accepted guess;
  *   each row contains one [data-feedback] cell for every configured clue.
  * - src/result_dialog.ts: the native dialog exposes its outcome heading, answer, and share control.
- * Tests import the deterministic selector and development fixture only to choose a known target;
+ * Tests import the deterministic selector and bundled roster only to choose a known target;
  * that is test control, never a player-facing shortcut.
  */
 
@@ -61,19 +61,22 @@ async function openCleanGame(page: Page): Promise<() => void> {
   await page.goto("/");
   await page.evaluate(() => window.localStorage.clear());
   await page.reload();
-  await expect(page.getByLabel("Search a WNBA player")).toBeEnabled();
+  await expect(page.getByLabel("Search by player or team")).toBeEnabled();
+  await expect(page.locator("#player-pool-summary")).toHaveText(
+    `Player pool: ${snapshot.players.length}.`,
+  );
   return assertNoDiagnostics;
 }
 
 async function submitVisibleGuess(page: Page, player: PlayerRecord): Promise<void> {
-  const input = page.getByLabel("Search a WNBA player");
+  const input = page.getByLabel("Search by player or team");
   await input.fill(player.displayName);
   await page.getByRole("button", { name: "Guess" }).click();
 }
 
 async function submitKeyboardGuess(page: Page, player: PlayerRecord): Promise<void> {
-  const input = page.getByLabel("Search a WNBA player");
-  await input.fill(player.searchName.slice(0, 3));
+  const input = page.getByLabel("Search by player or team");
+  await input.fill(player.displayName);
   await expect(
     page.getByRole("option", { name: new RegExp(player.displayName, "i") }),
   ).toBeVisible();
@@ -103,11 +106,28 @@ test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pic
 }) => {
   const assertNoDiagnostics = await openCleanGame(page);
   await expectEmptyClueGrid(page);
+  const input = page.getByLabel("Search by player or team");
+  const goldenStatePlayers = snapshot.players.filter((player) => player.teamCode === "GSV");
+  expect(goldenStatePlayers.length).toBeGreaterThan(0);
+  await input.fill("GSV");
+  await expect(page.getByRole("option")).toHaveCount(goldenStatePlayers.length);
+  const teamResults = await page.getByRole("option").allTextContents();
+  expect(teamResults.every((result) => result.includes("GSV"))).toBe(true);
+  await page.screenshot({
+    path: "test-results/playable_walkthrough/06_team_roster_search.png",
+    fullPage: true,
+  });
+  await input.fill("rae");
+  await expect(page.getByRole("option", { name: /Rae Burrell/i })).toBeVisible();
+  await input.fill("qxz");
+  await expect(page.getByRole("status")).toContainText(
+    `No matching player or team in the ${snapshot.players.length}-player pool`,
+  );
   const target = targetForFixedPuzzleDate();
   const firstGuess = nonTargetPlayers(target)[0];
   expect(firstGuess).toBeDefined();
   if (firstGuess === undefined) {
-    throw new Error("The development fixture needs a non-target player for feedback coverage.");
+    throw new Error("The bundled roster needs a non-target player for feedback coverage.");
   }
 
   await submitKeyboardGuess(page, firstGuess);
@@ -121,7 +141,6 @@ test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pic
   );
   await expect(page.locator(".guess-count")).toHaveText("8 left | 90 pts available");
 
-  const input = page.getByLabel("Search a WNBA player");
   await input.fill(firstGuess.displayName);
   await page.getByRole("button", { name: "Guess" }).click();
   await expect(page.getByRole("status")).toContainText("already guessed");
@@ -235,7 +254,7 @@ test("gameplay: practice offers fresh rounds without changing the saved daily ga
 
   const practiceGuess = snapshot.players[0];
   if (practiceGuess === undefined) {
-    throw new Error("The development fixture needs a player for practice coverage.");
+    throw new Error("The bundled roster needs a player for practice coverage.");
   }
   await submitVisibleGuess(page, practiceGuess);
   await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
@@ -286,15 +305,13 @@ for (const viewport of responsiveViewports) {
       const target = targetForFixedPuzzleDate();
       const firstGuess = nonTargetPlayers(target)[0];
       if (firstGuess === undefined) {
-        throw new Error(
-          "The development fixture needs a non-target player for responsive coverage.",
-        );
+        throw new Error("The bundled roster needs a non-target player for responsive coverage.");
       }
       await submitVisibleGuess(page, firstGuess);
       await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
       await expectNoHorizontalOverflow(page);
 
-      const input = page.getByLabel("Search a WNBA player");
+      const input = page.getByLabel("Search by player or team");
       const guessButton = page.getByRole("button", { name: "Guess" });
       await input.scrollIntoViewIfNeeded();
       await expect(input).toBeInViewport();

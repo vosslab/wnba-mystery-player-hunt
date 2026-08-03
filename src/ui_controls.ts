@@ -23,6 +23,7 @@ export type ControlsController = {
   readonly setSuggestions: (suggestions: readonly SearchSuggestion[]) => void;
   readonly clearSearch: () => void;
   readonly setSearchValue: (value: string) => void;
+  readonly setPlayerPoolSummary: (summary: string) => void;
   readonly setRoundSummary: (summary: string) => void;
   readonly setGameMode: (mode: GameMode) => void;
   readonly setStatisticsSummary: (summary: string) => void;
@@ -44,6 +45,7 @@ export function renderControls(
   const status = requireElement<HTMLElement>(root, "#game-status");
   const suggestionList = requireElement<HTMLElement>(root, "#player-suggestions");
   const guessCount = requireElement<HTMLElement>(root, ".guess-count");
+  const playerPoolSummary = requireElement<HTMLElement>(root, "#player-pool-summary");
   const dailyModeButton = requireElement<HTMLButtonElement>(root, "#daily-mode");
   const practiceModeButton = requireElement<HTMLButtonElement>(root, "#practice-mode");
   const newPracticeButton = requireElement<HTMLButtonElement>(root, "#new-practice-player");
@@ -157,6 +159,10 @@ export function renderControls(
     searchInput.focus();
   }
 
+  function setPlayerPoolSummary(summary: string): void {
+    playerPoolSummary.textContent = summary;
+  }
+
   function setRoundSummary(summary: string): void {
     guessCount.textContent = summary;
     guessCount.setAttribute("aria-label", summary);
@@ -254,6 +260,7 @@ export function renderControls(
     setSuggestions,
     clearSearch,
     setSearchValue,
+    setPlayerPoolSummary,
     setRoundSummary,
     setGameMode,
     setStatisticsSummary,

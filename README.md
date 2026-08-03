@@ -23,6 +23,8 @@ summary and saves local statistics.
 - Practice mode offers fresh rounds without changing daily statistics or streaks.
 - Keyboard and mouse search, `Pick for me` prefill, and a system-default theme with light and dark
   overrides support a quick play session.
+- The interface reports the current bundled pool size and names the pool when a search has no
+  match.
 - The browser uses only bundled JSON; roster and statistic gathering stay in the separate Python
   maintenance workflow.
 
@@ -36,8 +38,8 @@ that the project prepares for GitHub Pages:
 ./run_web_server.sh
 ```
 
-The terminal prints a local URL. Open it, type at least two characters of a player name, choose a
-match, and make a guess.
+The terminal prints a local URL. Open it, type at least two characters of a player name or a team
+code such as `GSV`, choose a match, and make a guess.
 
 For setup requirements and the optional Playwright browser installation, see
 [docs/INSTALL.md](docs/INSTALL.md).
@@ -63,7 +65,7 @@ needed.
 
 ## How a round works
 
-1. Enter at least two characters in the player search.
+1. Enter at least two characters of a player name, or enter a team code to browse that roster.
 2. Select a suggestion, or use `Pick for me` to fill the search box, then submit the guess.
 3. Read all nine clue cells in the new row, then choose the next player.
 4. Solve the mystery player within nine guesses. Each extra guess costs 10 points; an unsolved

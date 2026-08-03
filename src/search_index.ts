@@ -14,6 +14,7 @@ type IndexedPlayer = {
   readonly player: PlayerRecord;
   readonly normalizedNames: readonly string[];
   readonly normalizedTokens: readonly string[];
+  readonly normalizedTeamCode: string;
 };
 
 export type PlayerSearchIndex = {
@@ -73,6 +74,7 @@ function indexPlayer(player: PlayerRecord): IndexedPlayer {
     player,
     normalizedNames,
     normalizedTokens,
+    normalizedTeamCode: normalizeSearchText(player.teamCode),
   };
   return entry;
 }
@@ -107,14 +109,20 @@ function hasSubstring(values: readonly string[], query: string): boolean {
 }
 
 function matchRank(entry: IndexedPlayer, query: string): number | undefined {
-  if (hasPrefix(entry.normalizedNames, query)) {
+  if (entry.normalizedTeamCode === query) {
     return 0;
   }
-  if (hasPrefix(entry.normalizedTokens, query)) {
+  if (hasPrefix(entry.normalizedNames, query)) {
     return 1;
   }
-  if (hasSubstring(entry.normalizedNames, query)) {
+  if (hasPrefix(entry.normalizedTokens, query)) {
     return 2;
+  }
+  if (entry.normalizedTeamCode.startsWith(query)) {
+    return 3;
+  }
+  if (hasSubstring(entry.normalizedNames, query)) {
+    return 4;
   }
   return undefined;
 }
@@ -151,8 +159,8 @@ function toSearchResult(entry: IndexedPlayer): PlayerSearchResult {
 }
 
 /**
- * Returns an empty list until two normalized characters are present. Prefixes
- * rank ahead of token-prefixes and substrings so short queries stay predictable.
+ * Returns an empty list until two normalized characters are present. An exact
+ * team code returns that roster; otherwise name and team prefixes stay predictable.
  */
 export function queryPlayerSearch(
   index: PlayerSearchIndex,

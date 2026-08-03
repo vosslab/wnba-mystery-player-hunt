@@ -7,12 +7,12 @@ import {
   queryPlayerSearch,
 } from "../src/search_index.ts";
 
-function player(playerId, displayName, searchName = displayName) {
+function player(playerId, displayName, searchName = displayName, teamCode = "CHI") {
   return {
     playerId,
     displayName,
     searchName,
-    teamCode: "CHI",
+    teamCode,
     conference: "East",
     heightInches: 72,
     birthDateUtc: "2000-01-01T00:00:00Z",
@@ -56,5 +56,21 @@ test("search waits for two normalized characters, ranks natural prefixes, and ex
   assert.deepEqual(
     queryPlayerSearch(index, "wi", new Set(["1"])).map((result) => result.playerId),
     ["2"],
+  );
+});
+
+test("searching a team code returns that roster alphabetically and respects exclusions", () => {
+  const kayla = player("1", "Kayla Thornton", undefined, "GSV");
+  const tiffany = player("2", "Tiffany Hayes", undefined, "GSV");
+  const aja = player("3", "Aja Wilson", undefined, "LVA");
+  const index = buildPlayerSearchIndex([tiffany, aja, kayla]);
+
+  assert.deepEqual(
+    queryPlayerSearch(index, "GSV").map((result) => result.displayName),
+    ["Kayla Thornton", "Tiffany Hayes"],
+  );
+  assert.deepEqual(
+    queryPlayerSearch(index, "gs", new Set(["1"])).map((result) => result.displayName),
+    ["Tiffany Hayes"],
   );
 });

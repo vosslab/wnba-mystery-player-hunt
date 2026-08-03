@@ -162,6 +162,12 @@ h2 {
   font-size: 0.88rem;
 }
 
+.pool-summary {
+  color: var(--ink);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .header-summary {
   display: flex;
   align-items: baseline;

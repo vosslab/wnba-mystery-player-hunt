@@ -98,6 +98,7 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
   });
 
   controls.setThemePreference(state.dailySaveData.themePreference);
+  controls.setPlayerPoolSummary(`Player pool: ${state.snapshot.players.length}.`);
   persistDailyState();
   renderState(state.dailySaveData.puzzle?.status !== "active");
   gameRoot.dataset.ready = "true";
@@ -162,8 +163,11 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
     const results = queryPlayerSearch(state.searchIndex, query, excludedIds);
     const suggestions = results.map(toSuggestion);
     controls?.setSuggestions(suggestions);
-    if (query.trim().length > 0 && suggestions.length === 0) {
-      controls?.setStatus("Keep typing or try another spelling.");
+    if (normalizeSearchText(query).length >= 2 && suggestions.length === 0) {
+      controls?.setStatus(
+        `No matching player or team in the ${state.snapshot.players.length}-player pool. ` +
+          "Try another search or use Pick for me.",
+      );
     }
   }
 

@@ -20,9 +20,10 @@ async function expectCleanBoot(page: Page): Promise<void> {
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "WNBA Mystery Player Hunt" })).toBeVisible();
-  await expect(page.getByLabel("Search a WNBA player")).toBeEnabled();
+  await expect(page.getByLabel("Search by player or team")).toBeEnabled();
   await expect(page.getByRole("button", { name: "Guess" })).toBeEnabled();
   await expect(page.getByRole("button", { name: "Pick for me" })).toBeEnabled();
+  await expect(page.locator("#player-pool-summary")).toHaveText(/Player pool: \d+\./);
   await expect(page.getByRole("status")).toContainText("Choose a player");
   expect(errors).toEqual([]);
 }

@@ -5,7 +5,7 @@
  *   ./build_github_pages.sh && node tests/playwright/capture_readme_screenshot.mjs /tmp/wnba_pickle_feedback.png
  *
  * The harness intentionally serves only dist/ and fails if the page tries to reach
- * WNBA domains. It uses the bundled development fixture and captures one wrong,
+ * WNBA domains. It uses the bundled roster and captures one wrong,
  * accepted guess so the nine-clue comparison feedback is visible without spoiling
  * the daily answer.
  */
@@ -66,9 +66,7 @@ const roster = JSON.parse(
 );
 const players = roster.players;
 if (!Array.isArray(players) || players.length < 2) {
-  throw new Error(
-    "The bundled development fixture needs at least two players for a feedback capture.",
-  );
+  throw new Error("The bundled roster needs at least two players for a feedback capture.");
 }
 
 const server = startStaticServer();
@@ -91,7 +89,7 @@ page.on("request", (request) => {
 try {
   await page.goto(serverUrl, { waitUntil: "networkidle" });
 
-  const search = page.getByLabel("Search a WNBA player");
+  const search = page.getByLabel("Search by player or team");
   let accepted = false;
   for (const player of players) {
     // Each candidate must begin a new active round. A winning candidate writes

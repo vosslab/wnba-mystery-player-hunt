@@ -37,7 +37,12 @@
           </div>
         </div>
         <div class="header-summary">
-          <p class="lede">Find the mystery player. Every guess reveals nine clues.</p>
+          <p class="lede">
+            Find the mystery player. Every guess reveals nine clues.
+            <span id="player-pool-summary" class="pool-summary" aria-live="polite">
+              Player pool loading.
+            </span>
+          </p>
           <p class="guess-count" aria-label="Nine guesses left, 100 points available">
             9 left | 100 pts
           </p>
@@ -48,13 +53,13 @@
         <h2 id="guess-title" class="visually-hidden">Make a guess</h2>
 
         <form id="guess-form" class="guess-form" aria-describedby="guess-help" novalidate>
-          <label for="player-search">Search a WNBA player</label>
+          <label for="player-search">Search by player or team</label>
           <div class="guess-actions">
             <input
               id="player-search"
               name="player-search"
               type="search"
-              placeholder="Start typing a player name"
+              placeholder="Player name or team code (for example, GSV)"
               autocomplete="off"
               aria-autocomplete="list"
               aria-controls="player-suggestions"
@@ -74,7 +79,8 @@
             aria-label="Player matches"
           ></ul>
           <p id="guess-help" class="visually-hidden">
-            Start typing to find an active WNBA player, then submit your guess.
+            Type at least two characters of a player name or a team code. Choose a player, then
+            submit your guess.
           </p>
         </form>
         <p id="game-status" class="shell-status" role="status" aria-live="polite">

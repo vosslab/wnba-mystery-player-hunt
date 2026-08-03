@@ -2,14 +2,13 @@
 
 ## Scope and status
 
-This is a deterministic offline measurement of the checked-in development fixture. It reads
+This is a deterministic offline measurement of the checked-in derived roster. It reads
 `src/data/roster.json` through the same snapshot validator and clue engine as the game. It makes
 no network requests, opens no browser, and does not invoke the Python acquisition pipeline.
 
-The fixture has 16 hand-picked recognizable players and is explicitly incomplete. These numbers
-are therefore provisional development evidence, not release calibration and not a basis for
-choosing the 200 or 300 fantasy-point cutoff. Re-run this tool against the official
-Python-generated roster after the cutoff is approved.
+The roster has 136 validated players selected from current rosters at the approved 300-point
+maximum-two-season recognizability cutoff. The probe measures the deterministic solver, not human
+WNBA knowledge, so human play remains the authority for the score curve.
 
 ## Method
 
@@ -19,7 +18,7 @@ Run the probe with:
 node --import tsx tools/simulate_difficulty.mjs
 ```
 
-Every fixture player is used once as the answer. After every non-winning guess, both solvers
+Every roster player is used once as the answer. After every non-winning guess, both solvers
 remove that exact `playerId` and retain only candidates consistent with the complete feedback
 from prior guesses. This identity removal matters when two players have an identical nine-clue
 profile: feedback alone cannot distinguish them, but a player cannot be guessed twice. A
@@ -32,56 +31,53 @@ The weak sensitivity solver uses the lowest-`playerId` consistent candidate with
 It is context for the baseline, not a decision rule. A solved-game mean and median use solved
 games only; losses remain separate so a capped run does not pretend a loss was an extra solve.
 
-## Development-fixture results
+## Derived-roster results
 
-Snapshot `2026-08-02-development-1`, 16 players, evaluated at `2026-08-02`:
+Snapshot as of `2026-08-03`, 136 players, evaluated at `2026-08-03`:
 
-- Fixed baseline first guess: Breanna Stewart (`1627668`).
+- Fixed baseline first guess: Michaela Onyenwere (`8338024539083250`).
 
-| Guesses | Solved | Losses | Loss rate | Mean solved guesses | Median solved guesses | Distribution        |
-| ------- | -----: | -----: | --------: | ------------------: | --------------------: | ------------------- |
-| 5       |     16 |      0 |      0.0% |                1.94 |                  2.00 | 1: 1, 2: 15, 3-5: 0 |
-| 6       |     16 |      0 |      0.0% |                1.94 |                  2.00 | 1: 1, 2: 15, 3-6: 0 |
-| 7       |     16 |      0 |      0.0% |                1.94 |                  2.00 | 1: 1, 2: 15, 3-7: 0 |
-| 9       |     16 |      0 |      0.0% |                1.94 |                  2.00 | 1: 1, 2: 15, 3-9: 0 |
+| Guesses | Solved | Losses | Loss rate | Mean solved guesses | Median solved guesses | Distribution             |
+| ------- | -----: | -----: | --------: | ------------------: | --------------------: | ------------------------ |
+| 5       |    136 |      0 |      0.0% |                2.24 |                  2.00 | 1: 1, 2: 101, 3: 34, 4-5: 0 |
+| 6       |    136 |      0 |      0.0% |                2.24 |                  2.00 | 1: 1, 2: 101, 3: 34, 4-6: 0 |
+| 7       |    136 |      0 |      0.0% |                2.24 |                  2.00 | 1: 1, 2: 101, 3: 34, 4-7: 0 |
+| 9       |    136 |      0 |      0.0% |                2.24 |                  2.00 | 1: 1, 2: 101, 3: 34, 4-9: 0 |
 
-The lowest-ID sensitivity solver also solves all 16 fixture answers within 5, 6, 7, and 9 guesses.
-That result confirms the fixture is too small and deliberately curated to calibrate real
-difficulty. It is not evidence that a player using the search UI will solve every game in two
-guesses.
+The lowest-ID sensitivity solver also solves all 136 answers within 5, 6, 7, and 9 guesses. This is
+evidence that the clue system is mechanically informative, not that a person will solve every game
+in two guesses.
 
 ## Clue discrimination
 
 For each clue independently, the tool averages the remaining consistent candidates after one
 guess-target feedback cell across every ordered guess/target pair. Lower expected remaining and
-higher reduction indicate stronger early discrimination in this fixture.
+higher reduction indicate stronger early discrimination in this roster.
 
 | Clue       | Expected remaining | Reduction |
 | ---------- | -----------------: | --------: |
-| Team       |              12.59 |     21.3% |
-| Conference |               8.13 |     49.2% |
-| Height     |               7.39 |     53.8% |
-| Draft year |               8.73 |     45.4% |
-| Draft pick |               8.48 |     47.0% |
-| Country    |              12.70 |     20.6% |
-| College    |              13.16 |     17.8% |
-| Age        |               7.95 |     50.3% |
-| Position   |               6.53 |     59.2% |
+| Team       |             118.57 |     12.8% |
+| Conference |              68.13 |     49.9% |
+| Height     |              65.90 |     51.5% |
+| Draft year |              84.29 |     38.0% |
+| Draft pick |              86.44 |     36.4% |
+| Country    |              94.53 |     30.5% |
+| College    |             123.48 |      9.2% |
+| Age        |              74.09 |     45.5% |
+| Position   |              65.95 |     51.5% |
 
-The nine clues are not redundant in the fixture: position, height, age, conference, and both
-draft fields distinguish candidates early, while team, country, and college add recognizable
-fan-facing context. The complete nine-cell feedback uniquely separates nearly every fixture
-target after the fixed first guess, which is useful as a smoke signal for the clue engine but is
-far too easy to judge release fun.
+The nine clues are not redundant: position, height, conference, age, and the draft fields
+distinguish candidates early, while team, country, and college add recognizable fan-facing
+context. The complete nine-cell feedback separates the solver's remaining candidates quickly,
+but human recall and search choices make browser play meaningfully harder than this ideal strategy.
 
 ## Decision
 
 This provisional six-guess recommendation is superseded by the human playtest decision on
 2026-08-02. The game now allows nine guesses and makes efficiency visible through a score that
 starts at 100 points and falls by 10 for each extra guess. The larger limit prioritizes continued
-play; the score preserves the incentive to solve efficiently. Before release, re-run this probe on
-the approved roster and use the results to calibrate the scoring curve rather than silently
-reducing the number of attempts.
+play; the score preserves the incentive to solve efficiently. This approved-roster run supports
+calibrating the score through human play rather than silently reducing the number of attempts.
 
 ## Refined UI audit
 
@@ -100,9 +96,11 @@ challenge; Practice supplies fresh rounds without changing daily progress or sta
   remains collapsible.
 - Normalize multi-position sets to conventional display order so `C/F` and `F/C` are both `F/C`
   and compare as exact.
+- Report the 136-player pool in the interface and name that pool when a search has no match.
+- Let a team code such as `GSV` turn the existing autocomplete into a browsable team roster.
 - Reduce title, spacing, cell padding, and secondary-control weight while retaining 44-pixel
   interactive targets.
-- Collapse How it works, Statistics, and Theme into one compact secondary row on desktop.
+- Keep How it works, Statistics, and Theme in one compact secondary row on desktop.
 - Make Daily and Practice explicit modes, with a fresh-player action visible only in Practice.
 - Show the next available score beside the remaining guesses. The score starts at 100 and drops
   by 10 for each extra guess.

@@ -18,8 +18,11 @@ the command running while playing; stop it with `Ctrl-C` when finished.
 
 ## Play a round
 
-- Type at least two characters of a player's name and choose a match with the keyboard or mouse.
-- Select a player, or use `Pick for me` to fill an unused development-pool player, then submit.
+- Type at least two characters of a player's name, or enter a team code such as `GSV` to list that
+  team's available players, then choose a match with the keyboard or mouse.
+- Select a player, or use `Pick for me` to fill an unused bundled-pool player, then submit.
+- Check the pool count beside the introduction. A no-match message reports that same pool size so
+  an absent player is not mistaken for a spelling error.
 - Read the nine clue columns in the comparison grid to choose the next guess.
 - Solve within nine guesses. A first-guess win scores 100 points, and each extra guess costs 10
   points; a ninth-guess win scores 20 points and an unsolved round scores zero.

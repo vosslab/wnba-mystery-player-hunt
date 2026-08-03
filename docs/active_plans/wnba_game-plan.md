@@ -185,6 +185,8 @@ Evidence strategy for uncertain methods:
 - Build a one-page TypeScript browser game with search, autocomplete, a "Pick for me"
   helper, Daily and Practice modes, a responsive comparison grid, score feedback, statistics,
   a result dialog, and daily share output.
+- Let autocomplete search player names or a team code; an exact team code lists that team's
+  available players without revealing the mystery answer.
 - Present one deterministic mystery player per UTC day, selected from a committed roster
   snapshot, with nine guesses. Score a first-guess win at 100 points, subtract 10 points for
   each extra guess, and score an unsolved round at zero.
@@ -272,21 +274,19 @@ Locked by the user or by this revision. Not reopened during execution.
 
 ### Implementation status: 2026-08-02
 
-- Contracts, scaffold, comparison-grid gameplay, persistence, results and sharing, browser
-  coverage, contrast work, and supporting documentation are implemented against a clearly
-  labeled development fixture. Human playtesting superseded the provisional six-guess probe:
-  Daily now allows nine scored guesses, and Practice supplies fresh non-statistical rounds.
+- Contracts, comparison-grid gameplay, persistence, results and sharing, browser coverage,
+  contrast work, and supporting documentation are implemented against the verified 136-player
+  derived roster. Daily allows nine scored guesses, and Practice supplies fresh non-statistical
+  rounds.
 - The Python-only roster-generation and validation pipeline is implemented separately from
   the browser. `fetch_wnba_player_data.py` runs the full private harvester; reusable modules
   live under `data_fetcher/`, and executable `tools/` wrappers serve offline stages. Browser
   runtime and Playwright never gather WNBA data.
-- A bounded derived-data harvest has succeeded: 15 team pages, 223 current totals rows, 182 prior
-  totals rows, and three `--max` candidates. A complete no-limit harvest and real-pool cutoff
-  decision are not recorded. This does not invalidate development play.
-- Still required before a public derived-data release decision: a complete requested-current and
-  preceding-season harvest, the user's 200-versus-300 cutoff choice, real-pool calibration, and
-  human permission or data-use approval for Basketball-Reference-sourced output. The Pages
-  workflow is separate from those unresolved data decisions.
+- The complete pull produced 206 private candidates and promoted a verified 136-player public
+  snapshot at the approved 300-point maximum-two-season cutoff. The browser reports that pool size,
+  supports name and team-code search, and does not ship performance totals or source URLs.
+- The difficulty probe has been rerun against all 136 players. Its ideal solver finishes every
+  target within three guesses, so human playtesting remains the decision source for score tuning.
 - This plan remains active. Do not move or archive it until those release decisions and
   release checks are complete.
 
@@ -1121,8 +1121,9 @@ league-wide `SCHOOL` values including the international cases.
 - Depends on: WP-3.2, WP-1.4.
 - Acceptance criteria: activation threshold, dropdown contents, and no-results behavior
   match the WP-1.4 parity report; matching ignores case, punctuation, and diacritics while
-  the dropdown shows the proper display name with team and position; arrow keys, Enter,
-  and Escape all work; the typed query survives a rejected guess.
+  the dropdown shows the proper display name with team and position; an exact team code such as
+  `GSV` lists that team's players alphabetically; arrow keys, Enter, and Escape all work; the typed
+  query survives a rejected guess.
 - Evidence: a keyboard-only Playwright walkthrough.
 
 ### Work package: WP-4.4 implement game state and completion
@@ -1238,7 +1239,7 @@ league-wide `SCHOOL` values including the international cases.
   switching; every spec fails on a console error or a page error; selectors are `getByRole`
   or `getByLabel` first and `data-*` only where roles cannot reach; no fixed timeout waits.
 - Portrait interaction walkthrough: at the 800x1280 primary viewport, a spec drives a real
-  guess-feedback cycle plus win and loss using development data, verifies the next action is
+  guess-feedback cycle plus win and loss using the bundled derived data, verifies the next action is
   apparent, and confirms feedback and all nine clues are readable or reachable. Reasonable
   scrolling or stacking is allowed; screenshots alone do not satisfy this criterion.
 - Responsive verification: use 800x1280 as the minimum viewport and repeat the boot-and-guess
@@ -1360,19 +1361,29 @@ source source_me.sh && python3 -m pytest tests/
 
 ## Rollout and release checklist
 
-- [ ] All four required final commands pass, with command and exit status recorded.
-- [ ] `dist/` contains `main.js`, `index.html`, `.nojekyll`, and the snapshot data inlined
+- [x] All four required final commands pass, with command and exit status recorded.
+- [x] `dist/` contains `main.js`, `index.html`, `.nojekyll`, and the snapshot data inlined
       by the bundle.
-- [ ] The shipped snapshot contains no performance field (fantasy points and minutes
+- [x] The shipped snapshot contains no performance field (fantasy points and minutes
       included), and every player satisfies the recorded current-roster and recognizability rules.
-- [ ] The guess count in `src/constants.ts` matches the WP-5.1 decision.
+- [x] The guess count in `src/constants.ts` matches the WP-5.1 decision.
 - [ ] `docs/PALETTE_CONTRAST_AUDIT.md` records measured values for both themes at the
       primary and responsive viewports.
-- [ ] The portrait interaction walkthrough passes at 800x1280.
-- [ ] `docs/CHANGELOG.md` and `docs/DATA_REFRESH.md` are current.
+- [x] The portrait interaction walkthrough passes at 800x1280.
+- [x] `docs/CHANGELOG.md` and `docs/DATA_REFRESH.md` are current.
 - [ ] The WP-1.5 record permits publication, and the documentation's deployment language
       matches it.
 - [ ] An independent `reviewer` agent has signed off on the built artifact.
+
+### Validation record: 2026-08-02
+
+- `./check_codebase.sh`: exit 0; five checks passed, including 26 Node tests.
+- `./build_github_pages.sh`: exit 0; the GitHub Pages artifact rebuilt successfully.
+- `./run_playwright_tests.sh --build`: exit 0; seven browser journeys passed at the 800x1280
+  minimum and the 1920x1080 wide-desktop check.
+- `source source_me.sh && python3 -m pytest tests/`: exit 0; 1139 tests passed.
+- `node --import tsx tools/simulate_difficulty.mjs`: exit 0; all 136 roster targets solved by
+  both deterministic strategies within the tested 5, 6, 7, and 9 guess limits.
 
 GitHub Pages deployment is already defined by `.github/workflows/deploy-pages.yml`, which builds
 and deploys `main` for [WNBA Mystery Player Hunt](https://vosslab.github.io/wnba-mystery-player-hunt/)
