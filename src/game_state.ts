@@ -152,7 +152,7 @@ export function assertGuessLimit(guessLimit: number): void {
     guessLimit < MINIMUM_GUESS_LIMIT ||
     guessLimit > MAXIMUM_GUESS_LIMIT
   ) {
-    throw new Error("Guess limit must be an integer from 5 through 7.");
+    throw new Error("Guess limit must be an integer from 5 through 9.");
   }
 }
 

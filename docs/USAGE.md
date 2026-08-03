@@ -19,10 +19,14 @@ the command running while playing; stop it with `Ctrl-C` when finished.
 ## Play a round
 
 - Type at least two characters of a player's name and choose a match with the keyboard or mouse.
-- Submit the selected player, or use `Pick for me` for an unused development-pool player.
+- Select a player, or use `Pick for me` to fill an unused development-pool player, then submit.
 - Read the nine clue columns in the comparison grid to choose the next guess.
-- Use the light, dark, or system theme choice; progress, statistics, and streaks persist locally.
-- At the end of six guesses, read the result and use Share result for a non-spoiling summary.
+- Solve within nine guesses. A first-guess win scores 100 points, and each extra guess costs 10
+  points; a ninth-guess win scores 20 points and an unsolved round scores zero.
+- Switch to Practice for fresh replayable rounds that do not change daily progress or statistics.
+- Leave the theme on its System default, or choose an explicit light or dark override; daily
+  progress, statistics, and streaks persist locally.
+- At the end of the daily round, read the result and use Share result for a non-spoiling summary.
 
 The site makes no runtime request for roster or statistics data. Updating the bundled roster is a
 separate Python maintenance task and does not affect the game architecture.

@@ -1,7 +1,7 @@
 # WNBA Mystery Player Hunt
 
-A daily WNBA player-guessing game for fans who want a quick, clue-driven challenge, using nine
-comparisons to turn each of six guesses into a useful next move.
+A daily WNBA player-guessing game for fans who want a clue-driven challenge, with nine
+comparisons, practice rounds, and a score that rewards efficient solves.
 
 [Play the game](https://vosslab.github.io/wnba-mystery-player-hunt/) |
 [View the repository](https://github.com/vosslab/wnba-mystery-player-hunt)
@@ -16,12 +16,13 @@ Each round asks for one mystery player. Search by two or more characters, submit
 use the comparison grid to narrow the next guess. A finished round gives a spoiler-free share
 summary and saves local statistics.
 
-- Six guesses make the round short enough for a daily habit.
+- Nine guesses keep the round moving, while a 100-point score rewards efficient solves.
 - Nine clues compare team, conference, height, draft year and pick, country, college, age, and
   position.
 - Exact, close, and no-match feedback makes every row useful, including a wrong answer.
-- Keyboard and mouse search, `Pick for me`, and light, dark, and system themes support a quick
-  play session.
+- Practice mode offers fresh rounds without changing daily statistics or streaks.
+- Keyboard and mouse search, `Pick for me` prefill, and a system-default theme with light and dark
+  overrides support a quick play session.
 - The browser uses only bundled JSON; roster and statistic gathering stay in the separate Python
   maintenance workflow.
 
@@ -63,10 +64,10 @@ needed.
 ## How a round works
 
 1. Enter at least two characters in the player search.
-2. Select a suggestion and submit it, or use `Pick for me`.
+2. Select a suggestion, or use `Pick for me` to fill the search box, then submit the guess.
 3. Read all nine clue cells in the new row, then choose the next player.
-4. Solve the mystery player within six guesses to win; otherwise see the answer after the final
-   guess.
+4. Solve the mystery player within nine guesses. Each extra guess costs 10 points; an unsolved
+   round scores zero and reveals the answer.
 
 The game always uses the roster bundled in the repository. Data updates are independent Python
 maintenance work; the browser never fetches roster or statistics data at runtime.

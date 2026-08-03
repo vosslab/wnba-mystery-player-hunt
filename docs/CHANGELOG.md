@@ -2,6 +2,10 @@
 
 ### Additions and New Features
 
+- Add replayable Practice rounds that choose fresh mystery players without changing the saved
+  daily puzzle, statistics, or streaks.
+- Expand the daily round to nine guesses and add a visible 100-point score that drops by 10 for
+  each extra guess, with 20 points available on the ninth guess and zero for an unsolved round.
 - Add a playable daily WNBA player-guessing game with deterministic UTC puzzles, nine WNBA
   biography clues, autocomplete, keyboard control, Pick for me, win/loss dialogs, share
   fallback, and responsive light/dark themes.
@@ -12,11 +16,28 @@
   generation live in `data_fetcher/wnba_candidates.py` and `data_fetcher/wnba_roster.py`.
   Performance data remains private and does not enter the shipped snapshot.
 - Add Node unit coverage and Playwright journeys for boot, feedback, duplicate recovery,
-  Pick for me, win, loss, reload behavior, mobile reachability, and zero WNBA runtime calls.
+  Pick for me, win, loss, reload behavior, supported viewport widths, and zero WNBA runtime calls.
 - Add install and usage guidance, the data-pipeline reports, and a four-token contrast audit.
 
 ### Fixes and Maintenance
 
+- Recover malformed Basketball-Reference player profiles that start a new paragraph before closing
+  Position, name the active source in progress output, and resume long harvests from private
+  five-player checkpoints instead of repeating every completed player request after a crash.
+- Tighten the game shell, collapse secondary theme controls, let the desktop clue grid use the
+  available viewport, and keep 800x1280 as the minimum layout acceptance gate. Keep System as the
+  default theme with light and dark as explicit overrides.
+- Show the complete nine-clue grid before the first guess so the game teaches its structure
+  visually, and make `Pick for me` fill the search field without submitting on the player's behalf.
+- Normalize multi-position clue displays to conventional role order, so equivalent source values
+  such as `C/F` and `F/C` display as `F/C` and receive exact feedback.
+- Keep How it works and Statistics visible in their permanently allocated tool columns while Theme
+  remains collapsible.
+- Refresh [screenshots/wnba_pickle_feedback.png](screenshots/wnba_pickle_feedback.png) from the
+  built site and record responsive heuristic and accessibility evidence in
+  [active_plans/reports/difficulty_and_fun.md](active_plans/reports/difficulty_and_fun.md).
+- Extend the offline difficulty probe and report with the new nine-guess limit while retaining the
+  smaller limits as comparison evidence for later score calibration.
 - Replace the blocked WNBA Stats Angular-shell acquisition path with the proven Python-only,
   server-rendered Basketball-Reference WNBA HTML path. The bounded `--max 3` run found 15 teams,
   223 current totals rows, 182 prior totals rows, and three derived test-limit candidates; it does

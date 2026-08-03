@@ -61,13 +61,21 @@ test("undrafted players only match other undrafted players", () => {
   assert.equal(evaluateDraftPick(drafted, undrafted), "miss");
 });
 
-test("position overlap is symmetric while matching primary positions is exact", () => {
+test("position roles are order-independent sets with normalized display", () => {
   const guardForward = player({ positionPrimary: "G", positionAlternates: ["F"] });
   const forward = player({ positionPrimary: "F", positionAlternates: [] });
   const guard = player({ positionPrimary: "G", positionAlternates: [] });
+  const centerForward = player({ positionPrimary: "C", positionAlternates: ["F"] });
+  const forwardCenter = player({ positionPrimary: "F", positionAlternates: ["C"] });
   assert.equal(evaluatePosition(guardForward, forward), "partial");
   assert.equal(evaluatePosition(forward, guardForward), "partial");
-  assert.equal(evaluatePosition(guardForward, guard), "exact");
+  assert.equal(evaluatePosition(guardForward, guard), "partial");
+  assert.equal(evaluatePosition(centerForward, forwardCenter), "exact");
+
+  const evaluation = evaluateGuess(centerForward, forwardCenter, "2026-06-15");
+  const position = evaluation.cells.find((cell) => cell.clueId === "position");
+  assert.equal(position?.displayValue, "F/C");
+  assert.equal(position?.match, "exact");
 });
 
 test("age is derived from the supplied UTC puzzle date at the birthday edge", () => {

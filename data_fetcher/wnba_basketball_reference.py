@@ -291,6 +291,16 @@ class ProfileParser(html.parser.HTMLParser):
 		self.birth_date: str | None = None
 		self.country_code: str | None = None
 
+	def finish_paragraph(self) -> None:
+		"""Store the active paragraph and reset its collection state."""
+		if not self.paragraph_depth:
+			return
+		text = compact_text(self.paragraph_text)
+		if text:
+			self.paragraphs.append(text)
+		self.paragraph_depth = 0
+		self.paragraph_text = []
+
 	def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
 		"""Capture birth and flag attributes while entering paragraphs."""
 		attributes = dict(attrs)
@@ -304,9 +314,10 @@ class ProfileParser(html.parser.HTMLParser):
 				if match is not None:
 					self.country_code = match.group(1).upper()
 		if tag == "p":
-			self.paragraph_depth += 1
-			if self.paragraph_depth == 1:
-				self.paragraph_text = []
+			# HTML implicitly closes an open paragraph when another paragraph starts.
+			# Apply that browser behavior to malformed source profiles as well.
+			self.finish_paragraph()
+			self.paragraph_depth = 1
 
 	def handle_data(self, data: str) -> None:
 		"""Capture text from biography paragraphs."""
@@ -315,13 +326,13 @@ class ProfileParser(html.parser.HTMLParser):
 
 	def handle_endtag(self, tag: str) -> None:
 		"""Finish an outer biography paragraph."""
-		if tag != "p" or not self.paragraph_depth:
-			return
-		self.paragraph_depth -= 1
-		if self.paragraph_depth == 0:
-			text = compact_text(self.paragraph_text)
-			if text:
-				self.paragraphs.append(text)
+		if tag == "p":
+			self.finish_paragraph()
+
+	def close(self) -> None:
+		"""Finish parser input and retain a final unclosed paragraph."""
+		super().close()
+		self.finish_paragraph()
 
 
 #============================================

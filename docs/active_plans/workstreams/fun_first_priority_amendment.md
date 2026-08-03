@@ -8,17 +8,17 @@ full behavior-equivalence requirement.
 
 ## Changed gates
 
-- Freeze contracts from the observed core: the reference's nine-guess observation (not the WNBA
-  guess limit), green exact and gold partial feedback, autocomplete, nine WNBA clues, and no
-  arrows. The WNBA game defaults to six guesses and may tune only within five to seven.
+- Retain the observed core: green exact and gold partial feedback, autocomplete, nine WNBA clues,
+  and no arrows. The human playtest decision supersedes the provisional limit: the WNBA game now
+  allows nine scored guesses and adds a non-statistical Practice mode.
 - Treat duplicate, dialog, statistics, and share-reference details as non-blocking. The WNBA
   game supplies a sensible usable design, including non-spoiling sharing with a fallback.
 - Build and playtest M2/M4 with plainly labeled schema-valid development data before the
   official data lane finishes.
 - Require an early browser walkthrough with a real guess-feedback cycle plus development-data
   win and loss paths. Use M5 playtesting and solver evidence to tune guess count and clues.
-- Use 800x1280 as the main design target while accepting readable/reachable responsive layouts,
-  including reasonable grid scrolling or stacking, rather than fixed widths or pixel parity.
+- Use 800x1280 as the minimum design and acceptance target, with 1920x1080 as the wide-desktop
+  check. Viewports narrower than 800 pixels are not a release gate.
 - Focus permanent tests on game rules, duplicate rejection, deterministic selection, save
   recovery, win/loss, accessibility, and release-data schema behavior.
 - Keep all future roster and statistics gathering in Python. Browser discovery is complete;

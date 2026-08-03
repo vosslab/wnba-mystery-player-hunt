@@ -17,9 +17,31 @@
       <header class="game-header">
         <div class="title-row">
           <h1 id="game-title">WNBA Mystery Player Hunt</h1>
-          <p class="guess-count" aria-label="Six guesses remaining">6 left</p>
+          <div class="mode-controls">
+            <div class="mode-switch" role="group" aria-label="Game mode">
+              <button id="daily-mode" class="mode-button" type="button" aria-pressed="true">
+                Daily
+              </button>
+              <button id="practice-mode" class="mode-button" type="button" aria-pressed="false">
+                Practice
+              </button>
+            </div>
+            <button
+              id="new-practice-player"
+              class="mode-button new-practice-button"
+              type="button"
+              hidden
+            >
+              New player
+            </button>
+          </div>
         </div>
-        <p class="lede">Find today&apos;s mystery player. Every guess reveals nine clues.</p>
+        <div class="header-summary">
+          <p class="lede">Find the mystery player. Every guess reveals nine clues.</p>
+          <p class="guess-count" aria-label="Nine guesses left, 100 points available">
+            9 left | 100 pts
+          </p>
+        </div>
       </header>
 
       <section class="play-panel" aria-labelledby="guess-title">
@@ -63,46 +85,61 @@
       <section class="comparison-section" aria-labelledby="comparison-title">
         <div class="section-heading comparison-heading">
           <h2 id="comparison-title">Clues</h2>
-          <p class="grid-key" aria-label="Feedback key">
-            <span class="key-exact" aria-hidden="true"></span> Exact
-            <span class="key-partial" aria-hidden="true"></span> Close
-            <span class="key-miss" aria-hidden="true"></span> No match
-          </p>
         </div>
-        <div
-          class="grid-scroll"
-          tabindex="0"
-          aria-label="Comparison grid area. Scroll horizontally for all clues."
-        >
+        <div class="grid-frame">
           <div id="comparison-grid" class="comparison-grid" aria-live="polite">
-            <p class="empty-grid-message">Your guesses will build a clue grid here.</p>
+            <table class="comparison-table" data-grid="comparison">
+              <caption>
+                Comparison grid. Each row is one player guess; every clue says Exact, Close, or No
+                match.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Player</th>
+                  <th scope="col">Team</th>
+                  <th scope="col">Conference</th>
+                  <th scope="col">Height</th>
+                  <th scope="col">Draft year</th>
+                  <th scope="col">Draft pick</th>
+                  <th scope="col">Country</th>
+                  <th scope="col">College</th>
+                  <th scope="col">Age</th>
+                  <th scope="col">Position</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
       </section>
 
       <section class="game-tools" aria-label="Game information and settings">
-        <details class="how-to">
-          <summary>How it works</summary>
+        <section class="how-to" aria-labelledby="how-to-title">
+          <h2 id="how-to-title">How it works</h2>
           <p>
-            Use each row's feedback to narrow the field. You have six guesses to find today's
-            player.
+            Use each row&apos;s feedback to narrow the field. You have nine guesses. A first-guess
+            win scores 100 points; each extra guess costs 10 points. Practice rounds do not change
+            daily statistics.
           </p>
-        </details>
+        </section>
 
-        <details class="statistics-panel">
-          <summary>Statistics</summary>
+        <section class="statistics-panel" aria-labelledby="statistics-title">
+          <h2 id="statistics-title">Statistics</h2>
           <p id="statistics-summary">Your play statistics will appear here.</p>
-        </details>
+        </section>
 
-        <fieldset class="theme-picker">
-          <legend>Color theme</legend>
-          <p class="helper-text">System follows your device until you choose light or dark.</p>
-          <div class="theme-options">
-            <label><input name="theme" type="radio" value="system" checked /> System</label>
-            <label><input name="theme" type="radio" value="light" /> Light</label>
-            <label><input name="theme" type="radio" value="dark" /> Dark</label>
-          </div>
-        </fieldset>
+        <details class="theme-panel">
+          <summary>Theme</summary>
+          <fieldset class="theme-picker">
+            <legend class="visually-hidden">Color theme</legend>
+            <p class="helper-text">System follows your device and is the default.</p>
+            <div class="theme-options">
+              <label><input name="theme" type="radio" value="system" checked /> System</label>
+              <label><input name="theme" type="radio" value="light" /> Light</label>
+              <label><input name="theme" type="radio" value="dark" /> Dark</label>
+            </div>
+          </fieldset>
+        </details>
       </section>
     </main>
 

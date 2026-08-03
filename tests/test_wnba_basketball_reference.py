@@ -135,6 +135,20 @@ def test_parse_profile_metadata_supports_real_short_draft_wording() -> None:
 
 #============================================
 
+def test_parse_profile_metadata_implicitly_closes_a_malformed_position_paragraph() -> None:
+	"""Recover fields after the source starts a height paragraph before closing Position."""
+	html = """<p><strong>Position:</strong> Forward
+	<p><span>6-4</span> (193cm)</p>
+	<p><strong>Born:</strong> <span data-birth='2000-01-10'></span>
+	<span class='f-i f-de'>de</span></p>
+	<p><strong>Draft:</strong> 2nd round (10th pick, 22nd overall), 2020 Draft</p>"""
+	metadata = basketball_reference.parse_player_profile_metadata(html)
+	assert metadata["position"] == "Forward"
+	assert metadata["height"] == "6-4"
+
+
+#============================================
+
 def test_parse_profile_metadata_marks_undrafted_player() -> None:
 	"""Represent explicit undrafted source text without inventing pick values."""
 	html = """<p><strong>Position:</strong> Center</p><p><strong>6-5</strong>, 180lb</p>

@@ -1,3 +1,4 @@
+import type { GameMode } from "./types/game";
 import type { ThemePreference } from "./types/save";
 
 export type SearchSuggestion = {
@@ -11,6 +12,8 @@ export type ControlsCallbacks = {
   readonly onSubmitGuess?: (query: string) => void;
   readonly onSuggestionSelected?: (suggestion: SearchSuggestion) => void;
   readonly onPickForMe?: () => void;
+  readonly onGameModeChange?: (mode: GameMode) => void;
+  readonly onNewPracticePlayer?: () => void;
   readonly onThemePreferenceChange?: (preference: ThemePreference) => void;
 };
 
@@ -19,7 +22,9 @@ export type ControlsController = {
   readonly setStatus: (message: string) => void;
   readonly setSuggestions: (suggestions: readonly SearchSuggestion[]) => void;
   readonly clearSearch: () => void;
-  readonly setAttemptSummary: (attempts: number, guessLimit: number) => void;
+  readonly setSearchValue: (value: string) => void;
+  readonly setRoundSummary: (summary: string) => void;
+  readonly setGameMode: (mode: GameMode) => void;
   readonly setStatisticsSummary: (summary: string) => void;
   readonly setThemePreference: (preference: ThemePreference) => void;
 };
@@ -39,6 +44,9 @@ export function renderControls(
   const status = requireElement<HTMLElement>(root, "#game-status");
   const suggestionList = requireElement<HTMLElement>(root, "#player-suggestions");
   const guessCount = requireElement<HTMLElement>(root, ".guess-count");
+  const dailyModeButton = requireElement<HTMLButtonElement>(root, "#daily-mode");
+  const practiceModeButton = requireElement<HTMLButtonElement>(root, "#practice-mode");
+  const newPracticeButton = requireElement<HTMLButtonElement>(root, "#new-practice-player");
   const statistics = requireElement<HTMLElement>(root, "#statistics-summary");
   const themeControls = root.querySelectorAll<HTMLInputElement>('input[name="theme"]');
   let suggestions: readonly SearchSuggestion[] = [];
@@ -48,6 +56,9 @@ export function renderControls(
   searchInput.addEventListener("keydown", handleSearchKeydown);
   guessForm.addEventListener("submit", handleSubmit);
   pickButton.addEventListener("click", handlePickForMe);
+  dailyModeButton.addEventListener("click", handleDailyMode);
+  practiceModeButton.addEventListener("click", handlePracticeMode);
+  newPracticeButton.addEventListener("click", handleNewPracticePlayer);
   for (const control of themeControls) {
     control.addEventListener("change", handleThemeChange);
   }
@@ -93,6 +104,18 @@ export function renderControls(
     callbacks.onPickForMe?.();
   }
 
+  function handleDailyMode(): void {
+    callbacks.onGameModeChange?.("daily");
+  }
+
+  function handlePracticeMode(): void {
+    callbacks.onGameModeChange?.("practice");
+  }
+
+  function handleNewPracticePlayer(): void {
+    callbacks.onNewPracticePlayer?.();
+  }
+
   function handleThemeChange(event: Event): void {
     const target = event.currentTarget;
     if (!(target instanceof HTMLInputElement) || !target.checked) {
@@ -128,11 +151,22 @@ export function renderControls(
     searchInput.focus();
   }
 
-  function setAttemptSummary(attempts: number, guessLimit: number): void {
-    const remaining = Math.max(guessLimit - attempts, 0);
-    const label = `${remaining} ${remaining === 1 ? "guess" : "guesses"} left`;
-    guessCount.textContent = label;
-    guessCount.setAttribute("aria-label", label);
+  function setSearchValue(value: string): void {
+    searchInput.value = value;
+    clearSuggestions();
+    searchInput.focus();
+  }
+
+  function setRoundSummary(summary: string): void {
+    guessCount.textContent = summary;
+    guessCount.setAttribute("aria-label", summary);
+  }
+
+  function setGameMode(mode: GameMode): void {
+    const isDaily = mode === "daily";
+    dailyModeButton.setAttribute("aria-pressed", String(isDaily));
+    practiceModeButton.setAttribute("aria-pressed", String(!isDaily));
+    newPracticeButton.hidden = isDaily;
   }
 
   function setStatisticsSummary(summary: string): void {
@@ -214,13 +248,14 @@ export function renderControls(
   }
 
   setReady(false);
-  setAttemptSummary(0, 6);
   return {
     setReady,
     setStatus,
     setSuggestions,
     clearSearch,
-    setAttemptSummary,
+    setSearchValue,
+    setRoundSummary,
+    setGameMode,
     setStatisticsSummary,
     setThemePreference,
   };

@@ -27,6 +27,12 @@ The no-limit command fetches every player listed on current roster pages and wri
 `data/private/wnba_candidates.json`. It has not yet been run to completion, so do not treat this
 document as evidence of a complete refresh or a selected cutoff.
 
+The command checkpoints each completed group of five player profiles to ignored
+`data/private/wnba_candidates.checkpoint.json`. Re-run the same command after a failure to resume
+from that completed prefix. The harvester verifies that the ordered rosters and season totals still
+match the checkpoint before reusing it, and removes the checkpoint after the final candidate file
+is written successfully.
+
 Use a short, explicitly incomplete plumbing run first:
 
 ```bash

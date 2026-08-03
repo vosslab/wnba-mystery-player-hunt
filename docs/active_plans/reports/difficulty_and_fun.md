@@ -43,8 +43,9 @@ Snapshot `2026-08-02-development-1`, 16 players, evaluated at `2026-08-02`:
 | 5       |     16 |      0 |      0.0% |                1.94 |                  2.00 | 1: 1, 2: 15, 3-5: 0 |
 | 6       |     16 |      0 |      0.0% |                1.94 |                  2.00 | 1: 1, 2: 15, 3-6: 0 |
 | 7       |     16 |      0 |      0.0% |                1.94 |                  2.00 | 1: 1, 2: 15, 3-7: 0 |
+| 9       |     16 |      0 |      0.0% |                1.94 |                  2.00 | 1: 1, 2: 15, 3-9: 0 |
 
-The lowest-ID sensitivity solver also solves all 16 fixture answers within 5, 6, and 7 guesses.
+The lowest-ID sensitivity solver also solves all 16 fixture answers within 5, 6, 7, and 9 guesses.
 That result confirms the fixture is too small and deliberately curated to calibrate real
 difficulty. It is not evidence that a player using the search UI will solve every game in two
 guesses.
@@ -75,8 +76,74 @@ far too easy to judge release fun.
 
 ## Decision
 
-Keep six guesses for development. Browser playthrough already establishes that the interaction is
-clear and reachable; this small offline fixture neither identifies a material fun problem nor
-supports a change to five or seven. Before release, re-run the same deterministic tool on the
-official Python-generated roster after the recognizability cutoff is selected, then use that
-result plus lightweight human playtesting to decide whether six remains appropriate.
+This provisional six-guess recommendation is superseded by the human playtest decision on
+2026-08-02. The game now allows nine guesses and makes efficiency visible through a score that
+starts at 100 points and falls by 10 for each extra guess. The larger limit prioritizes continued
+play; the score preserves the incentive to solve efficiently. Before release, re-run this probe on
+the approved roster and use the results to calibrate the scoring curve rather than silently
+reducing the number of attempts.
+
+## Refined UI audit
+
+### User goal
+
+Find a mystery WNBA player by turning each guess into useful clue feedback. Daily is the scored
+challenge; Practice supplies fresh rounds without changing daily progress or statistics.
+
+### Design changes
+
+- Let the desktop clue grid use the available viewport instead of a narrow centered column.
+- Treat 800x1280 as the minimum supported viewport and let wider layouts use available space.
+- Show the full clue header grid before the first guess instead of replacing it with explanatory
+  empty-state text.
+- Keep How it works and Statistics visible because their columns are always reserved; only Theme
+  remains collapsible.
+- Normalize multi-position sets to conventional display order so `C/F` and `F/C` are both `F/C`
+  and compare as exact.
+- Reduce title, spacing, cell padding, and secondary-control weight while retaining 44-pixel
+  interactive targets.
+- Collapse How it works, Statistics, and Theme into one compact secondary row on desktop.
+- Make Daily and Practice explicit modes, with a fresh-player action visible only in Practice.
+- Show the next available score beside the remaining guesses. The score starts at 100 and drops
+  by 10 for each extra guess.
+- Keep System as the default theme; Light and Dark are explicit overrides.
+
+### Heuristic delta
+
+Scores use 0 for a critical problem and 4 for no observed issue.
+
+| Nielsen heuristic | Before | After | Evidence |
+| --- | ---: | ---: | --- |
+| Visibility of system status | 3 | 4 | Mode, guesses, and points are visible together |
+| Match with the real world | 3 | 4 | Daily and Practice use familiar labels and scoring language |
+| User control and freedom | 2 | 4 | Players can switch modes or start a fresh practice player |
+| Consistency and standards | 3 | 4 | Buttons, pressed states, dialogs, and the Theme disclosure reuse native patterns |
+| Error prevention | 4 | 4 | Autocomplete and duplicate-guess protection remain intact |
+| Recognition over recall | 3 | 4 | The full clue header grid is visible before the first guess |
+| Flexibility and efficiency | 2 | 4 | Practice supports repeat play without waiting for another UTC day |
+| Aesthetic and minimalist design | 2 | 4 | Useful help and statistics remain visible; only Theme collapses |
+| Error recognition and recovery | 4 | 4 | Invalid and duplicate searches preserve context and name the next step |
+| Help and documentation | 3 | 4 | Compact help explains nine guesses, scoring, and Practice isolation |
+
+### Accessibility evidence
+
+- Browser coverage exercises keyboard autocomplete, result-dialog focus, theme controls, and
+  visible primary actions.
+- All buttons and search controls retain a minimum 44-pixel height.
+- Every feedback cell exposes its clue, value, and match in an accessible label, and the clue
+  headers remain visible at the 800x1280 minimum viewport.
+- Measured text pairs remain above WCAG AA: dark gray on Balm is 6.73:1, Ultra Black on Balm is
+  15.84:1, and Ultra Black on Orange Passion is approximately 7.43:1.
+- Manual critical and serious WCAG findings remain 0 before and after. The existing raw-token
+  palette report lists Orange Passion and Balm as failing when treated as text on Balm; the UI
+  uses them as surfaces with contrasting text, not as those failing foreground pairs.
+
+### Responsive acceptance
+
+Playwright uses 800x1280 as the minimum acceptance viewport and 1920x1080 as the wide-desktop
+check. The empty board exposes all nine clue headers before play, and both supported widths keep
+the search, submit controls, real feedback, and theme controls usable without horizontal page
+overflow. Sub-800 layouts are not a release gate.
+
+The refreshed 1600x1000 README capture is
+[../../screenshots/wnba_pickle_feedback.png](../../screenshots/wnba_pickle_feedback.png).

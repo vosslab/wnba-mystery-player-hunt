@@ -1,4 +1,6 @@
 import { formatShareText, type ShareFormatOptions } from "./share";
+import { scoreForWin } from "./score";
+import type { GameMode } from "./types/game";
 import type { DailyPuzzleState } from "./types/puzzle";
 
 export type ClipboardWriter = {
@@ -10,6 +12,8 @@ export type ResultDialogInput = {
   /** The target name is displayed only inside the completed-round dialog. */
   readonly answerName: string;
   readonly guessLimit: number;
+  readonly mode: GameMode;
+  readonly onNewPracticePlayer?: () => void;
   readonly shareOptions?: ShareFormatOptions;
 };
 
@@ -48,30 +52,21 @@ export function renderResultDialog(
     assertCompletedPuzzle(input.puzzle);
     previouslyFocused = focusedElement();
     shareText = formatShareText(input.puzzle, input.guessLimit, input.shareOptions);
+    shareStatus = null;
     manualCopyField = null;
 
     const heading = document.createElement("h2");
     heading.id = "result-title";
-    heading.textContent = input.puzzle.status === "won" ? "You got it!" : "You didn't solve it.";
+    heading.textContent = resultHeading(input.puzzle, input.mode);
 
     const summary = document.createElement("p");
     summary.textContent = outcomeSummary(input.puzzle, input.guessLimit);
 
     const answer = document.createElement("p");
-    answer.textContent = `Today's mystery player: ${input.answerName}.`;
-
-    const status = document.createElement("p");
-    status.setAttribute("role", "status");
-    status.setAttribute("aria-live", "polite");
-    status.textContent = "Share your spoiler-free result when you're ready.";
-    shareStatus = status;
-
-    const shareButton = document.createElement("button");
-    shareButton.type = "button";
-    shareButton.textContent = "Share result";
-    shareButton.addEventListener("click", () => {
-      void share();
-    });
+    answer.textContent =
+      input.mode === "daily"
+        ? `Today's mystery player: ${input.answerName}.`
+        : `Practice player: ${input.answerName}.`;
 
     const closeForm = document.createElement("form");
     closeForm.method = "dialog";
@@ -81,11 +76,44 @@ export function renderResultDialog(
     closeForm.append(closeButton);
 
     dialog.setAttribute("aria-labelledby", heading.id);
-    dialog.replaceChildren(heading, summary, answer, status, shareButton, closeForm);
+    if (input.mode === "daily") {
+      const status = createShareStatus();
+      const shareButton = createShareButton();
+      dialog.replaceChildren(heading, summary, answer, status, shareButton, closeForm);
+    } else {
+      const practiceButton = document.createElement("button");
+      practiceButton.type = "button";
+      practiceButton.textContent = "Practice another player";
+      practiceButton.addEventListener("click", function startAnotherPracticeRound(): void {
+        close();
+        input.onNewPracticePlayer?.();
+      });
+      dialog.replaceChildren(heading, summary, answer, practiceButton, closeForm);
+    }
     if (!dialog.open) {
       dialog.showModal();
     }
-    shareButton.focus();
+    const firstButton = dialog.querySelector<HTMLButtonElement>("button");
+    firstButton?.focus();
+  }
+
+  function createShareStatus(): HTMLElement {
+    const status = document.createElement("p");
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+    status.textContent = "Share your spoiler-free result when you're ready.";
+    shareStatus = status;
+    return status;
+  }
+
+  function createShareButton(): HTMLButtonElement {
+    const shareButton = document.createElement("button");
+    shareButton.type = "button";
+    shareButton.textContent = "Share result";
+    shareButton.addEventListener("click", () => {
+      void share();
+    });
+    return shareButton;
   }
 
   function close(): void {
@@ -167,9 +195,17 @@ function assertCompletedPuzzle(puzzle: DailyPuzzleState): void {
 function outcomeSummary(puzzle: DailyPuzzleState, guessLimit: number): string {
   const attempts = puzzle.guesses.length;
   if (puzzle.status === "won") {
-    return `Solved in ${attempts} of ${guessLimit} guesses.`;
+    const score = scoreForWin(attempts);
+    return `Solved in ${attempts} of ${guessLimit} guesses for ${score} points.`;
   }
-  return `Used ${attempts} of ${guessLimit} guesses.`;
+  return `Used ${attempts} of ${guessLimit} guesses. Score: 0 points.`;
+}
+
+function resultHeading(puzzle: DailyPuzzleState, mode: GameMode): string {
+  if (mode === "practice") {
+    return puzzle.status === "won" ? "Practice solved!" : "Practice complete";
+  }
+  return puzzle.status === "won" ? "You got it!" : "You didn't solve it.";
 }
 
 function focusedElement(): HTMLElement | null {

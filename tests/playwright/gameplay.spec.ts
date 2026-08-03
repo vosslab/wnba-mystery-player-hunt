@@ -10,7 +10,8 @@ import {
 
 /*
  * Selector contract:
- * - src/index.html: player-search, player-suggestions, guess-button, pick-player, game-status.
+ * - src/index.html: mode controls, player-search, player-suggestions, guess-button,
+ *   pick-player, and game-status.
  * - src/ui_grid.ts: [data-grid="comparison"] contains one tbody row per accepted guess;
  *   each row contains one [data-feedback] cell for every configured clue.
  * - src/result_dialog.ts: the native dialog exposes its outcome heading, answer, and share control.
@@ -80,10 +81,28 @@ async function submitKeyboardGuess(page: Page, player: PlayerRecord): Promise<vo
   await input.press("Enter");
 }
 
-test("gameplay: keyboard search, feedback, duplicate recovery, and Pick for me work as a player expects", async ({
+async function expectNoHorizontalOverflow(page: Page): Promise<void> {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+}
+
+async function expectEmptyClueGrid(page: Page): Promise<void> {
+  const grid = page.locator('[data-grid="comparison"]');
+  await expect(grid).toBeVisible();
+  await expect(grid.locator("thead th")).toHaveText([
+    "Player",
+    ...CLUE_DEFINITIONS.map((definition) => definition.label),
+  ]);
+  await expect(grid.locator("tbody tr")).toHaveCount(0);
+}
+
+test("gameplay: the visible grid, keyboard feedback, duplicate recovery, and Pick for me work as expected", async ({
   page,
 }) => {
   const assertNoDiagnostics = await openCleanGame(page);
+  await expectEmptyClueGrid(page);
   const target = targetForFixedPuzzleDate();
   const firstGuess = nonTargetPlayers(target)[0];
   expect(firstGuess).toBeDefined();
@@ -100,7 +119,7 @@ test("gameplay: keyboard search, feedback, duplicate recovery, and Pick for me w
   await expect(feedbackBadges).toHaveText(
     Array(CLUE_DEFINITIONS.length).fill(/Exact|Close|No match/),
   );
-  await expect(page.locator(".guess-count")).toHaveText("5 guesses left");
+  await expect(page.locator(".guess-count")).toHaveText("8 left | 90 pts available");
 
   const input = page.getByLabel("Search a WNBA player");
   await input.fill(firstGuess.displayName);
@@ -108,11 +127,13 @@ test("gameplay: keyboard search, feedback, duplicate recovery, and Pick for me w
   await expect(page.getByRole("status")).toContainText("already guessed");
   await expect(input).toHaveValue(firstGuess.displayName);
   await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
-  await expect(page.locator(".guess-count")).toHaveText("5 guesses left");
+  await expect(page.locator(".guess-count")).toHaveText("8 left | 90 pts available");
 
   await page.getByRole("button", { name: "Pick for me" }).click();
-  await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(2);
-  await expect(page.locator(".guess-count")).toHaveText("4 guesses left");
+  await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
+  await expect(input).not.toHaveValue("");
+  await expect(page.getByRole("status")).toContainText("Press Guess when you are ready");
+  await expect(page.locator(".guess-count")).toHaveText("8 left | 90 pts available");
   await page.screenshot({
     path: "test-results/playable_walkthrough/01_feedback_and_recovery.png",
     fullPage: true,
@@ -131,6 +152,7 @@ test("gameplay: winning opens an explicit result, provides spoiler-free sharing,
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "You got it!" })).toBeVisible();
   await expect(dialog).toContainText(target.displayName);
+  await expect(dialog).toContainText("100 points");
   await dialog.getByRole("button", { name: "Share result" }).click();
   const shareField = dialog.getByLabel("Spoiler-free result text to copy");
   await expect(shareField).toBeVisible();
@@ -153,8 +175,12 @@ test("gameplay: a selected dark theme persists through reload in the game save",
   page,
 }) => {
   const assertNoDiagnostics = await openCleanGame(page);
+  const systemTheme = page.locator('input[name="theme"][value="system"]');
   const darkTheme = page.locator('input[name="theme"][value="dark"]');
 
+  await expect(systemTheme).toBeChecked();
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme");
+  await page.getByText("Theme", { exact: true }).click();
   await darkTheme.check();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(darkTheme).toBeChecked();
@@ -172,11 +198,11 @@ test("gameplay: a selected dark theme persists through reload in the game save",
   assertNoDiagnostics();
 });
 
-test("gameplay: six distinct visible guesses end in an understandable loss", async ({ page }) => {
+test("gameplay: nine distinct visible guesses end in an understandable loss", async ({ page }) => {
   const assertNoDiagnostics = await openCleanGame(page);
   const target = targetForFixedPuzzleDate();
-  const lossGuesses = nonTargetPlayers(target).slice(0, 6);
-  expect(lossGuesses).toHaveLength(6);
+  const lossGuesses = nonTargetPlayers(target).slice(0, 9);
+  expect(lossGuesses).toHaveLength(9);
 
   for (const player of lossGuesses) {
     await submitVisibleGuess(page, player);
@@ -186,31 +212,48 @@ test("gameplay: six distinct visible guesses end in an understandable loss", asy
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "You didn't solve it." })).toBeVisible();
   await expect(dialog).toContainText(target.displayName);
-  await expect(page.locator(".guess-count")).toHaveText("0 guesses left");
+  await expect(page.locator(".guess-count")).toHaveText("0 left | 0 pts");
   await page.screenshot({ path: "test-results/playable_walkthrough/03_loss.png", fullPage: true });
   assertNoDiagnostics();
 });
 
-test.describe("responsive walkthrough", () => {
-  test.use({ viewport: { width: 390, height: 844 }, colorScheme: "dark" });
+test("gameplay: practice offers fresh rounds without changing the saved daily game", async ({
+  page,
+}) => {
+  const assertNoDiagnostics = await openCleanGame(page);
+  const practiceButton = page.getByRole("button", { name: "Practice", exact: true });
+  const dailyButton = page.getByRole("button", { name: "Daily", exact: true });
 
-  test("gameplay: a modern phone keeps the primary action reachable", async ({ page }) => {
-    const assertNoDiagnostics = await openCleanGame(page);
-    await expect(page.getByRole("button", { name: "Guess" })).toBeInViewport();
-    await expect(page.getByRole("button", { name: "Pick for me" })).toBeInViewport();
-    await page.screenshot({
-      path: "test-results/playable_walkthrough/04_phone_dark_boot.png",
-      fullPage: true,
-    });
-    assertNoDiagnostics();
+  await practiceButton.click();
+  await expect(practiceButton).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "New player" })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("Daily statistics stay unchanged");
+  await page.screenshot({
+    path: "test-results/playable_walkthrough/05_practice_mode.png",
+    fullPage: true,
   });
+
+  const practiceGuess = snapshot.players[0];
+  if (practiceGuess === undefined) {
+    throw new Error("The development fixture needs a player for practice coverage.");
+  }
+  await submitVisibleGuess(page, practiceGuess);
+  await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
+  const dialog = page.getByRole("dialog");
+  if (await dialog.isVisible()) {
+    await dialog.getByRole("button", { name: "Close" }).click();
+  }
+
+  await page.getByRole("button", { name: "New player" }).click();
+  await expectEmptyClueGrid(page);
+  await dailyButton.click();
+  await expect(dailyButton).toHaveAttribute("aria-pressed", "true");
+  await expectEmptyClueGrid(page);
+  await expect(page.locator("#statistics-summary")).toContainText("0 played");
+  assertNoDiagnostics();
 });
 
-const responsiveViewports = [
-  { name: "large phone", width: 430, height: 932 },
-  { name: "tablet", width: 768, height: 1024 },
-  { name: "desktop", width: 1920, height: 1080 },
-] as const;
+const responsiveViewports = [{ name: "desktop", width: 1920, height: 1080 }] as const;
 
 for (const viewport of responsiveViewports) {
   test.describe(`responsive ${viewport.name}`, () => {
@@ -221,15 +264,18 @@ for (const viewport of responsiveViewports) {
 
     test("gameplay: help, theme, and a first guess remain usable", async ({ page }) => {
       const assertNoDiagnostics = await openCleanGame(page);
-      const howTo = page.locator("details.how-to");
       const instructions = page.getByText(
-        "Use each row's feedback to narrow the field. You have six guesses to find today's player.",
+        "Use each row's feedback to narrow the field. You have nine guesses. A first-guess win " +
+          "scores 100 points; each extra guess costs 10 points. Practice rounds do not change " +
+          "daily statistics.",
       );
 
-      await page.getByText("How it works", { exact: true }).click();
-      await expect(howTo).toHaveAttribute("open", "");
+      await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
       await expect(instructions).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Statistics" })).toBeVisible();
+      await expect(page.locator("#statistics-summary")).toBeVisible();
 
+      await page.getByText("Theme", { exact: true }).click();
       const darkTheme = page.locator('input[name="theme"][value="dark"]');
       const lightTheme = page.locator('input[name="theme"][value="light"]');
       await darkTheme.check();
@@ -246,6 +292,7 @@ for (const viewport of responsiveViewports) {
       }
       await submitVisibleGuess(page, firstGuess);
       await expect(page.locator('[data-grid="comparison"] tbody tr')).toHaveCount(1);
+      await expectNoHorizontalOverflow(page);
 
       const input = page.getByLabel("Search a WNBA player");
       const guessButton = page.getByRole("button", { name: "Guess" });

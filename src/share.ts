@@ -1,3 +1,4 @@
+import { scoreForWin } from "./score";
 import type { FeedbackMatch, DailyPuzzleState } from "./types/puzzle";
 
 export type ShareFormatOptions = {
@@ -25,11 +26,12 @@ export function formatShareText(
   const puzzleIdentity = options.puzzleIdentity ?? puzzle.puzzleDateUtc;
   const score =
     puzzle.status === "won" ? `${puzzle.guesses.length}/${guessLimit}` : `X/${guessLimit}`;
+  const points = puzzle.status === "won" ? scoreForWin(puzzle.guesses.length) : 0;
   const rows = puzzle.guesses.map((guess) =>
     guess.cells.map((cell) => shareSymbol(cell.match)).join(""),
   );
 
-  return [`${productName} ${puzzleIdentity} ${score}`, ...rows].join("\n");
+  return [`${productName} ${puzzleIdentity} ${score} | ${points} pts`, ...rows].join("\n");
 }
 
 function assertCompletedPuzzle(puzzle: DailyPuzzleState): void {

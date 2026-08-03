@@ -3,9 +3,12 @@ import { DEFAULT_GUESS_LIMIT } from "./constants";
 import { reconcileTodayPuzzle, submitGuess } from "./game_state";
 import { renderResultDialog, type ClipboardWriter } from "./result_dialog";
 import { loadSaveData, saveSaveData } from "./save_load";
+import { scoreAvailableAfter, scoreForWin } from "./score";
 import { buildPlayerSearchIndex, normalizeSearchText, queryPlayerSearch } from "./search_index";
 import type { PlayerSearchResult } from "./search_index";
+import type { GameMode } from "./types/game";
 import type { PlayerRecord, RosterSnapshotV1 } from "./types/player";
+import type { DailyPuzzleState } from "./types/puzzle";
 import type { KeyValueStore, SaveDataV1, ThemePreference } from "./types/save";
 import { renderControls, type ControlsController, type SearchSuggestion } from "./ui_controls";
 import { renderGrid } from "./ui_grid";
@@ -32,10 +35,13 @@ export type PlayableGameController = {
   readonly submitPlayerId: (playerId: PlayerId) => void;
   readonly pickForMe: () => void;
   readonly saveData: () => SaveDataV1;
+  readonly mode: () => GameMode;
 };
 
 type RuntimeState = {
-  saveData: SaveDataV1;
+  dailySaveData: SaveDataV1;
+  practicePuzzle: DailyPuzzleState | null;
+  mode: GameMode;
   readonly snapshot: RosterSnapshotV1;
   readonly searchIndex: ReturnType<typeof buildPlayerSearchIndex>;
 };
@@ -61,7 +67,9 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
     clock.todayUtc(),
   ).saveData;
   const state: RuntimeState = {
-    saveData: initialSaveData,
+    dailySaveData: initialSaveData,
+    practicePuzzle: null,
+    mode: "daily",
     snapshot: options.snapshot,
     searchIndex: buildPlayerSearchIndex(options.snapshot.players),
   };
@@ -77,15 +85,21 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
     onPickForMe(): void {
       pickForMe();
     },
+    onGameModeChange(mode: GameMode): void {
+      changeGameMode(mode);
+    },
+    onNewPracticePlayer(): void {
+      startNewPracticeRound();
+    },
     onThemePreferenceChange(preference: ThemePreference): void {
-      state.saveData = { ...state.saveData, themePreference: preference };
-      persistState();
+      state.dailySaveData = { ...state.dailySaveData, themePreference: preference };
+      persistDailyState();
     },
   });
 
-  controls.setThemePreference(state.saveData.themePreference);
-  persistState();
-  renderState(state.saveData.puzzle?.status !== "active");
+  controls.setThemePreference(state.dailySaveData.themePreference);
+  persistDailyState();
+  renderState(state.dailySaveData.puzzle?.status !== "active");
   gameRoot.dataset.ready = "true";
 
   function submitSearchQuery(query: string): void {
@@ -98,14 +112,20 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
   }
 
   function submitPlayerId(playerId: PlayerId): void {
-    const result = submitGuess(state.saveData, state.snapshot, playerId, guessLimit);
-    state.saveData = result.saveData;
+    const result = submitGuess(activeSaveData(), state.snapshot, playerId, guessLimit);
+    if (state.mode === "daily") {
+      state.dailySaveData = result.saveData;
+    } else {
+      state.practicePuzzle = result.saveData.puzzle;
+    }
     if (result.kind === "rejected") {
       controls?.setStatus(rejectionMessage(result.reason));
       return;
     }
 
-    persistState();
+    if (state.mode === "daily") {
+      persistDailyState();
+    }
     controls?.clearSearch();
     renderState(result.completedStatus !== null);
     if (result.completedStatus === null) {
@@ -114,9 +134,9 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
   }
 
   function pickForMe(): void {
-    const puzzle = state.saveData.puzzle;
+    const puzzle = activePuzzle();
     if (puzzle === null || puzzle.status !== "active") {
-      controls?.setStatus("Today's round is complete. Open the result to see the answer.");
+      controls?.setStatus("This round is complete. Start another practice or return to Daily.");
       return;
     }
     const guessedIds = new Set(
@@ -128,11 +148,12 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
       return !guessedIds.has(player.playerId);
     });
     const selected = selectRandomPlayer(candidates, random.next());
-    submitPlayerId(selected.playerId);
+    controls?.setSearchValue(selected.displayName);
+    controls?.setStatus(`${selected.displayName} selected. Press Guess when you are ready.`);
   }
 
   function renderSearchSuggestions(query: string): void {
-    const puzzle = state.saveData.puzzle;
+    const puzzle = activePuzzle();
     const excludedIds = new Set(
       puzzle?.guesses.map(function playerIdForGuess(guess) {
         return guess.guessedPlayerId;
@@ -147,21 +168,19 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
   }
 
   function renderState(openResult: boolean): void {
-    const puzzle = state.saveData.puzzle;
+    const puzzle = activePuzzle();
     if (puzzle === null) {
-      throw new Error("Today's puzzle was not initialized.");
+      throw new Error("The active puzzle was not initialized.");
     }
+    gameRoot.dataset.mode = state.mode;
     renderGrid(grid, puzzle.guesses);
-    controls?.setAttemptSummary(puzzle.guesses.length, guessLimit);
-    controls?.setStatisticsSummary(formatStatistics(state.saveData));
+    controls?.setGameMode(state.mode);
+    controls?.setRoundSummary(formatRoundSummary(puzzle, guessLimit));
+    controls?.setStatisticsSummary(formatStatistics(state.dailySaveData));
     controls?.setReady(puzzle.status === "active");
 
     if (puzzle.status === "active") {
-      controls?.setStatus(
-        puzzle.guesses.length === 0
-          ? "Choose a player to make your first guess."
-          : "Choose your next player from the bundled player pool.",
-      );
+      controls?.setStatus(activeRoundStatus(state.mode, puzzle.guesses.length));
       return;
     }
 
@@ -169,18 +188,77 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
     if (answer === undefined) {
       throw new Error("The completed puzzle target is missing from the bundled snapshot.");
     }
-    controls?.setStatus(
-      puzzle.status === "won"
-        ? "You found today's player. Your result is ready."
-        : "Out of guesses. Your result is ready.",
-    );
+    controls?.setStatus(completedRoundStatus(state.mode, puzzle.status));
     if (openResult && !resultDialog.isOpen()) {
-      resultDialog.open({ puzzle, answerName: answer.displayName, guessLimit });
+      resultDialog.open({
+        puzzle,
+        answerName: answer.displayName,
+        guessLimit,
+        mode: state.mode,
+        onNewPracticePlayer: startNewPracticeRound,
+      });
     }
   }
 
-  function persistState(): void {
-    const saved = saveSaveData(storage, state.saveData);
+  function changeGameMode(mode: GameMode): void {
+    if (mode === state.mode) {
+      return;
+    }
+
+    resultDialog.close();
+    if (mode === "practice" && state.practicePuzzle === null) {
+      startNewPracticeRound();
+      return;
+    }
+
+    state.mode = mode;
+    const puzzle = activePuzzle();
+    renderState(puzzle?.status !== "active");
+  }
+
+  function startNewPracticeRound(): void {
+    resultDialog.close();
+    const excludedIds = new Set<PlayerId>();
+    const dailyTargetId = state.dailySaveData.puzzle?.targetPlayerId;
+    if (dailyTargetId !== undefined) {
+      excludedIds.add(dailyTargetId);
+    }
+    if (state.practicePuzzle !== null) {
+      excludedIds.add(state.practicePuzzle.targetPlayerId);
+    }
+
+    const freshCandidates = state.snapshot.players.filter(function selectFreshTarget(player) {
+      return !excludedIds.has(player.playerId);
+    });
+    const candidates = freshCandidates.length > 0 ? freshCandidates : state.snapshot.players;
+    const target = selectRandomPlayer(candidates, random.next());
+    state.practicePuzzle = {
+      puzzleDateUtc: clock.todayUtc(),
+      targetPlayerId: target.playerId,
+      status: "active",
+      guesses: [],
+    };
+    state.mode = "practice";
+    renderState(false);
+    controls?.clearSearch();
+  }
+
+  function activePuzzle(): DailyPuzzleState | null {
+    return state.mode === "daily" ? state.dailySaveData.puzzle : state.practicePuzzle;
+  }
+
+  function activeSaveData(): SaveDataV1 {
+    if (state.mode === "daily") {
+      return state.dailySaveData;
+    }
+    if (state.practicePuzzle === null) {
+      throw new Error("Practice mode requires an active practice puzzle.");
+    }
+    return { ...state.dailySaveData, puzzle: state.practicePuzzle };
+  }
+
+  function persistDailyState(): void {
+    const saved = saveSaveData(storage, state.dailySaveData);
     if (!saved) {
       controls?.setStatus("Progress stays playable in this tab, but this browser cannot save it.");
     }
@@ -202,10 +280,14 @@ export function bootPlayableGame(options: PlayableGameOptions): PlayableGameCont
     });
   }
 
-  return { submitPlayerId, pickForMe, saveData: readSaveData };
+  return { submitPlayerId, pickForMe, saveData: readSaveData, mode: readMode };
 
   function readSaveData(): SaveDataV1 {
-    return state.saveData;
+    return state.dailySaveData;
+  }
+
+  function readMode(): GameMode {
+    return state.mode;
   }
 }
 
@@ -235,12 +317,48 @@ function selectRandomPlayer(players: readonly PlayerRecord[], randomValue: numbe
   return selected;
 }
 
+function formatRoundSummary(puzzle: DailyPuzzleState, guessLimit: number): string {
+  const attempts = puzzle.guesses.length;
+  if (puzzle.status === "won") {
+    return `${attempts}/${guessLimit} | ${scoreForWin(attempts)} pts`;
+  }
+  if (puzzle.status === "lost") {
+    return `0 left | 0 pts`;
+  }
+
+  const remaining = Math.max(guessLimit - attempts, 0);
+  const availableScore = scoreAvailableAfter(attempts);
+  return `${remaining} left | ${availableScore} pts available`;
+}
+
+function activeRoundStatus(mode: GameMode, attempts: number): string {
+  if (mode === "practice") {
+    return attempts === 0
+      ? "Practice round. Daily statistics stay unchanged. Choose your first player."
+      : "Practice round. Use the clues to choose your next player.";
+  }
+  return attempts === 0
+    ? "Choose a player to make your first daily guess."
+    : "Choose your next player from the bundled player pool.";
+}
+
+function completedRoundStatus(mode: GameMode, status: DailyPuzzleState["status"]): string {
+  if (mode === "practice") {
+    return status === "won"
+      ? "Practice solved. Start another player whenever you're ready."
+      : "Practice complete. Start another player and try again.";
+  }
+  return status === "won"
+    ? "You found today's player. Your result is ready."
+    : "Out of guesses. Your result is ready.";
+}
+
 function rejectionMessage(reason: string): string {
   if (reason === "duplicate-guess") {
     return "You already guessed that player. Keep the name or choose another match.";
   }
   if (reason === "puzzle-complete") {
-    return "Today's round is complete. Open the result to see the answer.";
+    return "This round is complete. Start another practice or return to Daily.";
   }
   return "That player is unavailable in today's bundled player pool. Try another match.";
 }

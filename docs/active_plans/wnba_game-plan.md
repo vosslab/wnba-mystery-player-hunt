@@ -37,10 +37,9 @@ unresolved:
    JavaScript-populated. Those observations explain the rejected route; they do not make the
    static game depend on a future WNBA Stats response. Authenticated commercial feeds remain
    outside scope.
-2. **Guess count 9 -> 6, the one deliberate gameplay departure.** MLB Pickle draws from
-   1000+ players. Active WNBA rosters are roughly 180 players (15 teams after the 2026
-   Portland Fire and Toronto Tempo expansion, 12 roster spots each). Nine guesses against
-   180 candidates is trivial.
+2. **Nine guesses remain, with effort reflected in score.** MLB Pickle draws from 1000+
+   players, while the WNBA pool is much smaller. The human playtest decision keeps the forgiving
+   nine-guess round and uses a 100-point score, minus 10 per extra guess, to reward efficient play.
 3. **Pickle behavior informs, rather than blocks, the game.** WP-1.4 records observed
    behavior before contracts freeze. The reference supplies evidence for the familiar guess
    loop; it is not a requirement for byte-, pixel-, or complete behavior-equivalence.
@@ -51,8 +50,8 @@ unresolved:
    answer and autocomplete pool so daily play is not dominated by unfamiliar names.
 
 This revision incorporates an external plan review. The material changes are recorded in
-`## Resolved decisions` and in the work packages: the guess count no longer reverts to
-nine, the calibration solver is fully specified, stale-puzzle handling is explicit,
+`## Resolved decisions` and in the work packages: the guess count is no longer reduced to
+six, the calibration solver is fully specified, stale-puzzle handling is explicit,
 completion state has one owner, and the primary responsive target is a portrait viewport
 rather than a 320-pixel minimum. The roster data model was also simplified to a single
 committed file, with no versioning, manifest, activation dates, or structure
@@ -184,9 +183,11 @@ Evidence strategy for uncertain methods:
 ## Scope
 
 - Build a one-page TypeScript browser game with search, autocomplete, a "Pick for me"
-  helper, a configurable comparison grid, statistics, a result dialog, and share output.
+  helper, Daily and Practice modes, a responsive comparison grid, score feedback, statistics,
+  a result dialog, and daily share output.
 - Present one deterministic mystery player per UTC day, selected from a committed roster
-  snapshot, with six guesses (subject to the WP-5.1 calibration gate, bounded to 5 to 7).
+  snapshot, with nine guesses. Score a first-guess win at 100 points, subtract 10 points for
+  each extra guess, and score an unsolved round at zero.
 - Evaluate nine baseline clues: Team, Conference, Height, Draft year, Draft pick, Country,
   College, Age, and Position, with exact and partial states. The observed no-arrow reference
   is the v1 default; clue count stays configurable.
@@ -201,11 +202,12 @@ Evidence strategy for uncertain methods:
 - Persist puzzle progress, statistics, guess distribution, streaks, and theme under one
   versioned localStorage key, with an in-progress puzzle bound to its originating
   snapshot.
-- Ship light and dark themes from the four WNBA brand colors, meeting stated contrast
-  targets, documented in a palette audit.
+- Keep Practice rounds in memory so they do not change daily progress, statistics, or streaks.
+- Ship a System-default theme plus explicit light and dark overrides from the four WNBA brand
+  colors, meeting stated contrast targets, documented in a palette audit.
 - Optimize the layout for a portrait viewport (800x1280) as the primary acceptance target.
-  Other representative viewports must keep content readable and reachable without content
-  loss; reasonable grid scrolling or stacking is allowed and layouts need not match exactly.
+  This is the minimum supported viewport and no narrower viewport is a release gate. A 1920x1080
+  check confirms that wide desktops use the available width without horizontal page overflow.
 - Produce a `dist/` artifact ready for GitHub Pages, built by the existing
   `build_github_pages.sh`.
 
@@ -228,9 +230,8 @@ Evidence strategy for uncertain methods:
 - Add colors outside the four brand tokens: no purple, green, gold, team colors, or
   decorative gradients.
 - Produce a `dist-single/` single-file export. GitHub Pages serves `dist/`.
-- Offer unlimited mode, practice mode, historical puzzle archive, multiplayer, or hints.
-- Optimize for viewports narrower than a modern phone. Very narrow widths are checked for
-  graceful degradation only, never as a design target.
+- Offer unlimited mode, historical puzzle archive, multiplayer, or hints.
+- Optimize for viewports narrower than 800 pixels. Those widths are outside the release gate.
 - Perform GitHub Pages account-level activation. Publishing is an operator action outside
   the software deliverable (see `## Rollout and release checklist`).
 
@@ -241,8 +242,8 @@ Locked by the user or by this revision. Not reopened during execution.
 | Decision | Value | Source |
 | --- | --- | --- |
 | North star | MLB Pickle for the WNBA; observed parity is the default answer | User requirement |
-| Game mode | Pickle-style comparison grid only | User selection |
-| Guesses per day | 6. Calibration may move it within 5 to 7. Nine is reference information only and does not re-enter automatically | User selection, narrowed by review |
+| Game mode | Scored Daily comparison plus replayable, non-statistical Practice rounds | User decision, 2026-08-02 |
+| Guesses per day | 9, with 100 points for a first-guess win and a 10-point penalty per extra guess | User decision, 2026-08-02 |
 | Candidate pool | Players listed on a current WNBA roster | User requirement, made measurable |
 | Answer and guess pool | One recognizable subset selected by WP-1.3 from the same ranked candidates | User concern about unknown players |
 | Recognizability experiment | Compare direct 200 and 300 `WNBA_FANTASY_PTS` cutoffs using the maximum of current and preceding seasons, report how the preceding season expands each pool, retain 75/100/125/150 only as supporting context, and obtain user approval for the deterministic cutoff rule | User decision |
@@ -260,10 +261,10 @@ Locked by the user or by this revision. Not reopened during execution.
 | Draft round | Not displayed as its own clue | User decision |
 | College clue | Exact match only, from `SCHOOL`; players with no US college share one normalized bucket | User request; sample confirms the field exists |
 | Age clue | Retained alongside Draft pick; derived for the UTC puzzle date | User decision |
-| Position match | Exact when primary equals primary; partial when the two players' full position sets overlap in either direction | Review point 7 |
+| Position match | Exact when the full position sets match; partial when they overlap | User decision, 2026-08-02 |
 | Country authority | ISO 3166 English short names, plus one committed override table for upstream spellings and territories | Review point 8 |
 | Completion ownership | One pure transition in `src/game_state.ts` updates puzzle state and statistics together; dialog and share read it | Review point 25 |
-| Primary viewport | 800x1280 portrait (10:16), across desktop and mobile | User decision |
+| Minimum viewport | 800x1280 portrait (10:16); narrower widths are not a release gate | User decision |
 | Palette | Ultra Black `#050707`, Neutral Dark Gray `#4C4C4D`, Balm `#EFE3C6`, Orange Passion `#F57B20` | Draft, retained |
 | Pages deployment | Existing `.github/workflows/deploy-pages.yml` deploys `main` to [WNBA Mystery Player Hunt](https://vosslab.github.io/wnba-mystery-player-hunt/) | Repository: [vosslab/wnba-mystery-player-hunt](https://github.com/vosslab/wnba-mystery-player-hunt) |
 
@@ -273,7 +274,8 @@ Locked by the user or by this revision. Not reopened during execution.
 
 - Contracts, scaffold, comparison-grid gameplay, persistence, results and sharing, browser
   coverage, contrast work, and supporting documentation are implemented against a clearly
-  labeled development fixture. The development fun probe keeps six guesses provisionally.
+  labeled development fixture. Human playtesting superseded the provisional six-guess probe:
+  Daily now allows nine scored guesses, and Practice supplies fresh non-statistical rounds.
 - The Python-only roster-generation and validation pipeline is implemented separately from
   the browser. `fetch_wnba_player_data.py` runs the full private harvester; reusable modules
   live under `data_fetcher/`, and executable `tools/` wrappers serve offline stages. Browser
@@ -311,8 +313,8 @@ derived fantasy totals stay private; the game-facing snapshot remains a compact 
 | `draft` | discriminated union | player-profile draft text | Draft year and overall pick are parsed when present; otherwise the adapter emits the explicit undrafted form |
 | `country` | string | player-profile country metadata | Normalized per the country authority above |
 | `college` | string | current-roster `college` cell or player-profile metadata | The adapter supplies the explicit no-college bucket rather than a blank value |
-| `positionPrimary` | `"G" \| "F" \| "C"` | current-roster `pos` cell or player-profile position metadata | Compound source positions are normalized to the primary game position |
-| `positionAlternates` | ordered array | derived from normalized source position | Compound source positions contribute normalized alternates |
+| `positionPrimary` | `"G" \| "F" \| "C"` | current-roster `pos` cell or player-profile position metadata | Retains the source's primary position for provenance and search metadata |
+| `positionAlternates` | ordered array | derived from normalized source position | Clue display and matching treat the combined roles as an unordered set |
 
 The historical WNBA Stats sample preserves earlier evidence for display and normalization behavior,
 including names, team codes, heights, birth dates, schools, countries, and positions. It does not
@@ -867,7 +869,7 @@ inside another lane's files requests it through the orchestrator.
 - Owner: orchestrator.
 - Touch points: `src/main.ts`, `src/index.html`, `src/style.css`, `src/constants.ts`.
 - Depends on: WP-1.1.
-- Acceptance criteria: the page boots with a header and an empty grid container; palette
+- Acceptance criteria: the page boots with a header and the visible nine-clue grid; palette
   values exist as CSS custom properties for both themes; the team-to-conference table is
   `as const satisfies` typed; the layout is authored portrait-first against 800x1280; no
   console or page errors on load.
@@ -1013,9 +1015,10 @@ inside another lane's files requests it through the orchestrator.
 - Acceptance criteria: renders rows from `CellFeedback` fixture data; exact, partial, and
   miss states are each distinguishable without relying on color alone, using badge text
   plus solid versus dashed borders; the nine-clue grid is usable at the 800x1280 primary
-  viewport with feedback and next action understandable. Where width is constrained, the
-  grid may scroll or stack while preserving readable, reachable content; it does not need
-  fixed column widths or a pixel-equivalent layout. The grid carries an accessible description.
+  viewport with feedback and next action understandable, and its headers are visible before the
+  first guess. At 1920x1080 it uses the available width without a horizontal scrollbar.
+  Multi-position roles compare as unordered sets and use the conventional `G/F/C` display order.
+  The grid carries an accessible description.
 - Evidence: a browser interaction walkthrough at 800x1280 in both themes.
 
 ### Work package: WP-3.5 build the controls and theme switch
@@ -1023,8 +1026,8 @@ inside another lane's files requests it through the orchestrator.
 - Owner: `coder`.
 - Touch points: `src/ui_controls.ts`, `src/index.html`.
 - Depends on: WP-2.1.
-- Acceptance criteria: search input, "Pick for me" button, instructions disclosure,
-  statistics panel, and a system/light/dark theme control; interactive targets are at least
+- Acceptance criteria: search input, "Pick for me" button, visible instructions and statistics,
+  and a system/light/dark theme control; interactive targets are at least
   44 pixels; focus is always visible; the first visit follows the operating-system theme
   and an explicit choice persists.
 - Evidence: a keyboard-only walkthrough at the primary viewport.
@@ -1088,14 +1091,14 @@ inside another lane's files requests it through the orchestrator.
 | Country | (basketball addition) | Same normalized country | none | none |
 | College | (basketball addition) | Same normalized school | none | none |
 | Age | Age | Same age on the puzzle date | Within 2 years | none in v1 |
-| Position | POS | Primary equals primary | The two players' position sets overlap in either direction | none |
+| Position | POS | The two players' full position sets are equal | The position sets overlap | none |
 
 The Age and Position tolerances come from Pickle's own rules. Height, Draft year, Country,
 and College are the basketball additions; the ordinal ones reuse Pickle's plus-or-minus-two
 shape rather than inventing a new tolerance, and the categorical ones are exact-only like
-Team. Position partial is symmetric: a guessed forward whose alternates include guard,
-against a target guard, is a partial match in both directions, which is what positional
-overlap means in basketball.
+Team. Position matching is symmetric and ignores arbitrary primary/alternate ordering. Equivalent
+`C/F` and `F/C` source roles display as `F/C` and match exactly; a multi-role forward/guard against
+a guard-only target is partial in either direction.
 
 College is a strong clue in the WNBA, where a large share of players come from a small set
 of programs (Connecticut, South Carolina, Stanford, Tennessee, Notre Dame), so it
@@ -1144,8 +1147,9 @@ league-wide `SCHOOL` values including the international cases.
 - Depends on: WP-4.3, WP-4.4, WP-3.4.
 - Acceptance criteria: keystrokes reach the search index, a selection reaches
   `submit_guess`, and the returned evaluation reaches the grid; a rejected duplicate shows
-  a visible message; "Pick for me" draws uniformly from eligible unused players, submits
-  once, and takes its randomness from an injected source; every accepted guess persists
+  a visible message; "Pick for me" draws uniformly from eligible unused players and fills the
+  search field without submitting. The player confirms with Guess, which uses the normal
+  submission path. Randomness comes from an injected source; every accepted guess persists
   immediately so a refresh resumes mid-game.
 - Evidence: Playwright win-path and loss-path specs.
 
@@ -1186,12 +1190,12 @@ league-wide `SCHOOL` values including the international cases.
   information-gain lookahead. It is a deliberately weak reference that brackets the
   worst-case player, not a second vote.
 - Acceptance criteria: the report gives mean, median, distribution, and loss rate for the
-  baseline solver at 5, 6, and 7 guesses. The second solver and arrow variants are supporting
+  baseline solver at 5, 6, 7, and 9 guesses. The second solver and arrow variants are supporting
   sensitivity evidence when useful, not a unanimity gate. Browser playtesting checks that
   feedback is understandable and that win and loss feel appropriately reachable.
-- Decision rule: start at 6 and tune within 5 to 7 when solver evidence and lightweight
-  playtesting show a material fun or clarity problem. The secondary solver informs the call;
-  it never vetoes it. Nine remains reference information, not a candidate.
+- Decision rule: keep the nine-attempt safety net selected by the user. When solver evidence and
+  lightweight playtesting show a material fun or clarity problem, tune the score curve first.
+  The secondary solver informs the call; it never vetoes it.
 - Provisional design targets, and why: loss rate at or under 10 percent, and a mean solve
   between 3.5 and 4.5 for the baseline solver. These are design targets chosen for a daily
   game -- most players should finish, most days should take a few informative guesses, and
@@ -1237,10 +1241,9 @@ league-wide `SCHOOL` values including the international cases.
   guess-feedback cycle plus win and loss using development data, verifies the next action is
   apparent, and confirms feedback and all nine clues are readable or reachable. Reasonable
   scrolling or stacking is allowed; screenshots alone do not satisfy this criterion.
-- Responsive verification: repeat the boot-and-guess flow at a modern phone width
-  (430x932), a tablet portrait (768x1024), and a large desktop (1920x1080), confirming the
-  content remains readable and reachable without loss of function. Narrower widths are
-  checked only for graceful degradation and are not a design target or layout-equivalence gate.
+- Responsive verification: use 800x1280 as the minimum viewport and repeat the boot-and-guess
+  flow at 1920x1080, confirming the content remains readable and reachable without loss of
+  function or horizontal page overflow. Widths below 800 pixels are not an acceptance gate.
 - Evidence: the `./run_playwright_tests.sh --build` command and its pass count.
 
 ### Work package: WP-5.5 audit contrast and accessibility
@@ -1249,8 +1252,8 @@ league-wide `SCHOOL` values including the international cases.
 - Touch points: `docs/PALETTE_CONTRAST_AUDIT.md`, screenshots under `test-results/`.
 - Depends on: WP-5.4.
 - Acceptance criteria: measures every text, focus, structural-border, exact-match, and
-  partial-match pair against its actually-rendered background at the primary viewport and
-  at the three responsive widths, in both themes; text meets at least 5.5:1 and focus and
+  partial-match pair against its actually-rendered background at the 800x1280 minimum and
+  1920x1080 wide-desktop viewport, in both themes; text meets at least 5.5:1 and focus and
   essential boundaries meet at least 3:1; no critical or serious automated accessibility
   violation remains.
 - Remediation latitude: any fix built from the four brand tokens is available -- opacity
@@ -1344,10 +1347,10 @@ source source_me.sh && python3 -m pytest tests/
 | The selected cutoff excludes too many players | The pool is too small for a daily game | WP-1.3 pool size falls below roughly 120 | WS-Q owner | Pool size is an explicit output of WP-1.3 and feeds WP-5.1; bring the 200-versus-300 trade-off to the user before M3 |
 | Eligibility goes stale during the season | A traded or waived player stays in the pool | An in-season transaction between refreshes | WS-D owner | Eligibility is recomputed on every refresh with no manual step; the game continues to use its single committed valid roster JSON until a maintainer chooses to refresh it |
 | The override file grows into a shadow review process | The reproducible rule quietly becomes manual again | Overrides accumulate across refreshes | WS-D owner | The generator reports every applied override on every run, so growth is visible; overrides are for data errors, not roster judgment |
-| Six guesses proves wrong for the real pool | The game is trivial or unfair | WP-5.1 lands outside the provisional targets | WS-Q owner | Guess count is one constant; the calibration gate adjusts it within 5 to 7 before release |
+| The nine-guess scoring curve proves wrong for the real pool | The game is trivial or unfair | WP-5.1 or human playtesting shows the score does not reflect effort | WS-Q owner | Keep the nine-attempt safety net and tune the scoring curve from measured play rather than silently shortening the round |
 | Answers recur soon after a roster refresh | Mild repetition | Any data refresh | Orchestrator | Accepted behavior; the permutation guarantees no repeat within one roster file, and the README states the limit accurately |
 | A roster refresh lands mid-puzzle | A player's in-progress game rebinds to a different answer | Refresh deployed while a puzzle is open | WS-G owner | The save records the puzzle date, the target, and the evaluated rows; a puzzle whose target is gone is discarded with no loss, and puzzles expire daily anyway |
-| Nine clues crowd the portrait viewport | Core comparison becomes hard to use | Real content at 800x1280, with College adding a wide text cell | WS-U, verified by WS-Q | WP-3.4 designs portrait-first and uses readable scrolling or stacking where helpful; WP-5.4 drives a real interaction walkthrough rather than accepting screenshots |
+| Nine clues crowd the portrait viewport | Core comparison becomes hard to use | Real content at 800x1280, with College adding a wide text cell | WS-U, verified by WS-Q | The 800x1280 minimum shows the full header grid, wide desktops use the available viewport, and browser checks reject page-level horizontal overflow |
 | Per-season fantasy-point components are unavailable or inconsistent | The recognizability rule cannot be verified | WP-1.2 cannot prove complete current and preceding Basketball-Reference totals coverage | WS-Q owner | Derive the documented WNBA formula from the two server-rendered totals tables; report missing coverage and stop before M3 rather than silently substituting a metric |
 | College is thin or inconsistent for international players | A clue column carries little information for part of the pool | WP-1.2 reports many empty or club-name `SCHOOL` values | WS-D owner | Non-US-college players get one normalized bucket rather than a blank; if that bucket is very large, report the share to the user and reconsider the column before M3 |
 | The four-color palette cannot meet contrast targets | The accessibility gate fails at M5 | WP-5.5 measures a failing pair | WS-Q owner | Any remediation built from the four tokens is permitted; if still failing, report the pair to the user rather than adding a hue |
@@ -1408,10 +1411,10 @@ None block dispatch. Each is scheduled inside the plan.
   - Evidence and decision rule: the observed Pickle UI has no arrows, so v1 ships none.
     Revisit only if playtesting finds that change materially improves the guess loop.
 - Guess count:
-  - Decision owner: `tester` (WP-5.1).
-  - Evidence and decision rule: start at 6, then tune within 5 to 7 if solver evidence and
-    lightweight browser playtesting find a material fun or clarity issue. Supporting solver
-    disagreement is evidence to explain, not a veto.
+  - Decision owner: user; scoring calibration belongs to `tester` (WP-5.1).
+  - Evidence and decision rule: keep nine guesses. Tune the 100-point scoring curve if solver
+    evidence and lightweight browser playtesting find a material fun or clarity issue.
+    Supporting solver disagreement is evidence to explain, not a veto.
 - Non-blocking follow-up: a v2 yes/no question mode that would earn the repo name. The clue
   engine exports per-column evaluators so a question bank can be built on them later. Not
   scoped here; raise after v1 ships.

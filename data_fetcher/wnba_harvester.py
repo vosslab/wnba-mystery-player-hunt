@@ -4,6 +4,7 @@
 import argparse
 import datetime
 import hashlib
+import json
 import pathlib
 import random
 import re
@@ -18,6 +19,8 @@ import data_fetcher.wnba_candidates
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_OUTPUT = pathlib.Path("data/private/wnba_candidates.json")
+CHECKPOINT_INTERVAL = 5
+CHECKPOINT_SCHEMA_VERSION = 1
 TIMEOUT_SECONDS = 30
 BREF_HOST = "www.basketball-reference.com"
 BREF_ROOT = f"https://{BREF_HOST}"
@@ -81,6 +84,14 @@ def output_path_for_run(explicit_output: pathlib.Path | None,
 	if max_players is not None:
 		return DEFAULT_OUTPUT.parent / f"wnba_candidates_test_limit_{max_players}.json"
 	return DEFAULT_OUTPUT
+
+
+#============================================
+
+def checkpoint_path_for_output(output_path: pathlib.Path) -> pathlib.Path:
+	"""Place a resumable harvest checkpoint beside its private output file."""
+	checkpoint_path = output_path.with_suffix(".checkpoint.json")
+	return checkpoint_path
 
 
 #============================================
@@ -374,14 +385,119 @@ def recognizability_score(entry: dict[str, str], current_points: dict[str, float
 
 #============================================
 
-def harvest_candidates(current_season: str, max_players: int | None = None) -> dict:
+def harvest_source_fingerprint(entries: list[dict[str, str]], current_season: str,
+		current_points: dict[str, float], previous_points: dict[str, float]) -> str:
+	"""Identify the ordered source inputs that one checkpoint belongs to."""
+	source_state = {
+		"currentSeason": current_season,
+		"entries": entries,
+		"currentPoints": current_points,
+		"previousPoints": previous_points,
+	}
+	encoded_state = json.dumps(
+		source_state, ensure_ascii=True, separators=(",", ":"), sort_keys=True
+	).encode("ascii")
+	fingerprint = hashlib.sha256(encoded_state).hexdigest()
+	return fingerprint
+
+
+#============================================
+
+def write_harvest_checkpoint(path: pathlib.Path, source_fingerprint: str,
+		candidates: list[dict]) -> None:
+	"""Atomically save the completed prefix of a player-profile harvest."""
+	payload = {
+		"schemaVersion": CHECKPOINT_SCHEMA_VERSION,
+		"sourceFingerprint": source_fingerprint,
+		"candidates": candidates,
+	}
+	data_fetcher.wnba_candidates.write_json(path, payload)
+
+
+#============================================
+
+def load_harvest_checkpoint(path: pathlib.Path, source_fingerprint: str,
+		entries: list[dict[str, str]]) -> list[dict]:
+	"""Load a checkpoint only when it is a valid prefix for the current source run."""
+	if not path.exists():
+		return []
+	with path.open("r", encoding="utf-8") as input_file:
+		payload = json.load(input_file)
+	if not isinstance(payload, dict):
+		raise ValueError(f"Harvest checkpoint must contain an object: {path}")
+	if payload["schemaVersion"] != CHECKPOINT_SCHEMA_VERSION:
+		raise ValueError(f"Unsupported harvest checkpoint schema: {path}")
+	if payload["sourceFingerprint"] != source_fingerprint:
+		print(f"Source pages changed; starting a new checkpoint at {path}.", flush=True)
+		return []
+	candidates = payload["candidates"]
+	if not isinstance(candidates, list) or len(candidates) > len(entries):
+		raise ValueError(f"Harvest checkpoint has an invalid candidate prefix: {path}")
+	seen_ids = set()
+	for index, candidate in enumerate(candidates):
+		if not isinstance(candidate, dict):
+			raise ValueError(f"Harvest checkpoint candidate {index + 1} must be an object")
+		entry = entries[index]
+		if candidate["playerPageSourceUrl"] != entry["playerUrl"]:
+			raise ValueError(f"Harvest checkpoint candidate {index + 1} is out of order")
+		if candidate["rosterSourceUrl"] != entry["rosterUrl"]:
+			raise ValueError(f"Harvest checkpoint candidate {index + 1} changed teams")
+		player_id = candidate["playerId"]
+		if player_id in seen_ids:
+			raise ValueError(f"Harvest checkpoint repeats player identifier {player_id}")
+		seen_ids.add(player_id)
+	return candidates
+
+
+#============================================
+
+def harvest_player_candidates(entries: list[dict[str, str]], current_season: str,
+		current_points: dict[str, float], previous_points: dict[str, float],
+		checkpoint_path: pathlib.Path | None = None) -> list[dict]:
+	"""Fetch player profiles, resuming from an ordered private checkpoint."""
+	source_fingerprint = harvest_source_fingerprint(
+		entries, current_season, current_points, previous_points
+	)
+	candidates = []
+	if checkpoint_path is not None:
+		candidates = load_harvest_checkpoint(checkpoint_path, source_fingerprint, entries)
+		if candidates:
+			print(
+				f"Resuming from {checkpoint_path} with {len(candidates)} players.", flush=True
+			)
+		else:
+			write_harvest_checkpoint(checkpoint_path, source_fingerprint, candidates)
+	seen_ids = {candidate["playerId"] for candidate in candidates}
+	remaining_entries = entries[len(candidates):]
+	for index, entry in enumerate(remaining_entries, start=len(candidates) + 1):
+		print(f"Pulling Basketball-Reference player page {index} of {len(entries)} "
+			f"({entry['name']}); found {len(candidates)} players...", flush=True)
+		profile_html = get_page(entry["playerUrl"], entry["rosterUrl"])
+		candidate = candidate_from_entry(
+			entry, profile_html, current_season, current_points, previous_points
+		)
+		if candidate["playerId"] in seen_ids:
+			raise ValueError(f"Stable identifier collision for player {entry['slug']}")
+		seen_ids.add(candidate["playerId"])
+		candidates.append(candidate)
+		checkpoint_due = len(candidates) % CHECKPOINT_INTERVAL == 0
+		if checkpoint_path is not None and (checkpoint_due or len(candidates) == len(entries)):
+			write_harvest_checkpoint(checkpoint_path, source_fingerprint, candidates)
+			print(f"Checkpointed {len(candidates)} players to {checkpoint_path}.", flush=True)
+	return candidates
+
+
+#============================================
+
+def harvest_candidates(current_season: str, max_players: int | None = None,
+		checkpoint_path: pathlib.Path | None = None) -> dict:
 	"""Harvest the complete current roster through server-rendered HTML only."""
 	previous_season = str(int(current_season) - 1)
 	current_url = season_totals_url(current_season)
 	previous_url = season_totals_url(previous_season)
-	print(f"Pulling {current_season} WNBA totals HTML page...", flush=True)
+	print(f"Pulling {current_season} Basketball-Reference WNBA totals HTML page...", flush=True)
 	current_html = get_page(current_url, current_url)
-	print(f"Pulling {previous_season} WNBA totals HTML page...", flush=True)
+	print(f"Pulling {previous_season} Basketball-Reference WNBA totals HTML page...", flush=True)
 	previous_html = get_page(previous_url, current_url)
 	current_points = fantasy_by_player(current_html)
 	previous_points = fantasy_by_player(previous_html)
@@ -398,7 +514,8 @@ def harvest_candidates(current_season: str, max_players: int | None = None) -> d
 		if team_id in team_ids:
 			raise ValueError(f"Stable identifier collision for team {team_code}")
 		team_ids.add(team_id)
-		print(f"Pulling roster page {index} of {len(team_links)} ({team_code})...", flush=True)
+		print(f"Pulling Basketball-Reference roster page {index} of {len(team_links)} "
+			f"({team_code})...", flush=True)
 		team_entries = roster_entries(get_page(team_url, current_url), team_code, team_id)
 		for entry in team_entries:
 			entry["rosterUrl"] = team_url
@@ -414,19 +531,9 @@ def harvest_candidates(current_season: str, max_players: int | None = None) -> d
 	truncated = max_players is not None and len(entries) > max_players
 	if max_players is not None:
 		entries = entries[:max_players]
-	candidates = []
-	seen_ids = set()
-	for index, entry in enumerate(entries, start=1):
-		print(f"Pulling player page {index} of {len(entries)} ({entry['name']}); "
-			f"found {len(candidates)} players...", flush=True)
-		profile_html = get_page(entry["playerUrl"], entry["rosterUrl"])
-		candidate = candidate_from_entry(
-			entry, profile_html, current_season, current_points, previous_points
-		)
-		if candidate["playerId"] in seen_ids:
-			raise ValueError(f"Stable identifier collision for player {entry['slug']}")
-		seen_ids.add(candidate["playerId"])
-		candidates.append(candidate)
+	candidates = harvest_player_candidates(
+		entries, current_season, current_points, previous_points, checkpoint_path
+	)
 	print(f"Found {len(candidates)} players.", flush=True)
 	if not candidates:
 		raise ValueError("Current WNBA rosters contained no players")
@@ -458,8 +565,13 @@ def main() -> None:
 	current_season = str(args.season)
 	selected_output = output_path_for_run(args.output, args.max_players)
 	output_file = data_fetcher.wnba_candidates.validate_private_output_path(selected_output)
-	candidates = harvest_candidates(current_season, max_players=args.max_players)
+	checkpoint_file = checkpoint_path_for_output(output_file)
+	candidates = harvest_candidates(
+		current_season, max_players=args.max_players, checkpoint_path=checkpoint_file
+	)
 	data_fetcher.wnba_candidates.write_json(output_file, candidates)
+	if checkpoint_file.exists():
+		checkpoint_file.unlink()
 	count = candidates["validation"]["candidateCount"]
 	print(f"Saved {count} players to {output_file}", flush=True)
 

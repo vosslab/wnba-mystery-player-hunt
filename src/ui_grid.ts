@@ -4,14 +4,6 @@ import { CLUE_DEFINITIONS, type CellFeedback, type GuessEvaluation } from "./typ
 export function renderGrid(container: HTMLElement, evaluations: readonly GuessEvaluation[]): void {
   container.replaceChildren();
 
-  if (evaluations.length === 0) {
-    const message = document.createElement("p");
-    message.className = "empty-grid-message";
-    message.textContent = "Your guesses will build a clue grid here.";
-    container.append(message);
-    return;
-  }
-
   const table = document.createElement("table");
   table.className = "comparison-table";
   table.dataset.grid = "comparison";
@@ -72,6 +64,7 @@ function createFeedbackCell(
   const match = feedback?.match ?? "miss";
   cell.className = `feedback-cell feedback-${match}`;
   cell.dataset.feedback = match;
+  cell.dataset.clueLabel = label;
   cell.setAttribute("aria-label", formatFeedbackLabel(label, feedback));
 
   const value = document.createElement("span");

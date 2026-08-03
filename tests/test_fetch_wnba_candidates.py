@@ -266,3 +266,84 @@ def test_totals_rows_are_transformed_into_derived_fantasy_points() -> None:
 
 	points = wnba_harvester.fantasy_by_player(html)
 	assert points["acesaj01w"] == pytest.approx(159.0)
+
+
+#============================================
+
+def test_player_harvest_checkpoints_each_completed_group_before_a_later_failure(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Retain completed profile work when the next source profile cannot be parsed."""
+	entries = [{
+		"name": f"Player {number}", "slug": f"player{number}",
+		"playerUrl": f"https://www.basketball-reference.com/wnba/players/p/player{number}.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/TST/2026.html",
+	} for number in range(1, 7)]
+	checkpoint_path = tmp_path / "players.checkpoint.json"
+
+	def fake_get_page(_url: str, _referer: str) -> str:
+		return "<html></html>"
+
+	def fake_candidate(entry: dict[str, str], _html: str, _season: str,
+			_current: dict[str, float], _previous: dict[str, float]) -> dict:
+		if entry["slug"] == "player6":
+			raise ValueError("malformed sixth profile")
+		candidate = {
+			"playerId": entry["slug"], "playerPageSourceUrl": entry["playerUrl"],
+			"rosterSourceUrl": entry["rosterUrl"],
+		}
+		return candidate
+
+	monkeypatch.setattr(wnba_harvester, "get_page", fake_get_page)
+	monkeypatch.setattr(wnba_harvester, "candidate_from_entry", fake_candidate)
+	with pytest.raises(ValueError, match="malformed sixth profile"):
+		wnba_harvester.harvest_player_candidates(
+			entries, "2026", {}, {}, checkpoint_path
+		)
+	payload = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+	assert [candidate["playerId"] for candidate in payload["candidates"]] == [
+		"player1", "player2", "player3", "player4", "player5",
+	]
+
+
+#============================================
+
+def test_player_harvest_resumes_after_the_checkpointed_prefix(
+		tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch) -> None:
+	"""Fetch only player pages that are absent from the matching checkpoint."""
+	entries = [{
+		"name": f"Player {number}", "slug": f"player{number}",
+		"playerUrl": f"https://www.basketball-reference.com/wnba/players/p/player{number}.html",
+		"rosterUrl": "https://www.basketball-reference.com/wnba/teams/TST/2026.html",
+	} for number in range(1, 7)]
+	cached_candidates = [{
+		"playerId": entry["slug"], "playerPageSourceUrl": entry["playerUrl"],
+		"rosterSourceUrl": entry["rosterUrl"],
+	} for entry in entries[:-1]]
+	checkpoint_path = tmp_path / "players.checkpoint.json"
+	fingerprint = wnba_harvester.harvest_source_fingerprint(entries, "2026", {}, {})
+	wnba_harvester.write_harvest_checkpoint(
+		checkpoint_path, fingerprint, cached_candidates
+	)
+	fetched_urls = []
+
+	def fake_get_page(url: str, _referer: str) -> str:
+		fetched_urls.append(url)
+		return "<html></html>"
+
+	def fake_candidate(entry: dict[str, str], _html: str, _season: str,
+			_current: dict[str, float], _previous: dict[str, float]) -> dict:
+		candidate = {
+			"playerId": entry["slug"], "playerPageSourceUrl": entry["playerUrl"],
+			"rosterSourceUrl": entry["rosterUrl"],
+		}
+		return candidate
+
+	monkeypatch.setattr(wnba_harvester, "get_page", fake_get_page)
+	monkeypatch.setattr(wnba_harvester, "candidate_from_entry", fake_candidate)
+	candidates = wnba_harvester.harvest_player_candidates(
+		entries, "2026", {}, {}, checkpoint_path
+	)
+	assert fetched_urls == [entries[-1]["playerUrl"]]
+	assert [candidate["playerId"] for candidate in candidates] == [
+		"player1", "player2", "player3", "player4", "player5", "player6",
+	]

@@ -262,10 +262,10 @@ async function main() {
     playerCount: players.length,
     puzzleDateUtc,
     baselineFirstGuess: chooseInformationGainGuess(players, puzzleDateUtc),
-    baseline: [5, 6, 7].map((guessLimit) =>
+    baseline: [5, 6, 7, 9].map((guessLimit) =>
       summarize(players, puzzleDateUtc, guessLimit, "information-gain"),
     ),
-    lowestId: [5, 6, 7].map((guessLimit) =>
+    lowestId: [5, 6, 7, 9].map((guessLimit) =>
       summarize(players, puzzleDateUtc, guessLimit, "lowest-id"),
     ),
     clues: measureClueDiscrimination(players, puzzleDateUtc),

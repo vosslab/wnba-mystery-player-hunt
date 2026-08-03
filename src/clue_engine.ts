@@ -42,9 +42,11 @@ function formatDraftPick(player: PlayerRecord): string {
   return `#${player.draft.overallPick}`;
 }
 
+const POSITION_DISPLAY_ORDER: readonly PositionCode[] = ["G", "F", "C"];
+
 function allPositions(player: PlayerRecord): readonly PositionCode[] {
-  const positions = [player.positionPrimary, ...player.positionAlternates];
-  return positions;
+  const sourcePositions = new Set([player.positionPrimary, ...player.positionAlternates]);
+  return POSITION_DISPLAY_ORDER.filter((position) => sourcePositions.has(position));
 }
 
 function formatPosition(player: PlayerRecord): string {
@@ -143,12 +145,17 @@ export function evaluateAge(
 }
 
 export function evaluatePosition(guess: PlayerRecord, target: PlayerRecord): FeedbackMatch {
-  if (guess.positionPrimary === target.positionPrimary) {
+  const guessPositions = allPositions(guess);
+  const targetPositions = allPositions(target);
+  if (
+    guessPositions.length === targetPositions.length &&
+    guessPositions.every((position, index) => position === targetPositions[index])
+  ) {
     return "exact";
   }
 
-  const targetPositions = new Set(allPositions(target));
-  const overlaps = allPositions(guess).some((position) => targetPositions.has(position));
+  const targetPositionSet = new Set(targetPositions);
+  const overlaps = guessPositions.some((position) => targetPositionSet.has(position));
   return overlaps ? "partial" : "miss";
 }
 
